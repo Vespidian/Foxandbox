@@ -7,6 +7,7 @@ xcopy /Y initialize.c ..
 xcopy /Y data.c ..
 xcopy /Y drawFunctions.c ..
 xcopy /Y tileMap.c ..
+xcopy /Y collision.c ..
 
 cd ..
 
@@ -16,7 +17,7 @@ echo.
 echo.
 
 REM tcc -Wl,-subsystem=gui -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
-tcc -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
+tcc -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c collision.c
 
 echo.
 echo.
@@ -27,6 +28,7 @@ del initialize.c
 del data.c
 del drawFunctions.c
 del tileMap.c
+del collision.c
 rmdir /S /Q headers
 
 xcopy /Y main.exe World_Builder\

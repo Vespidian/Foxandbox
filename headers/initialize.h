@@ -19,6 +19,7 @@ extern TTF_Font *font;
 
 void MapInit();
 void TextureInit();
+void TextureDestroy();
 
 
 #endif

@@ -30,13 +30,14 @@ SDL_Texture *tileSheetTex = NULL;
 SDL_Texture *furnitureTex = NULL;
 SDL_Texture *characterTex = NULL;
 void TextureInit(){
-	tileSheetTex = IMG_LoadTexture(gRenderer, "images/tileSheet.png");
+	tileSheetTex = IMG_LoadTexture(gRenderer, "images/stardewDesert.png");
 	furnitureTex = IMG_LoadTexture(gRenderer, "images/furniture.png");
 	characterTex = IMG_LoadTexture(gRenderer, "images/slime.png");
 }
 
 void MapInit(){
 	LoadMap("maps/testMap_layer0.csv", map);
+	LoadMap("maps/testMap_layer1.csv", map1);
 	LoadMap("maps/testMap_colliders.csv", colMap);
 	LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
 	LoadMap("maps/testMap_features-passable.csv", passableMap);
@@ -44,6 +45,7 @@ void MapInit(){
 
 void TextureDestroy(){
 	SDL_DestroyTexture(tileSheetTex);	
+	SDL_DestroyTexture(furnitureTex);	
 	SDL_DestroyTexture(characterTex);
 }
 
