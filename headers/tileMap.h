@@ -9,9 +9,7 @@ extern int passableMap[32][32];
 
 extern int tilePixelSize;
 
-void LoadImage(SDL_Rect destRect, SDL_Rect sourceRect, SDL_Texture *sourceTexture);
-
-Vector2 GetTileSheetLocation(int tileNum);
+void RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileWidth, int tileNum, SDL_Rect destRect);
 
 void LoadMap(char *fileLoc, int mapArray[][32]);
 

@@ -17,5 +17,8 @@ extern int HEIGHT;
 
 extern TTF_Font *font;
 
+void MapInit();
+void TextureInit();
+
 
 #endif

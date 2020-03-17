@@ -24,21 +24,19 @@ int map[32][32] = {};
 int furnitureMap[32][32] = {};
 int passableMap[32][32] = {};
 
-// int passableMap[32][32] = {};
-
-void LoadImage(SDL_Rect destRect, SDL_Rect sourceRect, SDL_Texture *sourceTexture) {
-	SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
-}
-
-Vector2 GetTileSheetLocation(int tileNum){
+void RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileWidth, int tileNum, SDL_Rect destRect){
+	Vector2 tileInSheet;
 	for(int y = 0; y < tileSheetWidth; y++){
 		for(int x = 0; x < tileSheetWidth; x++){
 			if(x + y * (tileSheetWidth) == tileNum){
-				Vector2 tileInSheet = {x * tilePixelSize, y * tilePixelSize};
-				return tileInSheet;
+				tileInSheet.x = x * tileWidth;
+				tileInSheet.y = y * tileWidth;
+				// return tileInSheet;
 			}
 		}
 	}
+	SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileWidth, tileWidth};
+	SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
 }
 
 void LoadMap(char *fileLoc, int mapArray[][32]){
@@ -76,9 +74,11 @@ void DrawMap(SDL_Texture *textureSheet, int mapArray[][32]){
 					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 					for(int i = 0; i < tileSheetWidth * tileSheetWidth; i++){
 						if(mapArray[y][x] == i){
-							Vector2 tilePosInSheet = GetTileSheetLocation(i);
-							SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
-							LoadImage(tile, tileLocation, textureSheet);
+							// Vector2 tilePosInSheet = GetTileSheetLocation(i, textureSheetNumOfTiles);
+							// SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
+							// LoadImage(tile, tileLocation, textureSheet);
+							
+							RenderTextureFromSheet(gRenderer, textureSheet, 8, 16, i, tile);
 						}
 					}
 					// Highlight the tile the mouse is currently on

@@ -35,6 +35,13 @@ void TextureInit(){
 	characterTex = IMG_LoadTexture(gRenderer, "images/slime.png");
 }
 
+void MapInit(){
+	LoadMap("maps/testMap_layer0.csv", map);
+	LoadMap("maps/testMap_colliders.csv", colMap);
+	LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
+	LoadMap("maps/testMap_features-passable.csv", passableMap);
+}
+
 void TextureDestroy(){
 	SDL_DestroyTexture(tileSheetTex);	
 	SDL_DestroyTexture(characterTex);
@@ -52,10 +59,7 @@ bool init(bool initTTF){
 	// SDL_SetWindowResizable(gWindow, true);
 
 	TextureInit();
-	LoadMap("maps/testMap_layer0.csv", map);
-	LoadMap("maps/testMap_colliders.csv", colMap);
-	LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
-	LoadMap("maps/testMap_features-passable.csv", passableMap);
+	MapInit();
 	// LoadMap("maps/untitled_features-passable.csv", passableMap);
 	// TTF_Font *font = TTF_OpenFont("fonts/font.ttf", 12);
 	

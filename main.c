@@ -44,6 +44,27 @@ SDL_Rect charCollider;
 int layerOrder = 0;
 // bool isBehind = false;
 
+char *characterFacing = "down";
+
+void DrawCharacter(char *direction){
+	SDL_Rect charPos = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize};
+	
+	if(strcmp(direction, "up") == 0){
+		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 0, charPos);
+		
+	}else if(strcmp(direction, "down") == 0){
+		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 1, charPos);
+		
+	}else if(strcmp(direction, "left") == 0){
+		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 2, charPos);
+		
+	}else if(strcmp(direction, "right") == 0){
+		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 3, charPos);
+		
+	}
+}
+
+
 int main(int argc, char **argv) {
 	init();
 	
@@ -148,15 +169,19 @@ int main(int argc, char **argv) {
 
 			if(currentKeyStates[SDL_SCANCODE_W] && !colUp){
 				worldPosition.y += 4;
+				characterFacing = "up";
 			}
 			if(currentKeyStates[SDL_SCANCODE_A] && !colLeft){
-				worldPosition.x += 4;
-			}
-			if(currentKeyStates[SDL_SCANCODE_S] && !colDown){
-				worldPosition.y -= 4;
+				worldPosition.x += 4;		
+				characterFacing = "left";
 			}
 			if(currentKeyStates[SDL_SCANCODE_D] && !colRight){
 				worldPosition.x -= 4;
+				characterFacing = "right";
+			}
+			if(currentKeyStates[SDL_SCANCODE_S] && !colDown){
+				worldPosition.y -= 4;
+				characterFacing = "down";
 			}
 			
 			if(currentKeyStates[SDL_SCANCODE_E]){
@@ -168,7 +193,8 @@ int main(int argc, char **argv) {
 			while(SDL_PollEvent(&e) != 0){				
 				if(e.type == SDL_KEYDOWN){
 					if(e.key.keysym.sym == SDLK_t){
-						
+						TextureInit();
+						MapInit();
 					}
 				}else if(e.type == SDL_QUIT){
 					quit = true;
@@ -193,19 +219,21 @@ void RenderScreen(){
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawMap(tileSheetTex, map);
 	// RenderText("woohoo", 100, 100);
-	SDL_Rect charPos = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize};
 	if(layerOrder == 0){
 		DrawMap(furnitureTex, furnitureMap);
 		DrawMap(furnitureTex, passableMap);
 		// DrawMap(furnitureTex, passableMap);
-		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		DrawCharacter(characterFacing);
 	}else if(layerOrder == 1){
 		DrawMap(furnitureTex, furnitureMap);
-		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		DrawCharacter(characterFacing);
 		DrawMap(furnitureTex, passableMap);
 		// DrawMap(furnitureTex, passableMap);
 	}else if(layerOrder == 2){
-		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		// SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		
+		DrawCharacter(characterFacing);
+		
 		DrawMap(furnitureTex, furnitureMap);
 		DrawMap(furnitureTex, passableMap);
 	}
