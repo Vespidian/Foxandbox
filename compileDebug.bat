@@ -15,8 +15,8 @@ echo.
 echo.
 echo.
 
-tcc -Wl,-subsystem=gui -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
-REM tcc -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
+REM tcc -Wl,-subsystem=gui -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
+tcc -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c
 
 echo.
 echo.

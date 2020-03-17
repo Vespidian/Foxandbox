@@ -3,6 +3,9 @@
 
 extern int colMap[32][32];
 extern int map[32][32];
+extern int furnitureMap[32][32];
+extern int passableMap[32][32];
+// extern int passableMap[32][32];
 
 extern int tilePixelSize;
 

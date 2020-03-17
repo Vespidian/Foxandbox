@@ -39,22 +39,10 @@ int tileSize = 64;
 Vector2 worldPosition = {0, 0};
 Vector2 mousePos = {0, 0};
 
-/*Vector2 tileLocs[] = {
-	{0,  0}, // 0/16 + 0*4
-	{16, 0}, // 16/16 + 0*4
-	{32, 0}, // 32/16 + 0*4
-	{48, 0}, // 48/16 + 0*4
-	{0,  1}, // 0/16 + 1*4
-	{16,  1}, // 16/16 + 1*4
-	{32, 1}, // 32/16 + 1*4
-	{48, 1}, // 48/16 + 1*4
-	{0, 2}, // 0/16 + 2*4
-	{16, 2}, // 16/16 + 2*4
-
-	//Formula -->  x / pixelSizeOfTile + y * numberOfTilesInFile
-};*/
-
 SDL_Rect charCollider;
+
+int layerOrder = 0;
+// bool isBehind = false;
 
 int main(int argc, char **argv) {
 	init();
@@ -79,10 +67,11 @@ int main(int argc, char **argv) {
 			
 			
 			SDL_Rect charCollider_bottom = {(WIDTH / 2 - tileSize / 2) + 4, (HEIGHT / 2 - tileSize / 2) + tileSize, tileSize - 8, 1};
-			SDL_Rect charCollider_right = {(WIDTH / 2 - tileSize / 2) + tileSize - 4, (HEIGHT / 2 - tileSize / 2) + 16, 1, tileSize - 16};
-			SDL_Rect charCollider_left = {(WIDTH / 2 - tileSize / 2) + 3, (HEIGHT / 2 - tileSize / 2) + 16, 1, tileSize - 16};
-			SDL_Rect charCollider_top = {(WIDTH / 2 - tileSize / 2) + 4, (HEIGHT / 2 - tileSize / 2) + 15, tileSize - 8, 1};
+			SDL_Rect charCollider_right = {(WIDTH / 2 - tileSize / 2) + tileSize - 4, (HEIGHT / 2 - tileSize / 2) + 60, 1, 4};
+			SDL_Rect charCollider_left = {(WIDTH / 2 - tileSize / 2) + 3, (HEIGHT / 2 - tileSize / 2) + 60, 1, 4};
+			SDL_Rect charCollider_top = {(WIDTH / 2 - tileSize / 2) + 4, (HEIGHT / 2 - tileSize / 2) + 59, tileSize - 8, 1};
 			
+			//Render the player's hitbox
 			SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 			// SDL_RenderDrawRect(gRenderer, &charCollider_top);
 			// SDL_RenderDrawRect(gRenderer, &charCollider_bottom);
@@ -91,9 +80,47 @@ int main(int argc, char **argv) {
 			
 			for(int y = 0; y < 32; y++){
 				for(int x = 0; x < 32; x++){
-					if(colMap[y][x] == 1){
-						SDL_Rect tileR = {(x * tileSize) + worldPosition.x, (y * tileSize) + worldPosition.y, tileSize, tileSize};
-						// SDL_RenderDrawRect(gRenderer, &tileR);
+					SDL_Rect tileR = {(x * tileSize) + worldPosition.x, (y * tileSize) + worldPosition.y, tileSize, tileSize};
+					if(colMap[y][x] == 0){
+						SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
+						if(SDL_HasIntersection(&tileR, &charCollider_top)){
+							colUp = true;
+						}
+						if(SDL_HasIntersection(&tileR, &charCollider_bottom)){
+							colDown = true;
+						}
+						if(SDL_HasIntersection(&tileR, &charCollider_left)){
+							colLeft = true;
+						}
+						if(SDL_HasIntersection(&tileR, &charCollider_right)){
+							colRight = true;
+						}
+					}else if(colMap[y][x] == 1){
+						SDL_SetRenderDrawColor(gRenderer, 0, 0, 150, 0);
+						//Only put the character behind if the character is intersecting with said tile
+						if(SDL_HasIntersection(&tileR, &charCollider)){
+							if(tileR.y + tileSize < charCollider_bottom.y){
+								// isBehind = true;
+								layerOrder = 0;
+							}else{
+								layerOrder = 1;
+								// isBehind = false;
+							}
+						}
+					}else if(colMap[y][x] == 4){
+						SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
+						if(SDL_HasIntersection(&tileR, &charCollider)){
+							if(tileR.y + tileSize < charCollider_bottom.y){
+								// isBehind = true;
+								layerOrder = 0;
+							}else{
+								// isBehind = false;
+								layerOrder = 2;
+							}
+						}
+						
+						tileR.y = (y * tileSize) + worldPosition.y + tileSize / 2;
+						tileR.h = tileSize / 2;
 						if(SDL_HasIntersection(&tileR, &charCollider_top)){
 							colUp = true;
 						}
@@ -107,6 +134,9 @@ int main(int argc, char **argv) {
 							colRight = true;
 						}
 					}
+					if(colMap[y][x] != -1){
+						// SDL_RenderDrawRect(gRenderer, &tileR);
+					}
 				}
 			}
 			
@@ -118,19 +148,15 @@ int main(int argc, char **argv) {
 
 			if(currentKeyStates[SDL_SCANCODE_W] && !colUp){
 				worldPosition.y += 4;
-				// printf("%d, %d\n", worldPosition.x, worldPosition.y);
 			}
 			if(currentKeyStates[SDL_SCANCODE_A] && !colLeft){
 				worldPosition.x += 4;
-				// printf("%d, %d\n", worldPosition.x, worldPosition.y);
 			}
 			if(currentKeyStates[SDL_SCANCODE_S] && !colDown){
 				worldPosition.y -= 4;
-				// printf("%d, %d\n", worldPosition.x, worldPosition.y);
 			}
 			if(currentKeyStates[SDL_SCANCODE_D] && !colRight){
 				worldPosition.x -= 4;
-				// printf("%d, %d\n", worldPosition.x, worldPosition.y);
 			}
 			
 			if(currentKeyStates[SDL_SCANCODE_E]){
@@ -142,7 +168,7 @@ int main(int argc, char **argv) {
 			while(SDL_PollEvent(&e) != 0){				
 				if(e.type == SDL_KEYDOWN){
 					if(e.key.keysym.sym == SDLK_t){
-						printf("Hellllo World!");
+						
 					}
 				}else if(e.type == SDL_QUIT){
 					quit = true;
@@ -166,8 +192,38 @@ void RenderScreen(){
 	
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawMap(tileSheetTex, map);
-	
-	
+	// RenderText("woohoo", 100, 100);
 	SDL_Rect charPos = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize};
-	SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+	if(layerOrder == 0){
+		DrawMap(furnitureTex, furnitureMap);
+		DrawMap(furnitureTex, passableMap);
+		// DrawMap(furnitureTex, passableMap);
+		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+	}else if(layerOrder == 1){
+		DrawMap(furnitureTex, furnitureMap);
+		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		DrawMap(furnitureTex, passableMap);
+		// DrawMap(furnitureTex, passableMap);
+	}else if(layerOrder == 2){
+		SDL_RenderCopy(gRenderer, characterTex, NULL, &charPos);
+		DrawMap(furnitureTex, furnitureMap);
+		DrawMap(furnitureTex, passableMap);
+	}
 }
+
+/*void RenderText(char *text, int x, int y){
+	SDL_Color coloor = {255, 255, 255};
+	SDL_Surface *fSurface = TTF_RenderText_Blended(font, text, coloor);//problem here
+	SDL_Texture *fTexture = SDL_CreateTextureFromSurface(gRenderer, fSurface);
+	
+	SDL_Rect destRect = {x, y, 500, 500};
+	
+	// SDL_Surface *screen = SDL_GetWindowSurface(gWindow);
+	SDL_QueryTexture(fTexture, NULL, NULL, &destRect.w, &destRect.h);
+	SDL_RenderCopy(gRenderer, fTexture, NULL, &destRect);
+	// SDL_BlitSurface(fSurface, NULL, screen, &destRect);
+	
+	SDL_DestroyTexture(fTexture);
+	// SDL_FreeSurface(screen);
+	SDL_FreeSurface(fSurface);
+}*/

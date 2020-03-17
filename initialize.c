@@ -24,14 +24,14 @@ int WIDTH = 960;
 int HEIGHT = 960;
 bool success = true;
 
-
-//SDL_Surface *gPng = NULL;
-//SDL_Texture *tex = NULL;
+TTF_Font *font = NULL;
 
 SDL_Texture *tileSheetTex = NULL;
+SDL_Texture *furnitureTex = NULL;
 SDL_Texture *characterTex = NULL;
 void TextureInit(){
 	tileSheetTex = IMG_LoadTexture(gRenderer, "images/tileSheet.png");
+	furnitureTex = IMG_LoadTexture(gRenderer, "images/furniture.png");
 	characterTex = IMG_LoadTexture(gRenderer, "images/slime.png");
 }
 
@@ -43,17 +43,21 @@ void TextureDestroy(){
 bool init(bool initTTF){
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
-	if(initTTF){
-		TTF_Init();
-	}
+	// if(initTTF){
+		// TTF_Init();
+	// }
 	gWindow = SDL_CreateWindow("SDL_Template", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	
 	// SDL_SetWindowResizable(gWindow, true);
 
 	TextureInit();
-	LoadMap("maps/untitled.csv", map);
-	LoadMap("maps/untitledCol.csv", colMap);
+	LoadMap("maps/testMap_layer0.csv", map);
+	LoadMap("maps/testMap_colliders.csv", colMap);
+	LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
+	LoadMap("maps/testMap_features-passable.csv", passableMap);
+	// LoadMap("maps/untitled_features-passable.csv", passableMap);
+	// TTF_Font *font = TTF_OpenFont("fonts/font.ttf", 12);
 	
 	return success;
 }
@@ -65,6 +69,7 @@ void Quit() {
 	gRenderer = NULL;
 	
 	TextureDestroy();
+	// TTF_CloseFont(font);
 	
 	IMG_Quit();
 	TTF_Quit();

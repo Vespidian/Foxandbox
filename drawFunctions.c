@@ -1,5 +1,6 @@
 #include <math.h>
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 #include "headers/DataTypes.h"
 #include "headers/initialize.h"
 // #include "headers/data.h"
