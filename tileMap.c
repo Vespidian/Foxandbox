@@ -25,18 +25,25 @@ int map1[32][32] = {};
 int furnitureMap[32][32] = {};
 int passableMap[32][32] = {};
 
+int tempMap1[32][32] = {};
+int tempMap2[32][32] = {};
+/*Formula
+
+x = (tileNum % tileSheetWidth) * 16
+y = (tileNum / tileSheetWidth) * 16
+
+*/
 void RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileWidth, int tileNum, SDL_Rect destRect){
 	Vector2 tileInSheet;
-	for(int y = 0; y < tileSheetWidth; y++){
-		for(int x = 0; x < tileSheetWidth; x++){
-			if(x + y * (tileSheetWidth) == tileNum){
-				tileInSheet.x = x * tileWidth;
-				tileInSheet.y = y * tileWidth;
-			}
-		}
+	if(tileNum <= tileSheetWidth * tileSheetWidth - 1){
+		tileInSheet.x = (tileNum % tileSheetWidth) * 16;
+		tileInSheet.y = (tileNum / tileSheetWidth) * 16;
+		
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileWidth, tileWidth};
+		SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
+	}else{
+		printf("Error: Tile index not in image bounds!");
 	}
-	SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileWidth, tileWidth};
-	SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
 }
 
 void LoadMap(char *fileLoc, int mapArray[][32]){
@@ -58,6 +65,41 @@ void LoadMap(char *fileLoc, int mapArray[][32]){
 		// printf("\n");
 	}
 	fclose(fp);
+}
+
+void ExtrapolateMap(char *file, int map1[][32], int map2[][32]){
+	FILE *fp = fopen(file, "r");
+	char buffer[512];
+	char *parsedInt;
+	
+	for(int y = 0; y <= 31; y++){
+		fgets(buffer, sizeof(buffer) / sizeof(buffer[0]), fp);
+		parsedInt = strtok(buffer, ",");
+		
+		for(int x = 0; x <= 31; x++){
+			if(y % 2 == 0){
+				map1[y][x] = strtol(parsedInt, NULL, 10);
+				map2[y][x] = -1;
+			}else{
+				map2[y][x] = strtol(parsedInt, NULL, 10);
+				map1[y][x] = -1;
+			}
+			parsedInt = strtok(NULL, ",");
+			// printf("%s", parsedInt);
+			// printf("%d", map2[y][x]);
+		}
+		// printf("\n");
+	}
+	fclose(fp);
+}
+
+void TextExtrapolate(int map[][32]){
+	for(int y = 0; y <= 31; y++){
+		for(int x = 0; x <= 31; x++){
+			printf("%d", map[y][x]);
+		}
+		printf("\n");
+	}
 }
 
 void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){

@@ -39,8 +39,16 @@ void MapInit(){
 	LoadMap("maps/testMap_layer0.csv", map);
 	LoadMap("maps/testMap_layer1.csv", map1);
 	LoadMap("maps/testMap_colliders.csv", colMap);
-	LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
-	LoadMap("maps/testMap_features-passable.csv", passableMap);
+	// LoadMap("maps/testMap_features-collidable.csv", furnitureMap);
+	// LoadMap("maps/testMap_features-passable.csv", passableMap);
+	
+	
+	// printf("\n\n%d\n\n", 15 / 4);
+	ExtrapolateMap("maps/testMap_temp.csv", furnitureMap, passableMap);
+	// TextExtrapolate(tempMap1);
+	// printf("\n\n");
+	// TextExtrapolate(tempMap2);
+	// TextExtrapolate(map);
 }
 
 void TextureDestroy(){

@@ -27,6 +27,8 @@ bool colRight;
 
 SDL_Rect charCollider;
 
+int currentCollisions[3] = {-1, -1, -1};
+
 SDL_Rect setRect(int x, int y, int w, int h){
 	SDL_Rect returnRect = {x, y, w, h};
 	return returnRect;
@@ -84,16 +86,35 @@ void FindCollisions(){
 			if(SDL_HasIntersection(&tileR, &charCollider) && colMap[y][x] != -1){
 				if(colMap[y][x] == 0){//YELLOW
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
+					if(y % 2 == 0){
+						ChangeOrder(tileR, charCollider, 0, 2);
+					}else{
+						ChangeOrder(tileR, charCollider, 0, 1	);
+					}
 					CheckCollisions(tileR);
 					
 				}else if(colMap[y][x] == 1){//BLUE
 					SDL_SetRenderDrawColor(gRenderer, 0, 0, 150, 0);
+					if(y % 2 == 0){
+						ChangeOrder(tileR, charCollider, 0, 1);
+					}else{
+						ChangeOrder(tileR, charCollider, 0, 2);
+					}
+				
+				}else if(colMap[y][x] == 2){//BLUE
+					SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 0);
 					//Only put the character behind if the character is intersecting with said tile
-					ChangeOrder(tileR, charCollider, 0, 1);
+					ChangeOrder(tileR, charCollider, 0, 3);
 					
 				}else if(colMap[y][x] == 8){//YELLOW
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
+					
+					if(y % 2 == 0){
+						ChangeOrder(tileR, charCollider, 0, 1);
+					}else{
+						ChangeOrder(tileR, charCollider, 0, 2);
+					}
 					
 					tileR.y = (y * tileSize) + worldPosition.y + tileSize / 2;
 					tileR.h = tileSize / 2;
@@ -121,7 +142,7 @@ void FindCollisions(){
 					tileR.w = tileSize / 2;
 					CheckCollisions(tileR);
 					
-				}else if(colMap[y][x] == 24){//
+				}else if(colMap[y][x] == 24){//Quarter tiles
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
 					
@@ -158,7 +179,6 @@ void FindCollisions(){
 					CheckCollisions(tileR);
 					
 				}
-				
 				
 				if(colMap[y][x] != -1 && enableHitboxes){
 					SDL_RenderDrawRect(gRenderer, &tileR);

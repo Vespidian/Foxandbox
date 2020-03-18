@@ -6,6 +6,9 @@ extern int map[32][32];
 extern int map1[32][32];
 extern int furnitureMap[32][32];
 extern int passableMap[32][32];
+
+extern int tempMap1[32][32];
+extern int tempMap2[32][32];
 // extern int passableMap[32][32];
 
 extern int tilePixelSize;
@@ -15,5 +18,10 @@ void RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture,
 void LoadMap(char *fileLoc, int mapArray[][32]);
 
 void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]);
+
+
+void TextExtrapolate(int map[][32]);
+
+void ExtrapolateMap(char *file, int map1[][32], int map2[][32]);
 
 #endif

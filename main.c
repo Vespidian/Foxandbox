@@ -45,21 +45,21 @@ int layerOrder = 0;
 bool enableHitboxes = false;
 
 
-char *characterFacing = "down";
+int characterFacing = 0;
 
-void DrawCharacter(char *direction){
+void DrawCharacter(int direction){
 	SDL_Rect charPos = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize};
 	
-	if(strcmp(direction, "up") == 0){
+	if(direction == 2){
 		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 0, charPos);
 		
-	}else if(strcmp(direction, "down") == 0){
+	}else if(direction == 0){
 		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 1, charPos);
 		
-	}else if(strcmp(direction, "left") == 0){
+	}else if(direction == 1){
 		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 2, charPos);
 		
-	}else if(strcmp(direction, "right") == 0){
+	}else if(direction == 3){
 		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 3, charPos);
 		
 	}
@@ -94,25 +94,25 @@ int main(int argc, char **argv) {
 				if(!colUp){
 					worldPosition.y += 4;
 				}
-				characterFacing = "up";
+				characterFacing = 2;
 			}
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
 					worldPosition.x += 4;	
 				}
-				characterFacing = "left";
+				characterFacing = 1;
 			}
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
 					worldPosition.x -= 4;
 				}
-				characterFacing = "right";
+				characterFacing = 3;
 			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
 					worldPosition.y -= 4;
 				}
-				characterFacing = "down";
+				characterFacing = 0;
 			}
 			
 			if(currentKeyStates[SDL_SCANCODE_E]){
@@ -165,15 +165,18 @@ void RenderScreen(){
 		// DrawMap(furnitureTex, passableMap);
 		DrawCharacter(characterFacing);
 	}else if(layerOrder == 1){
+		DrawMap(furnitureTex, 8, passableMap);
+		DrawCharacter(characterFacing);
+		DrawMap(furnitureTex, 8, furnitureMap);
+	}else if(layerOrder == 2){
 		DrawMap(furnitureTex, 8, furnitureMap);
 		DrawCharacter(characterFacing);
 		DrawMap(furnitureTex, 8, passableMap);
-		// DrawMap(furnitureTex, passableMap);
-	}else if(layerOrder == 2){		
+	}else if(layerOrder == 3){		
 		DrawCharacter(characterFacing);
+		DrawMap(furnitureTex, 8, passableMap);
+		DrawMap(furnitureTex, 8, furnitureMap);
 		
-		DrawMap(furnitureTex, 8, furnitureMap);
-		DrawMap(furnitureTex, 8, passableMap);
 	}
 	// printf("%d", layerOrder);
 }
