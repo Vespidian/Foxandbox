@@ -29,10 +29,15 @@ TTF_Font *font = NULL;
 SDL_Texture *tileSheetTex = NULL;
 SDL_Texture *furnitureTex = NULL;
 SDL_Texture *characterTex = NULL;
+SDL_Texture *backgroundTex = NULL;
+
+SDL_Texture *colorModTex = NULL;
+
 void TextureInit(){
-	tileSheetTex = IMG_LoadTexture(gRenderer, "images/stardewDesert.png");
+	tileSheetTex = IMG_LoadTexture(gRenderer, "images/groundTiles.png");
 	furnitureTex = IMG_LoadTexture(gRenderer, "images/furniture.png");
-	characterTex = IMG_LoadTexture(gRenderer, "images/slime.png");
+	characterTex = IMG_LoadTexture(gRenderer, "images/character.png");
+	backgroundTex = IMG_LoadTexture(gRenderer, "images/background.png");
 }
 
 void MapInit(){
@@ -45,10 +50,6 @@ void MapInit(){
 	
 	// printf("\n\n%d\n\n", 15 / 4);
 	ExtrapolateMap("maps/testMap_temp.csv", furnitureMap, passableMap);
-	// TextExtrapolate(tempMap1);
-	// printf("\n\n");
-	// TextExtrapolate(tempMap2);
-	// TextExtrapolate(map);
 }
 
 void TextureDestroy(){
@@ -67,9 +68,15 @@ bool init(bool initTTF){
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	
 	// SDL_SetWindowResizable(gWindow, true);
+	SDL_Surface *gIcon = IMG_Load("images/icon.png");
+	SDL_SetWindowIcon(gWindow, gIcon);
 
 	TextureInit();
+	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
 	MapInit();
+	
+	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
+	SDL_SetTextureAlphaMod(colorModTex, 256);
 	// LoadMap("maps/untitled_features-passable.csv", passableMap);
 	// TTF_Font *font = TTF_OpenFont("fonts/font.ttf", 12);
 	

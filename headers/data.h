@@ -12,7 +12,9 @@ int getRnd(int min, int max);
 bool GetClick(int x1, int y1, int x2, int y2);
 
 extern Vector2 worldPosition;
+extern Vector2 characterOffset;
 extern Vector2 mousePos;
+extern Vector2 midScreen;
 void RenderText(char *text, int x, int y);
 
 extern int tileSize;

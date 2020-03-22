@@ -8,7 +8,9 @@ extern SDL_Renderer* gRenderer;
 extern SDL_Texture *tileSheetTex;
 extern SDL_Texture *furnitureTex;
 extern SDL_Texture *characterTex;
+extern SDL_Texture *backgroundTex;
 
+extern SDL_Texture *colorModTex;
 // extern bool init();
 void Quit();
 
@@ -20,6 +22,5 @@ extern TTF_Font *font;
 void MapInit();
 void TextureInit();
 void TextureDestroy();
-
 
 #endif

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stddef.h>
+#include <time.h>
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
@@ -38,88 +39,84 @@ static const int targetFramerate = 30;
 int tileSize = 64;
 
 Vector2 worldPosition = {0, 0};
+Vector2 characterOffset = {0, 0};
 Vector2 mousePos = {0, 0};
+Vector2 midScreen = {0, 0};
 
 int layerOrder = 0;
 // bool isBehind = false;
 bool enableHitboxes = false;
 
-
 int characterFacing = 0;
 
-void DrawCharacter(int direction){
-	SDL_Rect charPos = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize};
+void DrawCharacter(int direction, int numFrames){
+	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
 	
-	if(direction == 2){
-		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 0, charPos);
-		
-	}else if(direction == 0){
-		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 1, charPos);
-		
-	}else if(direction == 1){
-		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 2, charPos);
-		
-	}else if(direction == 3){
-		RenderTextureFromSheet(gRenderer, characterTex, 4, 16, 3, charPos);
-		
-	}
+	int animFrame = 0;
+	
+	animFrame = (int)(SDL_GetTicks() / 300) % numFrames;
+	
+	RenderTextureFromSheet(gRenderer, characterTex, 4, 6, 16, animFrame + (direction * 4), charPos);
 }
 
 int main(int argc, char **argv) {
 	init();
-	
 	if(init){
+		SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
+		midScreen.x = (WIDTH / 2 - tileSize / 2);
+		midScreen.y = (HEIGHT / 2 - tileSize / 2);
+		characterOffset = midScreen;
 		while(!quit){	
 			
 			RenderScreen();
 			
-			//Render the player's hitbox
-			SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
-			if(enableHitboxes){
-				SDL_RenderDrawRect(gRenderer, &charCollider_top);
-				SDL_RenderDrawRect(gRenderer, &charCollider_bottom);
-				SDL_RenderDrawRect(gRenderer, &charCollider_right);
-				SDL_RenderDrawRect(gRenderer, &charCollider_left);
-			}
 			
-			FindCollisions();
-			
-			SDL_RenderPresent(gRenderer);
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			if(currentKeyStates[SDL_SCANCODE_RETURN] || currentKeyStates[SDL_SCANCODE_ESCAPE]){
 				quit = true;
 			}
 
-			if(currentKeyStates[SDL_SCANCODE_W]){
-				if(!colUp){
-					worldPosition.y += 4;
-				}
-				characterFacing = 2;
-			}
+			characterFacing = 0;
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
-					worldPosition.x += 4;	
-				}
-				characterFacing = 1;
-			}
-			if(currentKeyStates[SDL_SCANCODE_D]){
-				if(!colRight){
 					worldPosition.x -= 4;
+				}
+				characterFacing = 4;
+			}
+			if(currentKeyStates[SDL_SCANCODE_W]){
+				if(!colUp){
+					worldPosition.y -= 4;
 				}
 				characterFacing = 3;
 			}
+			if(currentKeyStates[SDL_SCANCODE_D]){
+				if(!colRight){
+					worldPosition.x += 4;
+				}
+				characterFacing = 2;
+			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
-					worldPosition.y -= 4;
+					worldPosition.y += 4;
 				}
-				characterFacing = 0;
+				characterFacing = 1;
 			}
 			
 			if(currentKeyStates[SDL_SCANCODE_E]){
-				map[5][4] = 7;
-				printf("%d, %d\n", -worldPosition.x, -worldPosition.y + HEIGHT/2);
+				printf("%d, %d\n", worldPosition.x * 4, worldPosition.y * 4);
 			}
-			
+			if(currentKeyStates[SDL_SCANCODE_C]){
+				printf("%d, %d\n", characterOffset.x, characterOffset.y);
+			}
+			if(currentKeyStates[SDL_SCANCODE_R]){
+				printf("Width: %d, Height: %d\n", WIDTH, HEIGHT);
+			}
+			if(currentKeyStates[SDL_SCANCODE_Q]){
+				// printf("%d, %d\n", characterOffset.x, characterOffset.y);
+				characterOffset.x = 0;
+				characterOffset.y = 0;
+				printf("Character Offset Reset!");
+			}
 			
 			while(SDL_PollEvent(&e) != 0){				
 				if(e.type == SDL_KEYDOWN){
@@ -127,6 +124,10 @@ int main(int argc, char **argv) {
 						TextureDestroy();
 						TextureInit();
 						MapInit();
+					}
+					if(e.key.keysym.sym == SDLK_y){
+						characterOffset.x = midScreen.x;
+						characterOffset.y = midScreen.y;
 					}
 					if(e.key.keysym.sym == SDLK_x){
 						if(!enableHitboxes){
@@ -139,7 +140,6 @@ int main(int argc, char **argv) {
 					quit = true;
 				}
 			}
-			
 			//Game FrameRate
 			SDL_Delay(1000 / targetFramerate);
 		}
@@ -155,6 +155,7 @@ int main(int argc, char **argv) {
 void RenderScreen(){
 	clearScreen();
 	
+	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawMap(tileSheetTex, 16, map);
 	DrawMap(tileSheetTex, 16, map1);
@@ -162,23 +163,43 @@ void RenderScreen(){
 	if(layerOrder == 0){
 		DrawMap(furnitureTex, 8, furnitureMap);
 		DrawMap(furnitureTex, 8, passableMap);
-		// DrawMap(furnitureTex, passableMap);
-		DrawCharacter(characterFacing);
+		DrawCharacter(characterFacing, 2);
+		
 	}else if(layerOrder == 1){
 		DrawMap(furnitureTex, 8, passableMap);
-		DrawCharacter(characterFacing);
+		DrawCharacter(characterFacing, 2);
 		DrawMap(furnitureTex, 8, furnitureMap);
+		
 	}else if(layerOrder == 2){
 		DrawMap(furnitureTex, 8, furnitureMap);
-		DrawCharacter(characterFacing);
+		DrawCharacter(characterFacing, 2);
 		DrawMap(furnitureTex, 8, passableMap);
+		
 	}else if(layerOrder == 3){		
-		DrawCharacter(characterFacing);
+		DrawCharacter(characterFacing, 2);
 		DrawMap(furnitureTex, 8, passableMap);
 		DrawMap(furnitureTex, 8, furnitureMap);
 		
+	}else if(layerOrder == 4){		
+		DrawCharacter(characterFacing, 2);
+		DrawMap(furnitureTex, 8, furnitureMap);
+		DrawMap(furnitureTex, 8, passableMap);
+		
 	}
-	// printf("%d", layerOrder);
+	
+	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
+	//Render the player's hitbox
+	SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
+	if(enableHitboxes){
+		SDL_RenderDrawRect(gRenderer, &charCollider_top);
+		SDL_RenderDrawRect(gRenderer, &charCollider_bottom);
+		SDL_RenderDrawRect(gRenderer, &charCollider_right);
+		SDL_RenderDrawRect(gRenderer, &charCollider_left);
+	}
+	
+	FindCollisions();
+	
+	SDL_RenderPresent(gRenderer);
 }
 
 /*void RenderText(char *text, int x, int y){

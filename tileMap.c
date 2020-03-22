@@ -30,19 +30,21 @@ int tempMap2[32][32] = {};
 /*Formula
 
 x = (tileNum % tileSheetWidth) * 16
-y = (tileNum / tileSheetWidth) * 16
+y = (tileNum / tileSheetHeight) * 16
 
 */
-void RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileWidth, int tileNum, SDL_Rect destRect){
+int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect){
 	Vector2 tileInSheet;
-	if(tileNum <= tileSheetWidth * tileSheetWidth - 1){
-		tileInSheet.x = (tileNum % tileSheetWidth) * 16;
-		tileInSheet.y = (tileNum / tileSheetWidth) * 16;
+	if(tileNum <= tileSheetWidth * tileSheetHeight - 1){
+		tileInSheet.x = (tileNum % tileSheetWidth) * tileWidth;
+		tileInSheet.y = (tileNum / tileSheetWidth) * tileWidth;
 		
 		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileWidth, tileWidth};
 		SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
+		return 0;
 	}else{
-		printf("Error: Tile index not in image bounds!");
+		printf("Error: Tile index not in image bounds!\n");
+		return 1;
 	}
 }
 
@@ -106,7 +108,7 @@ void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			if(mapArray[y][x] != -1){
-				Vector2 tilePos = {(x * tileStretchSize) + worldPosition.x, (y * tileStretchSize) + worldPosition.y};
+				Vector2 tilePos = {(x * tileStretchSize) - worldPosition.x, (y * tileStretchSize) - worldPosition.y};
 				
 				SDL_Point p = {tilePos.x, tilePos.y};
 				SDL_Rect r = {-tileStretchSize, -tileStretchSize, WIDTH + tileStretchSize, HEIGHT + tileStretchSize};
@@ -120,18 +122,20 @@ void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
 							// SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
 							// LoadImage(tile, tileLocation, textureSheet);
 							
-							RenderTextureFromSheet(gRenderer, textureSheet, sheetWidth, 16, i, tile);
+							RenderTextureFromSheet(gRenderer, textureSheet, sheetWidth, sheetWidth, 16, i, tile);
 						}
 					}
 					// Highlight the tile the mouse is currently on
 					// if(map[y][x] != 3){
+						// if(SDL_GetMouseState(&mousePos.x, &mousePos.y)){
+							// printf("%d\n", mapArray[y][x]);
+						// }
 						SDL_GetMouseState(&mousePos.x, &mousePos.y);
 						SDL_Point mousePoint = {mousePos.x, mousePos.y};
 						if(SDL_PointInRect(&mousePoint, &tile)){
-							SDL_Rect mouseHighlight = {(x * tileStretchSize) + worldPosition.x, (y * tileStretchSize) + worldPosition.y, tileStretchSize, tileStretchSize};
+							SDL_Rect mouseHighlight = {(x * tileStretchSize) - worldPosition.x, (y * tileStretchSize) - worldPosition.y, tileStretchSize, tileStretchSize};
 							SDL_SetRenderDrawColor(gRenderer, 255, 211, 0, 0xff);
 							SDL_RenderDrawRect(gRenderer, &mouseHighlight);
-							// printf("%d\n", mapArray[y][x]);
 						}
 					// }
 				}
