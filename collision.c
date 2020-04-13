@@ -29,6 +29,8 @@ SDL_Rect charCollider;
 
 int currentCollisions[3] = {-1, -1, -1};
 
+Vector2 charTilePos = {0, 0};
+
 SDL_Rect setRect(int x, int y, int w, int h){
 	SDL_Rect returnRect = {x, y, w, h};
 	return returnRect;
@@ -78,10 +80,17 @@ void FindCollisions(){
 	charCollider_right = setRect(midScreen.x + tileSize - 4, midScreen.y + 60, 1, 4);
 	charCollider_left = setRect(midScreen.x + 3, midScreen.y + tileSize - 4, 1, 4);
 	charCollider_top = setRect(midScreen.x + 4, midScreen.y + 59, tileSize - 8, 1);
+	SDL_Point charP = {midScreen.x + tileSize / 2, midScreen.y + tileSize / 2};
 	
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			SDL_Rect tileR = {(x * tileSize) - worldPosition.x, (y * tileSize) - worldPosition.y, tileSize, tileSize};
+			
+			if(SDL_PointInRect(&charP, &tileR)){
+				// printf("%d, %d\n", x, y);
+				charTilePos = (Vector2){x, y};
+			}
+			
 			if(SDL_HasIntersection(&tileR, &charCollider) && colMap[y][x] != -1){
 				if(colMap[y][x] == 0){//YELLOW
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);

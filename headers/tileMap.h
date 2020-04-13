@@ -13,12 +13,13 @@ extern int tempMap2[32][32];
 
 extern int tilePixelSize;
 
-int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect);
+// int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect);
+int RenderTextureFromSheet(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect);
 
-void LoadMap(char *fileLoc, int mapArray[][32]);
+int LoadMap(char *fileLoc, int mapArray[][32]);
 
-void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]);
-
+// void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]);
+void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32]);
 
 void TextExtrapolate(int map[][32]);
 

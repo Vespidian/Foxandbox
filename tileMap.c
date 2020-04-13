@@ -33,14 +33,19 @@ x = (tileNum % tileSheetWidth) * 16
 y = (tileNum / tileSheetHeight) * 16
 
 */
-int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect){
+// int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect){
+int RenderTextureFromSheet(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect){
 	Vector2 tileInSheet;
-	if(tileNum <= tileSheetWidth * tileSheetHeight - 1){
-		tileInSheet.x = (tileNum % tileSheetWidth) * tileWidth;
-		tileInSheet.y = (tileNum / tileSheetWidth) * tileWidth;
+	if(tileSheet.tex == NULL){
+		printf("Error: Tilesheet not defined properly!\n");
+		return 1;
+	}
+	if(tileNum <= tileSheet.w * tileSheet.h - 1){
+		tileInSheet.x = (tileNum % tileSheet.w) * tileSheet.tileW;
+		tileInSheet.y = (tileNum / tileSheet.w) * tileSheet.tileW;
 		
-		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileWidth, tileWidth};
-		SDL_RenderCopy(gRenderer, sourceTexture, &sourceRect, &destRect);
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileSheet.tileW, tileSheet.tileW};
+		SDL_RenderCopy(gRenderer, tileSheet.tex, &sourceRect, &destRect);
 		return 0;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
@@ -48,8 +53,14 @@ int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, 
 	}
 }
 
-void LoadMap(char *fileLoc, int mapArray[][32]){
+int LoadMap(char *fileLoc, int mapArray[][32]){
 	FILE *fp = fopen(fileLoc, "r");
+	
+	if(fp == NULL){
+		printf("Error: Unable to open mapfile location: '%s'\n", fileLoc);
+		return 1;
+	}
+	
 	char buffer[256];
 	char *parsedInt;
 	
@@ -67,6 +78,7 @@ void LoadMap(char *fileLoc, int mapArray[][32]){
 		// printf("\n");
 	}
 	fclose(fp);
+	return 0;
 }
 
 void ExtrapolateMap(char *file, int map1[][32], int map2[][32]){
@@ -104,7 +116,8 @@ void TextExtrapolate(int map[][32]){
 	}
 }
 
-void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
+// void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
+void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32]){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			if(mapArray[y][x] != -1){
@@ -116,13 +129,13 @@ void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
 				//Check if tile is in viewport and only render it if it is
 				if(SDL_PointInRect(&p, &r)){
 					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-					for(int i = 0; i < sheetWidth * sheetWidth; i++){
+					for(int i = 0; i < tileSheet.w * tileSheet.h; i++){
 						if(mapArray[y][x] == i){
 							// Vector2 tilePosInSheet = GetTileSheetLocation(i, textureSheetNumOfTiles);
 							// SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
 							// LoadImage(tile, tileLocation, textureSheet);
-							
-							RenderTextureFromSheet(gRenderer, textureSheet, sheetWidth, sheetWidth, 16, i, tile);
+							// WB_Tilesheet tileSheet = {textureSheet, sheetWidth, sheetWidth, tilePixelSize};
+							RenderTextureFromSheet(gRenderer, tileSheet, i, tile);
 						}
 					}
 					// Highlight the tile the mouse is currently on

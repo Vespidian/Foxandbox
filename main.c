@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <SDL_net.h>
 
 #include "headers/DataTypes.h"
 #include "headers/initialize.h"
@@ -15,6 +16,7 @@
 #include "headers/drawFunctions.h"
 #include "headers/tileMap.h"
 #include "headers/collision.h"
+#include "headers/inventory.h"
 // Normally SDL2 will redefine the main entry point of the program for Windows applications
 // this doesn't seem to play nice with TCC, so we just undefine the redefinition
 #ifdef __TINYC__
@@ -24,8 +26,6 @@
 //FUNCTION PREDEFINITIONS
 bool init();
 void RenderScreen();
-
-SDL_Event e;
 
 void clearScreen(){
 	SDL_SetRenderDrawColor(gRenderer, 10, 10, 10, 0xff);
@@ -47,64 +47,103 @@ int layerOrder = 0;
 // bool isBehind = false;
 bool enableHitboxes = false;
 
-int characterFacing = 0;
+bool isWalking = false;
+int characterFacing = 1;
+
+void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int numFrames, int delay){
+	
+	int frame = 0;
+	frame = (SDL_GetTicks() / delay) % numFrames;
+	
+	RenderTextureFromSheet(gRenderer, tileSheet, startFrame + frame, dest);
+}
 
 void DrawCharacter(int direction, int numFrames){
 	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
 	
-	int animFrame = 0;
-	
-	animFrame = (int)(SDL_GetTicks() / 300) % numFrames;
-	
-	RenderTextureFromSheet(gRenderer, characterTex, 4, 6, 16, animFrame + (direction * 4), charPos);
+	if(isWalking){
+		DrawAnimation(charPos, characterSheet, (direction) * 4, numFrames, 200);
+	}else{
+		DrawAnimation(charPos, characterSheet, (direction) * 4, 1, 200);
+	}
 }
+
+int randArray[32][32];
+
+int darknessMod = 0;
+bool isDay = true;
+bool mouseUp = false;
 
 int main(int argc, char **argv) {
 	init();
 	if(init){
+		
+		// randomArray();
+		
 		SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 		midScreen.x = (WIDTH / 2 - tileSize / 2);
 		midScreen.y = (HEIGHT / 2 - tileSize / 2);
 		characterOffset = midScreen;
 		while(!quit){	
+		
+			if((SDL_GetTicks() / 10) % 20 == 1){
+				if(darknessMod == 0){
+					isDay = true;
+				}
+				if(darknessMod == 200){
+					isDay = false;
+				}
+				if(isDay){
+					darknessMod++;
+				}else{
+					darknessMod--;
+				}
+				// printf("%d\n", darknessMod);
+				SDL_SetTextureAlphaMod(colorModTex, darknessMod);
+			}
 			
 			RenderScreen();
-			
 			
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			if(currentKeyStates[SDL_SCANCODE_RETURN] || currentKeyStates[SDL_SCANCODE_ESCAPE]){
 				quit = true;
 			}
 
-			characterFacing = 0;
+			// characterFacing = 0;
+			isWalking = false;
+			
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
 					worldPosition.x -= 4;
 				}
+				isWalking = true;
 				characterFacing = 4;
 			}
 			if(currentKeyStates[SDL_SCANCODE_W]){
 				if(!colUp){
 					worldPosition.y -= 4;
 				}
-				characterFacing = 3;
+				isWalking = true;
+				characterFacing = 2;
 			}
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
 					worldPosition.x += 4;
 				}
-				characterFacing = 2;
+				isWalking = true;
+				characterFacing = 3;
 			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
 					worldPosition.y += 4;
 				}
+				isWalking = true;
 				characterFacing = 1;
 			}
 			
-			if(currentKeyStates[SDL_SCANCODE_E]){
-				printf("%d, %d\n", worldPosition.x * 4, worldPosition.y * 4);
-			}
+			// if(currentKeyStates[SDL_SCANCODE_E]){
+				// printf("%d, %d\n", worldPosition.x * 4, worldPosition.y * 4);
+			// }
 			if(currentKeyStates[SDL_SCANCODE_C]){
 				printf("%d, %d\n", characterOffset.x, characterOffset.y);
 			}
@@ -120,20 +159,41 @@ int main(int argc, char **argv) {
 			
 			while(SDL_PollEvent(&e) != 0){				
 				if(e.type == SDL_KEYDOWN){
+					if(e.key.keysym.sym == SDLK_y){
+						characterOffset.x = midScreen.x;
+						characterOffset.y = midScreen.y;
+					}
+				}else if(e.type == SDL_KEYUP){
+					// if(e.key.keysym.sym == SDLK_p){
+						// PerlinInit();
+					// }
 					if(e.key.keysym.sym == SDLK_t){
 						TextureDestroy();
 						TextureInit();
 						MapInit();
-					}
-					if(e.key.keysym.sym == SDLK_y){
-						characterOffset.x = midScreen.x;
-						characterOffset.y = midScreen.y;
 					}
 					if(e.key.keysym.sym == SDLK_x){
 						if(!enableHitboxes){
 							enableHitboxes = true;
 						}else{
 							enableHitboxes = false;
+						}
+					}
+					if(e.key.keysym.sym == SDLK_e){
+						showInv = !showInv;
+					}
+				}else if(e.type == SDL_MOUSEWHEEL){
+					if(e.wheel.y > 0){
+						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 1){
+							selectedHotbar--;
+						}else{
+							selectedHotbar = INV_WIDTH;
+						}
+					}else if(e.wheel.y < 0){
+						if(selectedHotbar < INV_WIDTH && selectedHotbar >= 1){
+							selectedHotbar++;
+						}else{
+							selectedHotbar = 1;
 						}
 					}
 				}else if(e.type == SDL_QUIT){
@@ -152,42 +212,48 @@ int main(int argc, char **argv) {
 	}
 }
 
+// const int noiseSize = 32;
+
+// float noiseSeed1D[32];
+// float perlinNoise1D[32];
+
+
 void RenderScreen(){
 	clearScreen();
 	
 	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	//Call SDL draw functions here and call RenderScreen from the main loop
-	DrawMap(tileSheetTex, 16, map);
-	DrawMap(tileSheetTex, 16, map1);
-	// RenderText("woohoo", 100, 100);
+	DrawMap(defSheet, map);
+	DrawMap(defSheet, map1);
+
+	// DrawMap(furnitureSheet, randArray);
 	if(layerOrder == 0){
-		DrawMap(furnitureTex, 8, furnitureMap);
-		DrawMap(furnitureTex, 8, passableMap);
-		DrawCharacter(characterFacing, 2);
+		DrawMap(furnitureSheet, furnitureMap);
+		DrawMap(furnitureSheet, passableMap);
+		DrawCharacter(characterFacing, 4);
 		
 	}else if(layerOrder == 1){
-		DrawMap(furnitureTex, 8, passableMap);
-		DrawCharacter(characterFacing, 2);
-		DrawMap(furnitureTex, 8, furnitureMap);
+		DrawMap(furnitureSheet, passableMap);
+		DrawCharacter(characterFacing, 4);
+		DrawMap(furnitureSheet, furnitureMap);
 		
 	}else if(layerOrder == 2){
-		DrawMap(furnitureTex, 8, furnitureMap);
-		DrawCharacter(characterFacing, 2);
-		DrawMap(furnitureTex, 8, passableMap);
+		DrawMap(furnitureSheet, furnitureMap);
+		DrawCharacter(characterFacing, 4);
+		DrawMap(furnitureSheet, passableMap);
 		
 	}else if(layerOrder == 3){		
-		DrawCharacter(characterFacing, 2);
-		DrawMap(furnitureTex, 8, passableMap);
-		DrawMap(furnitureTex, 8, furnitureMap);
+		DrawCharacter(characterFacing, 4);
+		DrawMap(furnitureSheet, passableMap);
+		DrawMap(furnitureSheet, furnitureMap);
 		
 	}else if(layerOrder == 4){		
-		DrawCharacter(characterFacing, 2);
-		DrawMap(furnitureTex, 8, furnitureMap);
-		DrawMap(furnitureTex, 8, passableMap);
+		DrawCharacter(characterFacing, 4);
+		DrawMap(furnitureSheet, furnitureMap);
+		DrawMap(furnitureSheet, passableMap);
 		
 	}
 	
-	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	//Render the player's hitbox
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 	if(enableHitboxes){
@@ -199,12 +265,59 @@ void RenderScreen(){
 	
 	FindCollisions();
 	
+	INV_DrawInv();
+	
+	// SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0xff);
+	// PerlinNoise(32, noiseSeed1D, 6, perlinNoise1D);
+	// for(int i = 0; i < 31; i++){
+		// SDL_RenderDrawLine(gRenderer, i * 24, perlinNoise1D[i]*64 + 400, (i + 1) * 24, perlinNoise1D[i + 1]*64 + 400);
+		// printf("%d", perlinNoise1D[i]);
+		// SDL_RenderDrawPoint(gRenderer, i * 16, perlinNoise1D[i] * 16 + 200);
+	// }
+	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
+	// RenderText("woohoo", 400, 400);
+	
 	SDL_RenderPresent(gRenderer);
 }
 
-/*void RenderText(char *text, int x, int y){
-	SDL_Color coloor = {255, 255, 255};
-	SDL_Surface *fSurface = TTF_RenderText_Blended(font, text, coloor);//problem here
+
+
+/*void PerlinNoise(int nCount, float *fSeed, int nOctaves, float *fOutput){
+	for(int x = 0; x < nCount; x++){
+		
+		float fNoise = 0.0f;
+		float fScale = 1.0f;
+		float fScaleAcc = 0.0f;
+		
+		for(int o = 0; o < nOctaves; o++){
+			int nPitch = nCount >> o;
+			int nSample1 = (x / nPitch) * nPitch;
+			int nSample2 = (nSample1 + nPitch) % nCount;
+			
+			float fBlend = (float)(x - nSample1) / (float)nPitch;
+			float fSample = (1.0f - fBlend) * fSeed[nSample1] + fBlend * fSeed[nSample2];
+			fNoise += fSample * fScale;
+			fScaleAcc += fScale;
+			fScale = fScale / 2.0f;
+		}
+		fOutput[x] = fNoise / fScaleAcc;
+	}
+}
+
+void PerlinInit(){
+	
+	for(int i = 0; i < 32; i++){
+		noiseSeed1D[i] = getRnd(1, 10);
+	}
+	
+}*/
+
+
+
+void RenderText(char *text, int x, int y){
+	SDL_Color coloor = {0, 0, 0};
+	SDL_Surface *fSurface = TTF_RenderText_Blended(font, "testset", coloor);//problem here
+	// SDL_Surface *fSurface = TTF_RenderText_Blended(font, text, coloor);//problem here
 	SDL_Texture *fTexture = SDL_CreateTextureFromSurface(gRenderer, fSurface);
 	
 	SDL_Rect destRect = {x, y, 500, 500};
@@ -217,4 +330,16 @@ void RenderScreen(){
 	SDL_DestroyTexture(fTexture);
 	// SDL_FreeSurface(screen);
 	SDL_FreeSurface(fSurface);
-}*/
+}
+
+void randomArray(){
+	for(int y = 0; y < 32; y++){
+		for(int x = 0; x < 32; x++){
+			if(getRnd(0, 10) == 1){
+				randArray[y][x] = getRnd(10, 13);
+			}else{
+				randArray[y][x] = -1;
+			}
+		}
+	}
+}

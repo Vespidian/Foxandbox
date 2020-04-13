@@ -12,6 +12,8 @@ extern SDL_Rect charCollider_left;
 extern SDL_Rect charCollider_top;
 
 void FindCollisions();
+
+extern Vector2 charTilePos;
 /*
 SDL_Rect setRect(int x, int y, int w, int h);
 void CheckCollisions(SDL_Rect tileR);
