@@ -13,6 +13,7 @@ extern SDL_Texture *characterTex;
 extern SDL_Texture *backgroundTex;
 extern SDL_Texture *itemTex;
 extern SDL_Texture *uiTex;
+extern SDL_Texture *fontTex;
 
 extern WB_Tilesheet defSheet;
 extern WB_Tilesheet furnitureSheet;
@@ -20,6 +21,7 @@ extern WB_Tilesheet characterSheet;
 extern WB_Tilesheet backgroundSheet;
 extern WB_Tilesheet itemSheet;
 extern WB_Tilesheet uiSheet;
+extern WB_Tilesheet fontSheet;
 
 extern SDL_Texture *colorModTex;
 // extern bool init();
@@ -28,7 +30,7 @@ void Quit();
 extern int WIDTH;
 extern int HEIGHT;
 
-extern TTF_Font *font;
+// extern TTF_Font *font;
 
 void MapInit();
 void TextureInit();

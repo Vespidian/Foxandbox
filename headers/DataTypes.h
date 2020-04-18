@@ -7,6 +7,11 @@ typedef struct{
 }Vector2;
 
 typedef struct{
+	float x;
+	float y;
+}fVector2;
+
+typedef struct{
 	SDL_Texture *tex;
 	int w;
 	int h;

@@ -17,7 +17,7 @@ extern Vector2 worldPosition;
 extern Vector2 characterOffset;
 extern Vector2 mousePos;
 extern Vector2 midScreen;
-void RenderText(char *text, int x, int y);
+int RenderText(char *text, int x, int y);
 
 extern int tileSize;
 extern int layerOrder;

@@ -6,9 +6,9 @@
 #include <time.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
+// #include <SDL_ttf.h>
 #include <SDL_image.h>
-#include <SDL_net.h>
+// #include <SDL_net.h>
 
 #include "headers/DataTypes.h"
 #include "headers/initialize.h"
@@ -27,9 +27,9 @@
 bool init();
 void RenderScreen();
 
-void clearScreen(){
-	SDL_SetRenderDrawColor(gRenderer, 10, 10, 10, 0xff);
-	SDL_RenderClear(gRenderer);
+void clearScreen(SDL_Renderer *renderer){
+	SDL_SetRenderDrawColor(renderer, 10, 10, 10, 0xff);
+	SDL_RenderClear(renderer);
 }
 //MISC
 bool quit = false;
@@ -212,14 +212,8 @@ int main(int argc, char **argv) {
 	}
 }
 
-// const int noiseSize = 32;
-
-// float noiseSeed1D[32];
-// float perlinNoise1D[32];
-
-
 void RenderScreen(){
-	clearScreen();
+	clearScreen(gRenderer);
 	
 	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	//Call SDL draw functions here and call RenderScreen from the main loop
@@ -267,71 +261,43 @@ void RenderScreen(){
 	
 	INV_DrawInv();
 	
-	// SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0xff);
-	// PerlinNoise(32, noiseSeed1D, 6, perlinNoise1D);
-	// for(int i = 0; i < 31; i++){
-		// SDL_RenderDrawLine(gRenderer, i * 24, perlinNoise1D[i]*64 + 400, (i + 1) * 24, perlinNoise1D[i + 1]*64 + 400);
-		// printf("%d", perlinNoise1D[i]);
-		// SDL_RenderDrawPoint(gRenderer, i * 16, perlinNoise1D[i] * 16 + 200);
-	// }
+	// char numString[20];
+	// itoa(123456789, numString, 10);
+	// RenderText(numString, 0, 0);
+	RenderText("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG. S \n the quick brown fox jumped over the lazy dog. s \n 1234567890-= \n!@#$%^&*()_+ \n[]{};':,./<>?", 0, 0);
+	// RenderText("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 0);
+	
 	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
-	// RenderText("woohoo", 400, 400);
 	
 	SDL_RenderPresent(gRenderer);
 }
 
-
-
-/*void PerlinNoise(int nCount, float *fSeed, int nOctaves, float *fOutput){
-	for(int x = 0; x < nCount; x++){
-		
-		float fNoise = 0.0f;
-		float fScale = 1.0f;
-		float fScaleAcc = 0.0f;
-		
-		for(int o = 0; o < nOctaves; o++){
-			int nPitch = nCount >> o;
-			int nSample1 = (x / nPitch) * nPitch;
-			int nSample2 = (nSample1 + nPitch) % nCount;
-			
-			float fBlend = (float)(x - nSample1) / (float)nPitch;
-			float fSample = (1.0f - fBlend) * fSeed[nSample1] + fBlend * fSeed[nSample2];
-			fNoise += fSample * fScale;
-			fScaleAcc += fScale;
-			fScale = fScale / 2.0f;
+int tracking = 10;//Spacing between letters
+int spacing = 16;//Vertical spacing
+int RenderText(char *text, int x, int y){
+	SDL_Rect charRect = {x, y, 16, 16};
+	if(strlen(text) > 1){
+		for(int i = 0; i < strlen(text); i++){
+			if((int)text[i] - (int)' ' == -22){//Check if character is newline escape character (\n)
+				charRect.y += spacing;
+				charRect.x = x - tracking;
+			}else{				
+				RenderTextureFromSheet(gRenderer, fontSheet, (int)text[i] - (int)' ', charRect);
+				charRect.x += tracking;
+			}
 		}
-		fOutput[x] = fNoise / fScaleAcc;
+		// printf("\n");
+		// printf("multiple");
+	}else if(strlen(text) < 1){
+		printf("Error: No text provided on RenderText()");
+		return 1;
+	}else{
+		RenderTextureFromSheet(gRenderer, fontSheet, (int)text[0] - (int)' ', charRect);
+		// printf("single");
 	}
+	return 0;
+	// printf("%c", 1 + 48);
 }
-
-void PerlinInit(){
-	
-	for(int i = 0; i < 32; i++){
-		noiseSeed1D[i] = getRnd(1, 10);
-	}
-	
-}*/
-
-
-
-void RenderText(char *text, int x, int y){
-	SDL_Color coloor = {0, 0, 0};
-	SDL_Surface *fSurface = TTF_RenderText_Blended(font, "testset", coloor);//problem here
-	// SDL_Surface *fSurface = TTF_RenderText_Blended(font, text, coloor);//problem here
-	SDL_Texture *fTexture = SDL_CreateTextureFromSurface(gRenderer, fSurface);
-	
-	SDL_Rect destRect = {x, y, 500, 500};
-	
-	// SDL_Surface *screen = SDL_GetWindowSurface(gWindow);
-	SDL_QueryTexture(fTexture, NULL, NULL, &destRect.w, &destRect.h);
-	SDL_RenderCopy(gRenderer, fTexture, NULL, &destRect);
-	// SDL_BlitSurface(fSurface, NULL, screen, &destRect);
-	
-	SDL_DestroyTexture(fTexture);
-	// SDL_FreeSurface(screen);
-	SDL_FreeSurface(fSurface);
-}
-
 void randomArray(){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){

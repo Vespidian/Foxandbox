@@ -17,8 +17,9 @@ echo.
 echo.
 echo.
 
-tcc -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_net -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c collision.c inventory.c
-REM tcc -Wl,-subsystem=gui -Werror -Wall -lSDL2 -lSDL2_ttf -lSDL2_image -lSDL2_net -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c collision.c inventory.c
+tcc -Werror -Wall -lSDL2 -lSDL2_image -lSDL2_net -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c collision.c inventory.c
+REM Production Compile (Exclude command prompt)
+REM tcc -Wl,-subsystem=gui -Werror -Wall -lSDL2 -lSDL2_image -lSDL2_net -o main.exe main.c data.c initialize.c drawFunctions.c tileMap.c collision.c inventory.c
 
 echo.
 echo.

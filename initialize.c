@@ -5,9 +5,9 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
+// #include <SDL_ttf.h>
 #include <SDL_image.h>
-#include <SDL_net.h>
+// #include <SDL_net.h>
 
 #include "headers/DataTypes.h"
 #include "headers/initialize.h"
@@ -30,7 +30,7 @@ int WIDTH = 960;
 int HEIGHT = 960;
 bool success = true;
 
-TTF_Font *font = NULL;
+// TTF_Font *font = NULL;
 
 SDL_Texture *tileSheetTex;
 SDL_Texture *furnitureTex;
@@ -38,6 +38,8 @@ SDL_Texture *characterTex;
 SDL_Texture *backgroundTex;
 SDL_Texture *itemTex;
 SDL_Texture *uiTex;
+SDL_Texture *fontTex;
+
 
 WB_Tilesheet defSheet;
 WB_Tilesheet furnitureSheet;
@@ -45,7 +47,7 @@ WB_Tilesheet characterSheet;
 WB_Tilesheet backgroundSheet;
 WB_Tilesheet itemSheet;
 WB_Tilesheet uiSheet;
-
+WB_Tilesheet fontSheet;
 
 SDL_Texture *colorModTex = NULL;
 
@@ -66,6 +68,9 @@ void TextureInit(){
 	
 	uiTex = IMG_LoadTexture(gRenderer, "images/ui.png");
 	uiSheet = (WB_Tilesheet){uiTex, 8, 16, 16};
+	
+	fontTex = IMG_LoadTexture(gRenderer, "fonts/fontSMALL.png");
+	fontSheet = (WB_Tilesheet){fontTex, 12, 8, 16};
 }
 
 void MapInit(){
@@ -80,13 +85,13 @@ bool init(bool initTTF){
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
 	// if(initTTF){
-		TTF_Init();
+	// TTF_Init();
 	// }
 	gWindow = SDL_CreateWindow("SDL_Template", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	
-	consoleWindow = SDL_CreateWindow("Console", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 400, 400, SDL_WINDOW_OPENGL);
-	SDL_HideWindow(consoleWindow);
+	// consoleWindow = SDL_CreateWindow("Console", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 400, 400, SDL_WINDOW_OPENGL);
+	// SDL_HideWindow(consoleWindow);
 	
 	// SDL_SetWindowResizable(gWindow, true);
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");
@@ -100,10 +105,7 @@ bool init(bool initTTF){
 	// PerlinInit();
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
-	SDL_SetTextureAlphaMod(colorModTex, 0);
-	TTF_Font *font = TTF_OpenFont("fonts/font.ttf", 12);
-	
-	
+	SDL_SetTextureAlphaMod(colorModTex, 0);	
 	
 	return success;
 }
@@ -121,9 +123,9 @@ void Quit() {
 	gRenderer = NULL;
 	
 	TextureDestroy();
-	TTF_CloseFont(font);
+	// TTF_CloseFont(font);
 	
 	IMG_Quit();
-	TTF_Quit();
+	// TTF_Quit();
 	SDL_Quit();
 }
