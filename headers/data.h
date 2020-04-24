@@ -13,12 +13,14 @@ int getRnd(int min, int max);
 
 bool GetClick(int x1, int y1, int x2, int y2);
 
+void clearScreen(SDL_Renderer *renderer);
+
 extern Vector2 worldPosition;
 extern Vector2 characterOffset;
 extern Vector2 mousePos;
 extern Vector2 midScreen;
-int RenderText(char *text, int x, int y);
-
+int RenderText(SDL_Renderer *renderer, char *text, int x, int y);
+	
 extern int tileSize;
 extern int layerOrder;
 extern bool enableHitboxes;

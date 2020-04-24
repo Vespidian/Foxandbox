@@ -5,8 +5,6 @@ extern SDL_Window* gWindow;
 // The window renderer
 extern SDL_Renderer* gRenderer;
 
-extern SDL_Window *consoleWindow;
-
 extern SDL_Texture *tileSheetTex;
 extern SDL_Texture *furnitureTex;
 extern SDL_Texture *characterTex;

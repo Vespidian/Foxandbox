@@ -24,8 +24,6 @@ SDL_Window *gWindow = NULL;
 //The window renderer
 SDL_Renderer *gRenderer = NULL;
 
-SDL_Window *consoleWindow = NULL;
-
 int WIDTH = 960;
 int HEIGHT = 960;
 bool success = true;
@@ -87,11 +85,9 @@ bool init(bool initTTF){
 	// if(initTTF){
 	// TTF_Init();
 	// }
-	gWindow = SDL_CreateWindow("SDL_Template", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
-	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	
-	// consoleWindow = SDL_CreateWindow("Console", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 400, 400, SDL_WINDOW_OPENGL);
-	// SDL_HideWindow(consoleWindow);
+	gWindow = SDL_CreateWindow("Explorable World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	
 	// SDL_SetWindowResizable(gWindow, true);
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");

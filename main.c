@@ -28,7 +28,7 @@ bool init();
 void RenderScreen();
 
 void clearScreen(SDL_Renderer *renderer){
-	SDL_SetRenderDrawColor(renderer, 10, 10, 10, 0xff);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
 	SDL_RenderClear(renderer);
 }
 //MISC
@@ -72,13 +72,13 @@ int randArray[32][32];
 
 int darknessMod = 0;
 bool isDay = true;
-bool mouseUp = false;
 
 int main(int argc, char **argv) {
 	init();
 	if(init){
 		
 		// randomArray();
+		Vector2 tmpSize = {WIDTH, HEIGHT};	
 		
 		SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 		midScreen.x = (WIDTH / 2 - tileSize / 2);
@@ -163,7 +163,8 @@ int main(int argc, char **argv) {
 						characterOffset.x = midScreen.x;
 						characterOffset.y = midScreen.y;
 					}
-				}else if(e.type == SDL_KEYUP){
+				}
+				if(e.type == SDL_KEYUP){
 					// if(e.key.keysym.sym == SDLK_p){
 						// PerlinInit();
 					// }
@@ -182,7 +183,8 @@ int main(int argc, char **argv) {
 					if(e.key.keysym.sym == SDLK_e){
 						showInv = !showInv;
 					}
-				}else if(e.type == SDL_MOUSEWHEEL){
+				}
+				if(e.type == SDL_MOUSEWHEEL){
 					if(e.wheel.y > 0){
 						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 1){
 							selectedHotbar--;
@@ -196,7 +198,22 @@ int main(int argc, char **argv) {
 							selectedHotbar = 1;
 						}
 					}
-				}else if(e.type == SDL_QUIT){
+				}
+				if(e.type == SDL_WINDOWEVENT){
+					if(e.window.event == SDL_WINDOWEVENT_RESIZED){
+						SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
+						Vector2 diff = {WIDTH - tmpSize.x, HEIGHT - tmpSize.y};
+						// Vector2 diff = {tmpSize.x - WIDTH, tmpSize.y - HEIGHT};
+						worldPosition.x -= diff.x / 4;
+						worldPosition.y -= diff.y / 4;
+						// characterOffset = (Vector2){WIDTH / 2 - 8, HEIGHT / 2 - 8};
+						characterOffset.x = WIDTH / 2 - tileSize / 2;
+						characterOffset.y = HEIGHT / 2 - tileSize / 2;
+						tmpSize = (Vector2){WIDTH, HEIGHT};
+					}
+				}
+				
+				if(e.type == SDL_QUIT){
 					quit = true;
 				}
 			}
@@ -264,40 +281,56 @@ void RenderScreen(){
 	// char numString[20];
 	// itoa(123456789, numString, 10);
 	// RenderText(numString, 0, 0);
-	RenderText("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG. S \n the quick brown fox jumped over the lazy dog. s \n 1234567890-= \n!@#$%^&*()_+ \n[]{};':,./<>?", 0, 0);
-	// RenderText("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 0);
 	
+	// char posx[20]; 
+	// char posy[20]; 
+	// char spacer[4] = " : ";
+	// itoa(worldPosition.x / 4, posx, 10);
+	// itoa(worldPosition.y / 4, posy, 10);
+	
+	// strcat(posx, spacer);
+	// strcat(posx, posy);
+	
+	char coordinates[256];
+	char charoff[256];
+	snprintf(coordinates, 1024, "x: %d, y: %d", worldPosition.x / 4, worldPosition.y / 4);
+	snprintf(charoff, 1024, "x: %d, y: %d", characterOffset.x, characterOffset.y);
+	
+	RenderText(gRenderer, coordinates, 0, 0);
+	RenderText(gRenderer, charoff, 0, 32);
+	// RenderText(gRenderer, "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG. S \nthe quick brown fox jumped over the lazy dog. s \n1234567890-= \n!@#$%^&*()_+ \n[]{};':,./<>?\\~`", 0, 0);
+	// RenderText(gRenderer, "void RenderText(SDL_Renderer *renderer, char *text, int x, int y){\n	testing 1	2;\n}\nint	 a = 50;\nbool isAlive = true;", 0, 400);
+	// RenderText(gRenderer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 200);
+	// RenderText(gRenderer, "Hello, World!", 0, 300);
 	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	
 	SDL_RenderPresent(gRenderer);
 }
 
-int tracking = 10;//Spacing between letters
+int tracking = 9;//Spacing between letters
 int spacing = 16;//Vertical spacing
-int RenderText(char *text, int x, int y){
+int RenderText(SDL_Renderer *renderer, char *text, int x, int y){
 	SDL_Rect charRect = {x, y, 16, 16};
-	if(strlen(text) > 1){
+	if(strlen(text) > 0){
 		for(int i = 0; i < strlen(text); i++){
-			if((int)text[i] - (int)' ' == -22){//Check if character is newline escape character (\n)
-				charRect.y += spacing;
-				charRect.x = x - tracking;
-			}else{				
-				RenderTextureFromSheet(gRenderer, fontSheet, (int)text[i] - (int)' ', charRect);
+			int charVal = (int)text[i] - (int)' ';
+			if(charVal >= 0){				
+				RenderTextureFromSheet(renderer, fontSheet, charVal, charRect);
 				charRect.x += tracking;
+			}else if(charVal == -22){//NEWLINE (\n)
+				charRect.y += spacing;
+				charRect.x = x;
+			}else if(charVal == -23){//TAB
+				charRect.x += tracking * 4;
 			}
 		}
-		// printf("\n");
-		// printf("multiple");
 	}else if(strlen(text) < 1){
-		printf("Error: No text provided on RenderText()");
+		printf("Error: No text provided on RenderText()\n");
 		return 1;
-	}else{
-		RenderTextureFromSheet(gRenderer, fontSheet, (int)text[0] - (int)' ', charRect);
-		// printf("single");
 	}
 	return 0;
-	// printf("%c", 1 + 48);
 }
+
 void randomArray(){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){

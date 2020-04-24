@@ -55,18 +55,18 @@ int mouseInv[2] = {-1, 0};
 bool showInv = false;
 
 void INV_DrawInv(){
-	int spacing = 8;
+	int INV_spacing = 8;
 	SDL_Rect invItemRect = {0, 0, 32, 32};
 	
 	//Drawing the hotbar
-	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * spacing, HEIGHT - spacing * 2 - 32, // ->
-	INV_WIDTH * 32 + (INV_WIDTH + 1) * spacing, spacing * 2 + 32};
+	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
+	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
 	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
 	SDL_RenderFillRect(gRenderer, &hotBar);
 	
-	SDL_Rect slotRect = {0, HEIGHT - spacing - 32, 32, 32};
+	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};
 	for(int i = 0; i < INV_WIDTH; i++){
-		slotRect.x = (hotBar.x + 32 * i) + spacing * (i + 1);
+		slotRect.x = (hotBar.x + 32 * i) + INV_spacing * (i + 1);
 		if(selectedHotbar == i + 1){
 			SDL_Rect tmpRect = {-2, -2, 4, 4};
 			tmpRect.x += slotRect.x;
@@ -83,14 +83,17 @@ void INV_DrawInv(){
 			
 			char itemqty[16];
 			itoa(invArray[i+1][1], itemqty, 10);
-			RenderText(itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
+			RenderText(gRenderer, itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
 		}
 	}
 	
 	//Drawing the main inventory
 	if(showInv){
-		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * spacing, HEIGHT / 2 + HEIGHT / 4, // ->
-		INV_WIDTH * 32 + (INV_WIDTH + 1) * spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * spacing};
+		/*SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT / 2 + HEIGHT / 4, // ->
+		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};*/
+		
+		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
+		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
 		SDL_RenderFillRect(gRenderer, &invRect);
@@ -99,19 +102,19 @@ void INV_DrawInv(){
 		for(int y = 0; y < INV_HEIGHT; y++){
 			for(int x = 0; x < INV_WIDTH; x++){
 				invPos++;
-				invItemRect.x = (invRect.x + 32 * x) + spacing * (x + 1);
-				invItemRect.y = (invRect.y + 32 * y) + spacing * (y + 1);
+				invItemRect.x = (invRect.x + 32 * x) + INV_spacing * (x + 1);
+				invItemRect.y = (invRect.y + 32 * y) + INV_spacing * (y + 1);
 				
 				SDL_GetMouseState(&mousePos.x, &mousePos.y);
 				SDL_Point mousePoint = {mousePos.x, mousePos.y};
-				if(SDL_PointInRect(&mousePoint, &invItemRect) && e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){
+				if(SDL_PointInRect(&mousePoint, &invItemRect) && e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(SDL_PollEvent(&e) == 1){
 						if(invArray[invPos][0] == mouseInv[0]){
 							INV_WriteCell("add", invPos - 1, mouseInv[1], mouseInv[0]);
 							mouseInv[0] = -1;
 							mouseInv[1] = 0;
 						}else{
-							//Swap clicked item with item held by mouse
+							//Swap clicked item with held item
 							int tempInv[2] = {mouseInv[0], mouseInv[1]};
 							mouseInv[0] = invArray[invPos][0];
 							mouseInv[1] = invArray[invPos][1];
@@ -119,31 +122,48 @@ void INV_DrawInv(){
 							invArray[invPos][1] = tempInv[1];
 						}
 					}
+				}else if(SDL_PointInRect(&mousePoint, &invItemRect) && e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
+					if(SDL_PollEvent(&e) == 1){
+						if(mouseInv[1] > 0){//Check if mouse has any item
+							if(invArray[invPos][0] == -1 || invArray[invPos][0] == mouseInv[0]){
+								if(mouseInv[1] > 1){
+									INV_WriteCell("add", invPos - 1, 1, mouseInv[0]);
+									mouseInv[1]--;
+								}else{
+									INV_WriteCell("add", invPos - 1, 1, mouseInv[0]);
+									mouseInv[0] = -1;
+									mouseInv[1] = 0;
+								}
+							}
+						}else if(invArray[invPos][1] > 1){
+							mouseInv[0] = invArray[invPos][0];
+							mouseInv[1] = invArray[invPos][1] / 2;
+							INV_WriteCell("sub", invPos - 1, invArray[invPos][1] / 2, invArray[invPos][0]);
+						}
+					}
 				}
-				// SDL_RenderFillRect(gRenderer, &invItemRect);
-				RenderTextureFromSheet(gRenderer, uiSheet, 0, invItemRect);
+				RenderTextureFromSheet(gRenderer, uiSheet, 0, invItemRect);//Draw the background of each cell
 				
-				if(invArray[invPos][0] > -1 && invArray[invPos][1] > 0){
+				if(invArray[invPos][0] > -1 && invArray[invPos][1] > 0){//Check if item exists in cell and render it
 					RenderTextureFromSheet(gRenderer, itemSheet, invArray[invPos][0], invItemRect);
 					
 					char itemqty[16];
 					itoa(invArray[invPos][1], itemqty, 10);
-					RenderText(itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);
+					RenderText(gRenderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
 				}else{
 					invArray[invPos][0] = -1;
 					invArray[invPos][1] = 0;
 				}
-				// printf("%d ", invArray[y][x][0]);
 			}
-			// printf("\n");
 		}
+		//Drawing the mouse inventory
 		if(mouseInv[0] > -1 && mouseInv[1] > 0){
 			SDL_Rect mouseItem = {mousePos.x - 16, mousePos.y - 16, 32, 32};
 			RenderTextureFromSheet(gRenderer, itemSheet, mouseInv[0], mouseItem);
 			
 			char itemqty[16];
 			itoa(mouseInv[1], itemqty, 10);
-			RenderText(itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);
+			RenderText(gRenderer, itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);
 		}
 	}
 	// printf("\n");

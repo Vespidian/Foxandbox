@@ -68,7 +68,8 @@ void FindCollisions(){
 	colLeft = false;
 	colRight = false;
 	
-	SDL_Rect charCollider = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize + 1};
+	SDL_Rect charCollider = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize + 2};
+	SDL_RenderDrawRect(gRenderer, &charCollider);
 	/* DEFAULT SQUARE PLAYER COLLIDER
 	SDL_Rect charCollider_bottom = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2) + tileSize, tileSize, 1};
 	SDL_Rect charCollider_right = {(WIDTH / 2 - tileSize / 2) + tileSize, (HEIGHT / 2 - tileSize / 2), 1, tileSize};
@@ -76,11 +77,23 @@ void FindCollisions(){
 	SDL_Rect charCollider_top = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2) - 1, tileSize, 1};
 	*/
 	
-	charCollider_bottom = setRect(midScreen.x + 4, midScreen.y + tileSize, tileSize - 8, 1);
-	charCollider_right = setRect(midScreen.x + tileSize - 4, midScreen.y + 60, 1, 4);
-	charCollider_left = setRect(midScreen.x + 3, midScreen.y + tileSize - 4, 1, 4);
-	charCollider_top = setRect(midScreen.x + 4, midScreen.y + 59, tileSize - 8, 1);
-	SDL_Point charP = {midScreen.x + tileSize / 2, midScreen.y + tileSize / 2};
+	// charCollider_bottom = (SDL_Rect){midScreen.x + 4, midScreen.y + tileSize, tileSize - 8, 1};
+	// charCollider_right = (SDL_Rect){midScreen.x + tileSize - 4, midScreen.y + 60, 1, 4};
+	// charCollider_left = (SDL_Rect){midScreen.x + 3, midScreen.y + tileSize - 4, 1, 4};
+	// charCollider_top = (SDL_Rect){midScreen.x + 4, midScreen.y + 59, tileSize - 8, 1};
+	
+	charCollider_bottom = (SDL_Rect){charCollider.x + 4, charCollider.y + tileSize, tileSize - 8, 1};
+	charCollider_right = (SDL_Rect){charCollider.x + tileSize - 4, charCollider.y + 60, 1, 4};
+	charCollider_left = (SDL_Rect){charCollider.x + 3, charCollider.y + tileSize - 4, 1, 4};
+	charCollider_top = (SDL_Rect){charCollider.x + 4, charCollider.y + 59, tileSize - 8, 1};
+	
+	// charCollider_bottom = setRect(midScreen.x + 4, midScreen.y + tileSize, tileSize - 8, 1);
+	// charCollider_right = setRect(midScreen.x + tileSize - 4, midScreen.y + 60, 1, 4);
+	// charCollider_left = setRect(midScreen.x + 3, midScreen.y + tileSize - 4, 1, 4);
+	// charCollider_top = setRect(midScreen.x + 4, midScreen.y + 59, tileSize - 8, 1);
+	
+	// SDL_Point charP = {midScreen.x + tileSize / 2, midScreen.y + tileSize / 2};
+	SDL_Point charP = {charCollider.x + tileSize / 2, charCollider.y + tileSize / 2};
 	
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
