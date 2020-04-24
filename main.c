@@ -204,8 +204,8 @@ int main(int argc, char **argv) {
 						SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 						Vector2 diff = {WIDTH - tmpSize.x, HEIGHT - tmpSize.y};
 						// Vector2 diff = {tmpSize.x - WIDTH, tmpSize.y - HEIGHT};
-						worldPosition.x -= diff.x / 4;
-						worldPosition.y -= diff.y / 4;
+						worldPosition.x -= diff.x / 2;
+						worldPosition.y -= diff.y / 2;
 						// characterOffset = (Vector2){WIDTH / 2 - 8, HEIGHT / 2 - 8};
 						characterOffset.x = WIDTH / 2 - tileSize / 2;
 						characterOffset.y = HEIGHT / 2 - tileSize / 2;
