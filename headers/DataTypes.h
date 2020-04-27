@@ -33,7 +33,10 @@ typedef struct{
 }INV_Item;
 
 typedef struct{
-	int 
+	int inItem;
+	int inQty;
+	int outItem;
+	int outQty;
 	
 }INV_Recipe;
 

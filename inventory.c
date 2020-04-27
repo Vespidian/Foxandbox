@@ -28,6 +28,8 @@ Vector2 numOffset = {-2, 16};
 int mouseInv[2] = {-1, 0};
 bool showInv = false;
 INV_Item itemData[64];
+INV_Recipe recipes[64];
+int numberOfRecipes = 0;
 
 void INV_Init(){
 	int invPos = 0;
@@ -65,7 +67,7 @@ int ReadItemData(){
 	}
 	
 	// printf("%s\n", itemData[0].name);
-	
+	INV_InitRecipes();
 	fclose(file);
 	return 0;
 }
@@ -77,10 +79,39 @@ int INV_InitRecipes(){
 	}
 	char buffer[512];
 	int i = 0;
+	char inItemTMP[64];
+	char outItemTMP[64];
 	
 	while(fgets(buffer, sizeof(buffer), file)){
+		//order of strtoks
+		//, : , \n
+		recipes[i].inQty = strtol(strtok(buffer, ","), NULL, 10);//Get number of inputed items
+		strcpy(inItemTMP, strtok(NULL, ":"));//Get inputed item name
+		recipes[i].outQty = strtol(strtok(NULL, ","), NULL, 10);//Get number of outputed items
+		strcpy(outItemTMP, strtok(NULL, "\n"));//Get outputed item name
 		
+		bool inFound = false;
+		bool outFound = false;
+		for(int z = 0; z < 64; z++){//Find numerical value of 
+			if(strcmp(inItemTMP, itemData[z].name) == 0 && !inFound){
+				recipes[i].inItem = z;
+				inFound = true;
+			}
+			if(strcmp(outItemTMP, itemData[z].name) == 0 && !outFound){
+				recipes[i].outItem = z;
+				outFound = true;
+			}
+			if(inFound == true && outFound == true){//If both values have been found end the loop
+				break;
+			}
+		}
+		i++;
 	}
+	numberOfRecipes = i;
+	// printf("%d %s -> %d %s\n", recipes[0].inQty, itemData[recipes[0].inItem].name, recipes[0].outQty, itemData[recipes[0].outItem].name);
+	// printf("%d %s -> %d %s", recipes[1].inQty, itemData[recipes[1].inItem].name, recipes[1].outQty, itemData[recipes[1].outItem].name);
+	fclose(file);
+	return 0;
 }
 
 void INV_DrawInv(){

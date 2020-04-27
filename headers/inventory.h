@@ -19,5 +19,6 @@ int INV_FindEmpty(int type);
 
 
 int ReadItemData();
+int INV_InitRecipes();
 
 #endif
