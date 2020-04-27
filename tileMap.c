@@ -139,18 +139,13 @@ void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32]){
 						}
 					}
 					// Highlight the tile the mouse is currently on
-					// if(map[y][x] != 3){
-						// if(SDL_GetMouseState(&mousePos.x, &mousePos.y)){
-							// printf("%d\n", mapArray[y][x]);
-						// }
-						SDL_GetMouseState(&mousePos.x, &mousePos.y);
-						SDL_Point mousePoint = {mousePos.x, mousePos.y};
-						if(SDL_PointInRect(&mousePoint, &tile)){
-							SDL_Rect mouseHighlight = {(x * tileStretchSize) - worldPosition.x, (y * tileStretchSize) - worldPosition.y, tileStretchSize, tileStretchSize};
-							SDL_SetRenderDrawColor(gRenderer, 255, 211, 0, 0xff);
-							SDL_RenderDrawRect(gRenderer, &mouseHighlight);
-						}
-					// }
+					SDL_GetMouseState(&mousePos.x, &mousePos.y);
+					SDL_Point mousePoint = {mousePos.x, mousePos.y};
+					if(SDL_PointInRect(&mousePoint, &tile)){
+						SDL_Rect mouseHighlight = {(x * tileStretchSize) - worldPosition.x, (y * tileStretchSize) - worldPosition.y, tileStretchSize, tileStretchSize};
+						SDL_SetRenderDrawColor(gRenderer, 255, 211, 0, 0xff);
+						SDL_RenderDrawRect(gRenderer, &mouseHighlight);
+					}
 				}
 			}
 		}

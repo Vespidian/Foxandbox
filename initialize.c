@@ -67,7 +67,7 @@ void TextureInit(){
 	uiTex = IMG_LoadTexture(gRenderer, "images/ui.png");
 	uiSheet = (WB_Tilesheet){uiTex, 8, 16, 16};
 	
-	fontTex = IMG_LoadTexture(gRenderer, "fonts/fontSMALL.png");
+	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){fontTex, 12, 8, 16};
 }
 
@@ -99,6 +99,7 @@ bool init(bool initTTF){
 	INV_Init();
 	
 	// PerlinInit();
+	ReadItemData();
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);	

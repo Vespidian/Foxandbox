@@ -11,6 +11,8 @@ typedef struct{
 	float y;
 }fVector2;
 
+
+//INV Structs
 typedef struct{
 	SDL_Texture *tex;
 	int w;
@@ -23,5 +25,16 @@ typedef struct{
 	int itemType;
 	int itemQty;
 }GroundItem;
+
+typedef struct{
+	char name[64];
+	char description[128];
+	
+}INV_Item;
+
+typedef struct{
+	int 
+	
+}INV_Recipe;
 
 #endif

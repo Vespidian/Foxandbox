@@ -33,7 +33,7 @@ void clearScreen(SDL_Renderer *renderer){
 }
 //MISC
 bool quit = false;
-static const int targetFramerate = 30;
+static const int targetFramerate = 60;
 
 /*VARIABLE DECLARATION*/
 int tileSize = 64;
@@ -68,16 +68,20 @@ void DrawCharacter(int direction, int numFrames){
 	}
 }
 
+SDL_Rect windowRect;
+
 int randArray[32][32];
 
 int darknessMod = 0;
 bool isDay = true;
+bool doDayCycle = false;
 
 int main(int argc, char **argv) {
 	init();
 	if(init){
 		
 		// randomArray();
+		SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 		Vector2 tmpSize = {WIDTH, HEIGHT};	
 		
 		SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
@@ -85,8 +89,10 @@ int main(int argc, char **argv) {
 		midScreen.y = (HEIGHT / 2 - tileSize / 2);
 		characterOffset = midScreen;
 		while(!quit){	
+			// int time = SDL_GetTicks();
+			// float timeDiff;
 		
-			if((SDL_GetTicks() / 10) % 20 == 1){
+			if((SDL_GetTicks() / 10) % 20 == 1 && doDayCycle){
 				if(darknessMod == 0){
 					isDay = true;
 				}
@@ -114,28 +120,32 @@ int main(int argc, char **argv) {
 			
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
-					worldPosition.x -= 4;
+					// if(SDL_GetTicks() % 2 == 0)
+						worldPosition.x -= 4;
 				}
 				isWalking = true;
 				characterFacing = 4;
 			}
 			if(currentKeyStates[SDL_SCANCODE_W]){
 				if(!colUp){
-					worldPosition.y -= 4;
+					// if(SDL_GetTicks() % 2 == 0)
+						worldPosition.y -= 4;
 				}
 				isWalking = true;
 				characterFacing = 2;
 			}
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
-					worldPosition.x += 4;
+					// if(SDL_GetTicks() % 2 == 0)
+						worldPosition.x += 4;
 				}
 				isWalking = true;
 				characterFacing = 3;
 			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
-					worldPosition.y += 4;
+					// if(SDL_GetTicks() % 2 == 0)
+						worldPosition.y += 4;
 				}
 				isWalking = true;
 				characterFacing = 1;
@@ -210,6 +220,7 @@ int main(int argc, char **argv) {
 						characterOffset.x = WIDTH / 2 - tileSize / 2;
 						characterOffset.y = HEIGHT / 2 - tileSize / 2;
 						tmpSize = (Vector2){WIDTH, HEIGHT};
+						windowRect = (SDL_Rect){-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 					}
 				}
 				
@@ -218,6 +229,7 @@ int main(int argc, char **argv) {
 				}
 			}
 			//Game FrameRate
+			// timeDiff = SDL_GetTicks() - time;
 			SDL_Delay(1000 / targetFramerate);
 		}
 	}else{
@@ -296,25 +308,40 @@ void RenderScreen(){
 	snprintf(coordinates, 1024, "x: %d, y: %d", worldPosition.x / 4, worldPosition.y / 4);
 	snprintf(charoff, 1024, "x: %d, y: %d", characterOffset.x, characterOffset.y);
 	
-	RenderText(gRenderer, coordinates, 0, 0);
-	RenderText(gRenderer, charoff, 0, 32);
+	RenderText_d(gRenderer, coordinates, 0, 0);
+	RenderText_d(gRenderer, charoff, 0, 32);
 	// RenderText(gRenderer, "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG. S \nthe quick brown fox jumped over the lazy dog. s \n1234567890-= \n!@#$%^&*()_+ \n[]{};':,./<>?\\~`", 0, 0);
 	// RenderText(gRenderer, "void RenderText(SDL_Renderer *renderer, char *text, int x, int y){\n	testing 1	2;\n}\nint	 a = 50;\nbool isAlive = true;", 0, 400);
 	// RenderText(gRenderer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 200);
 	// RenderText(gRenderer, "Hello, World!", 0, 300);
-	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	
+	/*SDL_Rect tmpR = {256 - worldPosition.x, 220 - worldPosition.y, 32, 32};
+	// SDL_Point pnt = {tmpR.x, tmpR.y};
+	if(SDL_PointInRect(&(SDL_Point){tmpR.x, tmpR.y}, &windowRect)){
+		RenderTextureFromSheet(gRenderer, furnitureSheet, 0, tmpR);
+	}*/
+	
+	
+	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	SDL_RenderPresent(gRenderer);
 }
 
-int tracking = 9;//Spacing between letters
-int spacing = 16;//Vertical spacing
-int RenderText(SDL_Renderer *renderer, char *text, int x, int y){
-	SDL_Rect charRect = {x, y, 16, 16};
+int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod){
+	int tracking = 9;//Spacing between letters
+	int spacing = 16;
+	
+	if(text == NULL){
+		printf("Error: RenderText called with null text field\n");
+		return 1;
+	}
+	
+	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
+	
+	SDL_Rect charRect = {x, y, spacing, spacing};
 	if(strlen(text) > 0){
 		for(int i = 0; i < strlen(text); i++){
 			int charVal = (int)text[i] - (int)' ';
-			if(charVal >= 0){				
+			if(charVal >= 0){		
 				RenderTextureFromSheet(renderer, fontSheet, charVal, charRect);
 				charRect.x += tracking;
 			}else if(charVal == -22){//NEWLINE (\n)
@@ -328,7 +355,12 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y){
 		printf("Error: No text provided on RenderText()\n");
 		return 1;
 	}
+	SDL_SetTextureColorMod(fontSheet.tex, 0, 0, 0);
 	return 0;
+}
+void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
+	SDL_Color defaultColor = {255, 255, 255, 0xff};
+	RenderText(renderer, text, x, y, defaultColor);
 }
 
 void randomArray(){

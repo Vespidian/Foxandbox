@@ -19,7 +19,8 @@ extern Vector2 worldPosition;
 extern Vector2 characterOffset;
 extern Vector2 mousePos;
 extern Vector2 midScreen;
-int RenderText(SDL_Renderer *renderer, char *text, int x, int y);
+int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod);
+void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
 	
 extern int tileSize;
 extern int layerOrder;
@@ -29,7 +30,6 @@ void randomArray();
 extern int randArray[32][32];
 
 extern bool mouseUp;
-
 
 // void PerlinInit();
 // void PerlinNoise(int nCount, float *fSeed, int nOctaves, float *fOutput);
