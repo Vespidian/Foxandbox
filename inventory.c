@@ -63,6 +63,7 @@ int ReadItemData(){
 			strshft_l(buffer, 2);
 			printf("Reading %s", buffer);
 		}else{
+			strshft_l(buffer, 1);
 			strcpy(itemData[i].name, strtok(buffer, ":"));
 			strcpy(itemData[i].description, strtok(NULL, "|"));
 			i++;
