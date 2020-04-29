@@ -58,12 +58,17 @@ int ReadItemData(){
 	char buffer[512];
 	int i = 0;
 	
-	while(fgets(buffer, sizeof(buffer), file)){		
-		strcpy(itemData[i].name, strtok(buffer, ":"));
-		strcpy(itemData[i].description, strtok(NULL, "\n"));
+	while(fgets(buffer, sizeof(buffer), file)){
+		if(buffer[0] == ':' && buffer[1] == ':'){
+			strshft_l(buffer, 2);
+			printf("Reading %s", buffer);
+		}else{
+			strcpy(itemData[i].name, strtok(buffer, ":"));
+			strcpy(itemData[i].description, strtok(NULL, "|"));
+			i++;
+		}
 		// printf("%s >> %s\n", itemData[i].name, itemData[i].description);
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
-		i++;
 	}
 	
 	// printf("%s\n", itemData[0].name);

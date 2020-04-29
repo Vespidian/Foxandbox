@@ -31,6 +31,8 @@ extern int randArray[32][32];
 
 extern bool mouseUp;
 
+int strshft_l(char stringShift[128], int shiftBy);
+
 // void PerlinInit();
 // void PerlinNoise(int nCount, float *fSeed, int nOctaves, float *fOutput);
 // extern int perlinNoise1D[];

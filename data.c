@@ -77,3 +77,15 @@ bool GetClick(int x1, int y1, int x2, int y2){
 		}
 	}
 }
+
+int strshft_l(char stringShift[128], int shiftBy){
+	if(strlen(stringShift) < shiftBy){
+		return 1;
+	}
+	char tempString[128];
+	for(int i = 0; i < strlen(stringShift) - shiftBy; i++){
+		tempString[i] = stringShift[i + shiftBy];
+	}
+	strcpy(stringShift, tempString);
+	return 0;
+}
