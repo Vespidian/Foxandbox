@@ -59,14 +59,19 @@ int ReadItemData(){
 	int i = 0;
 	
 	while(fgets(buffer, sizeof(buffer), file)){
-		if(buffer[0] == ':' && buffer[1] == ':'){
-			strshft_l(buffer, 2);
-			printf("Reading %s", buffer);
-		}else{
-			strshft_l(buffer, 1);
-			strcpy(itemData[i].name, strtok(buffer, ":"));
-			strcpy(itemData[i].description, strtok(NULL, "|"));
-			i++;
+		if(buffer[0] != '\n'){
+			if(buffer[0] == ':' && buffer[1] == ':'){
+				strshft_l(buffer, 2);
+				// buffer[strlen(buffer) - 1] = ' ';
+				// buffer[strlen(buffer) - 2] = ' ';
+				// printf("Reading %s\n", buffer);
+				printf("Reading: %s\n", buffer);
+			}else{
+				strshft_l(buffer, 1);
+				strcpy(itemData[i].name, strtok(buffer, ":"));
+				strcpy(itemData[i].description, strtok(NULL, "|"));
+				i++;
+			}
 		}
 		// printf("%s >> %s\n", itemData[i].name, itemData[i].description);
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
@@ -257,13 +262,13 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 		return 1;
 	}
 	if(itemQty != NULL && itemQty != 0){
-		invArray[cell + 1][0] = itemNum;
 		
 		if(strcmp(mode, "set") == 0){
-			if(itemQty > maxStack){
-				invArray[cell + 1][1] = maxStack;
-			}else{
+			invArray[cell + 1][0] = itemNum;
+			if(itemQty < maxStack){
 				invArray[cell + 1][1] = itemQty;
+			}else{
+				invArray[cell + 1][1] = maxStack;
 			}
 		}else if(strcmp(mode, "add") == 0){
 			if(invArray[cell + 1][0] == itemNum && invArray[cell + 1][1] < maxStack){//Check if item is of different type or exceeding limit
@@ -274,8 +279,14 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 			}
 			return 0;
 		}else if(strcmp(mode, "sub") == 0){
-			if(invArray[cell + 1][1] > 0){
-				invArray[cell + 1][1] -= itemQty;
+			if(invArray[cell + 1][0] == itemNum){
+				if(invArray[cell + 1][1] > 0){
+					invArray[cell + 1][1] -= itemQty;
+					printf("written to cell %d\n", cell);
+				}else{
+					invArray[cell + 1][1] = 0;
+					invArray[cell + 1][0] = -1;
+				}
 			}
 		}
 	}else{
@@ -291,21 +302,14 @@ int INV_ReadCell(char *mode, int cell){
 	return invArray[cell + 1][0];
 }
 
-int INV_FindItem(int itemNum, int minItemQty){
-	if(minItemQty < 1){
-		printf("Error: INV_FindItem called with a minimum quantity of less than 1\n");
-		return 1;
-	}
+int INV_FindItem(int itemNum){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
 		if(invArray[i][0] == itemNum){
-			// itemQtyFound += invArray[i][1];
-			itemQtyFound = invArray[i][1];
-			if(itemQtyFound >= minItemQty){
-				return i;
-			}
+			return i - 1;
 		}
 	}
+	return -1;
 }
 int INV_FindEmpty(int type){
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){

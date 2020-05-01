@@ -38,7 +38,7 @@ static const int targetFramerate = 60;
 /*VARIABLE DECLARATION*/
 int tileSize = 64;
 
-Vector2 worldPosition = {0, 0};
+Vector2 mapOffsetPos = {0, 0};
 Vector2 characterOffset = {0, 0};
 Vector2 mousePos = {0, 0};
 Vector2 midScreen = {0, 0};
@@ -75,6 +75,8 @@ int randArray[32][32];
 int darknessMod = 0;
 bool isDay = true;
 bool doDayCycle = false;
+Vector2 worldPos = {0, 0};
+int playerSpeed = 4;
 
 int main(int argc, char **argv) {
 	init();
@@ -118,10 +120,11 @@ int main(int argc, char **argv) {
 			// characterFacing = 0;
 			isWalking = false;
 			
+			
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
-					// if(SDL_GetTicks() % 2 == 0)
-						worldPosition.x -= 4;
+					// if(SDL_GetTicks() % 2 != 0)
+						mapOffsetPos.x -= playerSpeed;
 				}
 				isWalking = true;
 				characterFacing = 4;
@@ -129,7 +132,7 @@ int main(int argc, char **argv) {
 			if(currentKeyStates[SDL_SCANCODE_W]){
 				if(!colUp){
 					// if(SDL_GetTicks() % 2 == 0)
-						worldPosition.y -= 4;
+						mapOffsetPos.y -= playerSpeed;
 				}
 				isWalking = true;
 				characterFacing = 2;
@@ -137,7 +140,7 @@ int main(int argc, char **argv) {
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
 					// if(SDL_GetTicks() % 2 == 0)
-						worldPosition.x += 4;
+						mapOffsetPos.x += playerSpeed;
 				}
 				isWalking = true;
 				characterFacing = 3;
@@ -145,14 +148,14 @@ int main(int argc, char **argv) {
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
 					// if(SDL_GetTicks() % 2 == 0)
-						worldPosition.y += 4;
+						mapOffsetPos.y += playerSpeed;
 				}
 				isWalking = true;
 				characterFacing = 1;
 			}
 			
 			// if(currentKeyStates[SDL_SCANCODE_E]){
-				// printf("%d, %d\n", worldPosition.x * 4, worldPosition.y * 4);
+				// printf("%d, %d\n", mapOffsetPos.x * 4, mapOffsetPos.y * 4);
 			// }
 			if(currentKeyStates[SDL_SCANCODE_C]){
 				printf("%d, %d\n", characterOffset.x, characterOffset.y);
@@ -175,9 +178,14 @@ int main(int argc, char **argv) {
 					}
 				}
 				if(e.type == SDL_KEYUP){
-					// if(e.key.keysym.sym == SDLK_p){
-						// PerlinInit();
-					// }
+					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};
+					if(roundSpeed.x != 0){
+						mapOffsetPos.x = mapOffsetPos.x + (4 - roundSpeed.x);
+					}
+					if(roundSpeed.y != 0){
+						mapOffsetPos.y = mapOffsetPos.y + (4 - roundSpeed.y);
+					}
+					
 					if(e.key.keysym.sym == SDLK_t){
 						TextureDestroy();
 						TextureInit();
@@ -192,6 +200,14 @@ int main(int argc, char **argv) {
 					}
 					if(e.key.keysym.sym == SDLK_e){
 						showInv = !showInv;
+					}
+					if(e.key.keysym.sym == SDLK_v){
+						if(INV_FindItem(1) != -1 && customMap[worldPos.y][worldPos.x] != 49){
+							// printf("%d\n", INV_FindItem(1));
+							customMap[worldPos.y][worldPos.x] = 49;
+							INV_WriteCell("sub", INV_FindItem(1), 1, 1);
+							// INV_WriteCell("sub", 0, 1, 1);
+						}
 					}
 				}
 				if(e.type == SDL_MOUSEWHEEL){
@@ -214,8 +230,8 @@ int main(int argc, char **argv) {
 						SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 						Vector2 diff = {WIDTH - tmpSize.x, HEIGHT - tmpSize.y};
 						// Vector2 diff = {tmpSize.x - WIDTH, tmpSize.y - HEIGHT};
-						worldPosition.x -= diff.x / 2;
-						worldPosition.y -= diff.y / 2;
+						mapOffsetPos.x -= diff.x / 2;
+						mapOffsetPos.y -= diff.y / 2;
 						// characterOffset = (Vector2){WIDTH / 2 - 8, HEIGHT / 2 - 8};
 						characterOffset.x = WIDTH / 2 - tileSize / 2;
 						characterOffset.y = HEIGHT / 2 - tileSize / 2;
@@ -248,6 +264,7 @@ void RenderScreen(){
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawMap(defSheet, map);
 	DrawMap(defSheet, map1);
+	DrawMap(defSheet, customMap);
 
 	// DrawMap(furnitureSheet, randArray);
 	if(layerOrder == 0){
@@ -289,38 +306,21 @@ void RenderScreen(){
 	FindCollisions();
 	
 	INV_DrawInv();
-	
-	// char numString[20];
-	// itoa(123456789, numString, 10);
-	// RenderText(numString, 0, 0);
-	
-	// char posx[20]; 
-	// char posy[20]; 
-	// char spacer[4] = " : ";
-	// itoa(worldPosition.x / 4, posx, 10);
-	// itoa(worldPosition.y / 4, posy, 10);
-	
-	// strcat(posx, spacer);
-	// strcat(posx, posy);
-	
+
 	char coordinates[256];
 	char charoff[256];
-	snprintf(coordinates, 1024, "x: %d, y: %d", worldPosition.x / 4, worldPosition.y / 4);
+	
+	worldPos = (Vector2){
+		((characterOffset.x + 32) + mapOffsetPos.x) / 64,
+		((characterOffset.y + 32) + mapOffsetPos.y) / 64,
+	};
+	
+	// snprintf(coordinates, 1024, "x: %d, y: %d", (mapOffsetPos.x + 32) / 64, (mapOffsetPos.y + 32) / 64);
+	snprintf(coordinates, 1024, "x: %d, y: %d", worldPos.x, worldPos.y);
 	snprintf(charoff, 1024, "x: %d, y: %d", characterOffset.x, characterOffset.y);
 	
 	RenderText_d(gRenderer, coordinates, 0, 0);
 	RenderText_d(gRenderer, charoff, 0, 32);
-	// RenderText(gRenderer, "THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG. S \nthe quick brown fox jumped over the lazy dog. s \n1234567890-= \n!@#$%^&*()_+ \n[]{};':,./<>?\\~`", 0, 0);
-	// RenderText(gRenderer, "void RenderText(SDL_Renderer *renderer, char *text, int x, int y){\n	testing 1	2;\n}\nint	 a = 50;\nbool isAlive = true;", 0, 400);
-	// RenderText(gRenderer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 200);
-	// RenderText(gRenderer, "Hello, World!", 0, 300);
-	
-	/*SDL_Rect tmpR = {256 - worldPosition.x, 220 - worldPosition.y, 32, 32};
-	// SDL_Point pnt = {tmpR.x, tmpR.y};
-	if(SDL_PointInRect(&(SDL_Point){tmpR.x, tmpR.y}, &windowRect)){
-		RenderTextureFromSheet(gRenderer, furnitureSheet, 0, tmpR);
-	}*/
-	
 	
 	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	SDL_RenderPresent(gRenderer);

@@ -97,6 +97,7 @@ bool init(bool initTTF){
 	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
 	MapInit();
 	INV_Init();
+	memset(customMap, -1, sizeof(customMap));
 	
 	// PerlinInit();
 	ReadItemData();

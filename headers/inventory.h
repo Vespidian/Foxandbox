@@ -16,6 +16,7 @@ void INV_DrawInv();
 int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum);
 int INV_ReadCell(char *mode, int cell);
 int INV_FindEmpty(int type);
+int INV_FindItem(int itemNum);
 
 
 int ReadItemData();

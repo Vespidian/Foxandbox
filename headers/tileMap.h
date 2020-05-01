@@ -9,6 +9,9 @@ extern int passableMap[32][32];
 
 extern int tempMap1[32][32];
 extern int tempMap2[32][32];
+
+
+extern int customMap[32][32];
 // extern int passableMap[32][32];
 
 extern int tilePixelSize;

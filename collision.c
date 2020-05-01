@@ -69,7 +69,7 @@ void FindCollisions(){
 	colRight = false;
 	
 	SDL_Rect charCollider = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize + 2};
-	SDL_RenderDrawRect(gRenderer, &charCollider);
+	// SDL_RenderDrawRect(gRenderer, &charCollider);
 	/* DEFAULT SQUARE PLAYER COLLIDER
 	SDL_Rect charCollider_bottom = {(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2) + tileSize, tileSize, 1};
 	SDL_Rect charCollider_right = {(WIDTH / 2 - tileSize / 2) + tileSize, (HEIGHT / 2 - tileSize / 2), 1, tileSize};
@@ -97,7 +97,7 @@ void FindCollisions(){
 	
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
-			SDL_Rect tileR = {(x * tileSize) - worldPosition.x, (y * tileSize) - worldPosition.y, tileSize, tileSize};
+			SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
 			
 			if(SDL_PointInRect(&charP, &tileR)){
 				// printf("%d, %d\n", x, y);
@@ -137,7 +137,7 @@ void FindCollisions(){
 						ChangeOrder(tileR, charCollider, 0, 2);
 					}
 					
-					tileR.y = (y * tileSize) - worldPosition.y + tileSize / 2;
+					tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
 					tileR.h = tileSize / 2;
 					CheckCollisions(tileR);
 					
@@ -159,7 +159,7 @@ void FindCollisions(){
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
 					
-					tileR.x = x * tileSize - worldPosition.x + tileSize / 2;
+					tileR.x = x * tileSize - mapOffsetPos.x + tileSize / 2;
 					tileR.w = tileSize / 2;
 					CheckCollisions(tileR);
 					
@@ -167,8 +167,8 @@ void FindCollisions(){
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
 					
-					tileR.x = x * tileSize - worldPosition.x + tileSize / 2;
-					tileR.y = y * tileSize - worldPosition.y + tileSize / 2;
+					tileR.x = x * tileSize - mapOffsetPos.x + tileSize / 2;
+					tileR.y = y * tileSize - mapOffsetPos.y + tileSize / 2;
 					tileR.w = tileSize / 2;
 					tileR.h = tileSize / 2;
 					CheckCollisions(tileR);
@@ -177,7 +177,7 @@ void FindCollisions(){
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
 					
-					tileR.y = y * tileSize - worldPosition.y + tileSize / 2;
+					tileR.y = y * tileSize - mapOffsetPos.y + tileSize / 2;
 					tileR.w = tileSize / 2;
 					tileR.h = tileSize / 2;
 					CheckCollisions(tileR);
@@ -186,7 +186,7 @@ void FindCollisions(){
 					SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 					ChangeOrder(tileR, charCollider, 0, 2);
 					
-					tileR.x = x * tileSize - worldPosition.x + tileSize / 2;
+					tileR.x = x * tileSize - mapOffsetPos.x + tileSize / 2;
 					tileR.w = tileSize / 2;
 					tileR.h = tileSize / 2;
 					CheckCollisions(tileR);
