@@ -13,6 +13,9 @@ extern SDL_Texture *itemTex;
 extern SDL_Texture *uiTex;
 extern SDL_Texture *fontTex;
 
+extern SDL_Texture *colorModTex;
+extern WB_Tilesheet colorModSheet;
+
 extern WB_Tilesheet defSheet;
 extern WB_Tilesheet furnitureSheet;
 extern WB_Tilesheet characterSheet;

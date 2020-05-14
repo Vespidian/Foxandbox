@@ -48,6 +48,7 @@ void INV_Init(){
 	INV_WriteCell("set", 3, 1, 1);
 	INV_WriteCell("set", 4, 1, 0);
 	INV_WriteCell("set", 11, 0, -1);
+	INV_WriteCell("set", 14, 20, 4);
 }
 
 int ReadItemData(){
@@ -57,26 +58,43 @@ int ReadItemData(){
 	}
 	char buffer[512];
 	int i = 0;
+	char heading[64];
 	
 	while(fgets(buffer, sizeof(buffer), file)){
 		if(buffer[0] != '\n'){
-			if(buffer[0] == ':' && buffer[1] == ':'){
+			if(buffer[0] == '	'){
+				strshft_l(buffer, 1);
+				
+				if(strcmp(heading, "BLOCKS") == 0){//Check if iterating through blocks
+					// char id[16];
+					// strcpy(id, strtok(buffer, ":"));
+					// strcpy(id, strtok(NULL, "|"));
+					// printf("%s\n", id);
+					// strshft_l(id, 3);	
+					// printf("%d\n", atoi(id));
+					// printf("%s\n", id);
+					
+				}else{
+					strcpy(itemData[i].name, strtok(buffer, ":"));
+					strcpy(itemData[i].description, strtok(NULL, "|"));
+				}
+				i++;
+				// printf("Current heading: %s\n", heading);
+			}else if(buffer[0] == ':' && buffer[1] == ':'){
 				strshft_l(buffer, 2);
+				i = 0;
 				// buffer[strlen(buffer) - 1] = ' ';
 				// buffer[strlen(buffer) - 2] = ' ';
 				// printf("Reading %s\n", buffer);
-				printf("Reading: %s\n", buffer);
-			}else{
-				strshft_l(buffer, 1);
-				strcpy(itemData[i].name, strtok(buffer, ":"));
-				strcpy(itemData[i].description, strtok(NULL, "|"));
-				i++;
-			}
+				strcpy(heading, buffer);
+				// printf("Reading: %s\n", buffer);
+			}/*else  if(buffer[0] == '/' && buffer[1] == '/'){
+				
+			} */
 		}
 		// printf("%s >> %s\n", itemData[i].name, itemData[i].description);
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
 	}
-	
 	// printf("%s\n", itemData[0].name);
 	INV_InitRecipes();
 	fclose(file);
@@ -133,7 +151,8 @@ void INV_DrawInv(){
 	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
 	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
-	SDL_RenderFillRect(gRenderer, &hotBar);
+	// SDL_RenderFillRect(gRenderer, &hotBar);
+	AddToRenderQueue(gRenderer, colorModSheet, 0, hotBar, RNDRLYR_UI - 1);
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};
 	for(int i = 0; i < INV_WIDTH; i++){
@@ -145,12 +164,13 @@ void INV_DrawInv(){
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
 			SDL_SetRenderDrawColor(gRenderer, 200, 0, 0, 64);
-			SDL_RenderFillRect(gRenderer, &tmpRect);
+			// SDL_RenderFillRect(gRenderer, &tmpRect);
+			AddToRenderQueue(gRenderer, colorModSheet, 0, tmpRect, RNDRLYR_UI - 1);
 			// SDL_RenderDrawRect(gRenderer, &slotRect);
 		}
-		RenderTextureFromSheet(gRenderer, uiSheet, 0, slotRect);
+		AddToRenderQueue(gRenderer, uiSheet, 0, slotRect, RNDRLYR_UI);
 		if(invArray[i+1][0] > -1 && invArray[i+1][1] > 0){
-			RenderTextureFromSheet(gRenderer, itemSheet, invArray[i+1][0], slotRect);
+			AddToRenderQueue(gRenderer, itemSheet, invArray[i+1][0], slotRect, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i+1][1], itemqty, 10);
@@ -171,7 +191,9 @@ void INV_DrawInv(){
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
-		SDL_RenderFillRect(gRenderer, &invRect);
+		// SDL_RenderFillRect(gRenderer, &invRect);
+		AddToRenderQueue(gRenderer, colorModSheet, 0, invRect, RNDRLYR_UI - 1);
+
 		
 		int invPos = 0;
 		for(int y = 0; y < INV_HEIGHT; y++){
@@ -221,17 +243,20 @@ void INV_DrawInv(){
 					if(invArray[invPos][0] > -1){
 						SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
 						SDL_Rect itemNameDisp = {invRect.x, invRect.y - 32, strlen(itemData[invArray[invPos][0]].name) * 14, 28};
-						SDL_RenderFillRect(gRenderer, &itemNameDisp);
+						// SDL_RenderFillRect(gRenderer, &itemNameDisp);
+						AddToRenderQueue(gRenderer, colorModSheet, 0, itemNameDisp, RNDRLYR_UI - 1);
+						// SDL_Rect woahR = {0, 0, 100, 100};
+						// AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, UI - 1);
 						RenderText_d(gRenderer, itemData[invArray[invPos][0]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);
 						
 						// SDL_Color tmpBlue = {20, 20, 255, 0xff};
 						// RenderText(gRenderer, itemData[invArray[invPos][0]].description, itemNameDisp.x + 4, itemNameDisp.y - 20, tmpBlue);
 					}
 				}
-				RenderTextureFromSheet(gRenderer, uiSheet, 0, invItemRect);//Draw the background of each cell
+				AddToRenderQueue(gRenderer, uiSheet, 0, invItemRect, RNDRLYR_UI);//Draw the background of each cell
 				
 				if(invArray[invPos][0] > -1 && invArray[invPos][1] > 0){//Check if item exists in cell and render it
-					RenderTextureFromSheet(gRenderer, itemSheet, invArray[invPos][0], invItemRect);
+					AddToRenderQueue(gRenderer, itemSheet, invArray[invPos][0], invItemRect, RNDRLYR_INV_ITEMS);
 					
 					char itemqty[16];
 					itoa(invArray[invPos][1], itemqty, 10);
@@ -245,7 +270,7 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv[0] > -1 && mouseInv[1] > 0){
 			SDL_Rect mouseItem = {mousePos.x - 16, mousePos.y - 16, 32, 32};
-			RenderTextureFromSheet(gRenderer, itemSheet, mouseInv[0], mouseItem);
+			AddToRenderQueue(gRenderer, itemSheet, mouseInv[0], mouseItem, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv[1], itemqty, 10);
@@ -257,8 +282,9 @@ void INV_DrawInv(){
 }
 
 int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
+	printf("%s %d, to %d\n", mode, itemQty, cell);
 	if(cell > INV_HEIGHT * INV_WIDTH){
-		printf("Error: Item location out of bounds!");
+		printf("Error: Item location out of bounds!\n");
 		return 1;
 	}
 	if(itemQty != NULL && itemQty != 0){
@@ -271,10 +297,11 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 				invArray[cell + 1][1] = maxStack;
 			}
 		}else if(strcmp(mode, "add") == 0){
+			invArray[cell + 1][0] = itemNum;
 			if(invArray[cell + 1][0] == itemNum && invArray[cell + 1][1] < maxStack){//Check if item is of different type or exceeding limit
 				invArray[cell + 1][1] += itemQty;
 			}else{
-				printf("Error: INV_WriteCell Atemping to add to full cell (Use 'set' instead of 'add')");
+				printf("Error: INV_WriteCell Atemping to add to full cell (Use 'set' instead of 'add')\n");
 				return 1;
 			}
 			return 0;
@@ -282,7 +309,6 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 			if(invArray[cell + 1][0] == itemNum){
 				if(invArray[cell + 1][1] > 0){
 					invArray[cell + 1][1] -= itemQty;
-					printf("written to cell %d\n", cell);
 				}else{
 					invArray[cell + 1][1] = 0;
 					invArray[cell + 1][0] = -1;

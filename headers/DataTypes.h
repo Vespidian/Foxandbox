@@ -20,17 +20,26 @@ typedef struct{
 	int tileW;
 }WB_Tilesheet;
 
-typedef struct{
+
+//Inventory items
+/* typedef struct{
 	Vector2 pos;
 	int itemType;
 	int itemQty;
-}GroundItem;
+}GroundItem; */
 
 typedef struct{
 	char name[64];
 	char description[128];
 	
 }INV_Item;
+
+typedef struct{
+	INV_Item item;
+	WB_Tilesheet sheet;
+	int tile;
+	
+}INV_Block;
 
 typedef struct{
 	int inItem;

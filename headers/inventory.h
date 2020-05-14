@@ -4,6 +4,7 @@
 // extern const int INV_WIDTH;
 // extern const int INV_HEIGHT;
 extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
+extern int invArray[INV_HEIGHT * INV_WIDTH][2];
 
 extern INV_Item itemData[64];
 

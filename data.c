@@ -83,13 +83,14 @@ int strshft_l(char stringShift[128], int shiftBy){
 		return 1;
 	}
 	char tempString[128];
-	for(int i = 0; i < strlen(stringShift) - shiftBy; i++){
-		// tempString[i] = stringShift[i + shiftBy];
+	for(int i = 0; i < strlen(stringShift) - shiftBy + 1; i++){
 		tempString[i] = stringShift[i + shiftBy];
+		// printf("%c", tempString[i]);
 	}
-	tempString[strlen(tempString) - shiftBy + 1] = '\0';
+	// tempString[strlen(tempString) - shiftBy + 1] = '\0';
 	// printf("%s\n", tempString);
 	strcpy(stringShift, tempString);
-	// stringShift[strlen(stringShift) - 1] = '\0';
+	// strcpy(stringShift, &stringShift[shiftBy]);
+	// stringShift[strlen(stringShift) - shiftBy];
 	return 0;
 }

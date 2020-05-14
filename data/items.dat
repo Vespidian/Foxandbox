@@ -1,5 +1,19 @@
-::MAIN_ITEMS
-	Log:A long round thing|
-	Rock:It very hard|
-	Plank:Log make plank|
-	Ingot:woah!|
+::CRAFTING_INGREDIENTS
+	Log:|
+	Rock:|
+	Plank:|
+	Ingot:|
+	Feather:|
+::BLOCKS
+// Stone:ID_21|BFLAG_COLLISION|
+
+
+
+::CRAFTABLES
+
+
+
+
+
+
+::A

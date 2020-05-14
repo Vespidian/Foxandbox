@@ -13,6 +13,7 @@
 #include "headers/data.h"
 #include "headers/drawFunctions.h"
 #include "headers/tileMap.h"
+#include "headers/ECS.h"
 
 int tilePixelSize = 16;
 int tileStretchSize = 64;
@@ -35,24 +36,65 @@ x = (tileNum % tileSheetWidth) * 16
 y = (tileNum / tileSheetHeight) * 16
 
 */
-// int RenderTextureFromSheet(SDL_Renderer *gRenderer, SDL_Texture *sourceTexture, int tileSheetWidth, int tileSheetHeight, int tileWidth, int tileNum, SDL_Rect destRect){
-int RenderTextureFromSheet(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect){
-	Vector2 tileInSheet;
+int renderItem = 0;
+RenderComponent *renderBuffer;
+
+void SetupRenderFrame(){//Clear and allocate render buffer + reset render counter
+	// printf("%d\n", renderItem);
+	free(renderBuffer);
+	renderItem = 0;
+	renderBuffer = malloc(sizeof(RenderComponent));
+}
+int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int zPos){
 	if(tileSheet.tex == NULL){
 		printf("Error: Tilesheet not defined properly!\n");
 		return 1;
 	}
 	if(tileNum <= tileSheet.w * tileSheet.h - 1){
-		tileInSheet.x = (tileNum % tileSheet.w) * tileSheet.tileW;
-		tileInSheet.y = (tileNum / tileSheet.w) * tileSheet.tileW;
-		
-		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, tileSheet.tileW, tileSheet.tileW};
-		SDL_RenderCopy(gRenderer, tileSheet.tex, &sourceRect, &destRect);
+		renderBuffer = realloc(renderBuffer, (renderItem + 1) * sizeof(RenderComponent));
+		renderBuffer[renderItem] = (RenderComponent){gRenderer, tileSheet, tileNum, destRect, zPos};
+		renderItem++;
 		return 0;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
 		return 1;
 	}
+}
+
+// int RenderTextureFromSheet(){
+void RenderUpdate(){
+	/*RenderComponent tmpRenderItem;//Selection sort
+	for(int i = 0; i < renderItem; i++){
+		for(int j = i + 1; j < renderItem; j++){
+			if(renderBuffer[i].zPos > renderBuffer[j].zPos){
+				tmpRenderItem = renderBuffer[i];
+				renderBuffer[i] = renderBuffer[j];
+				renderBuffer[j] = tmpRenderItem;
+			}
+		}
+	}*/
+	int key, j; //Insertion sort
+	RenderComponent tmpRenderItem;
+	for (int i = 1; i < renderItem; i++) {
+		tmpRenderItem = renderBuffer[i];
+		key = renderBuffer[i].zPos;
+		j = i - 1;
+		while (j >= 0 && renderBuffer[j].zPos > key) {
+			renderBuffer[j + 1] = renderBuffer[j];
+			j--;
+		}
+		renderBuffer[j + 1] = tmpRenderItem;
+	}
+	
+	Vector2 tileInSheet;
+	for(int i = 0; i < renderItem; i++){
+		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tileW;
+		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tileW;
+		
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet.tileW, renderBuffer[i].tileSheet.tileW};
+		SDL_RenderCopy(renderBuffer[i].renderer, renderBuffer[i].tileSheet.tex, &sourceRect, &renderBuffer[i].transform);	
+	}
+	SetupRenderFrame();
 }
 
 int LoadMap(char *fileLoc, int mapArray[][32]){
@@ -119,7 +161,7 @@ void TextExtrapolate(int map[][32]){
 }
 
 // void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
-void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32]){
+void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32], int zPos){//NEED to implement z buffering
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			if(mapArray[y][x] != -1){
@@ -137,7 +179,7 @@ void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32]){
 							// SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
 							// LoadImage(tile, tileLocation, textureSheet);
 							// WB_Tilesheet tileSheet = {textureSheet, sheetWidth, sheetWidth, tilePixelSize};
-							RenderTextureFromSheet(gRenderer, tileSheet, i, tile);
+							AddToRenderQueue(gRenderer, tileSheet, i, tile, 5);
 						}
 					}
 					// Highlight the tile the mouse is currently on

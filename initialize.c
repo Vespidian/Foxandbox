@@ -38,6 +38,8 @@ SDL_Texture *itemTex;
 SDL_Texture *uiTex;
 SDL_Texture *fontTex;
 
+SDL_Texture *colorModTex;
+WB_Tilesheet colorModSheet;
 
 WB_Tilesheet defSheet;
 WB_Tilesheet furnitureSheet;
@@ -47,7 +49,6 @@ WB_Tilesheet itemSheet;
 WB_Tilesheet uiSheet;
 WB_Tilesheet fontSheet;
 
-SDL_Texture *colorModTex = NULL;
 
 void TextureInit(){
 	tileSheetTex = IMG_LoadTexture(gRenderer, "images/groundTiles.png");
@@ -69,6 +70,9 @@ void TextureInit(){
 	
 	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){fontTex, 12, 8, 16};
+	
+	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
+	colorModSheet = (WB_Tilesheet){colorModTex, 1, 1, 16};
 }
 
 void MapInit(){
@@ -94,13 +98,14 @@ bool init(bool initTTF){
 	SDL_SetWindowIcon(gWindow, gIcon);
 
 	TextureInit();
-	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
 	MapInit();
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
+	// printf("%d\n", invArray[16][0]);
 	
 	// PerlinInit();
 	ReadItemData();
+	
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);	

@@ -17,6 +17,7 @@
 #include "headers/tileMap.h"
 #include "headers/collision.h"
 #include "headers/inventory.h"
+#include "headers/ECS.h"
 // Normally SDL2 will redefine the main entry point of the program for Windows applications
 // this doesn't seem to play nice with TCC, so we just undefine the redefinition
 #ifdef __TINYC__
@@ -55,7 +56,7 @@ void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int nu
 	int frame = 0;
 	frame = (SDL_GetTicks() / delay) % numFrames;
 	
-	RenderTextureFromSheet(gRenderer, tileSheet, startFrame + frame, dest);
+	AddToRenderQueue(gRenderer, tileSheet, startFrame + frame, dest, 5);
 }
 
 void DrawCharacter(int direction, int numFrames){
@@ -77,19 +78,26 @@ bool isDay = true;
 bool doDayCycle = false;
 Vector2 worldPos = {0, 0};
 int playerSpeed = 4;
+Vector2 placeLocation = {0, 0};
+
+void Setup(){
+	// randomArray();
+	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+	
+	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
+	midScreen.x = (WIDTH / 2 - tileSize / 2);
+	midScreen.y = (HEIGHT / 2 - tileSize / 2);
+	characterOffset = midScreen;
+	NewEntity();
+	SetupRenderFrame();
+	
+}
 
 int main(int argc, char **argv) {
 	init();
 	if(init){
-		
-		// randomArray();
-		SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+		Setup();
 		Vector2 tmpSize = {WIDTH, HEIGHT};	
-		
-		SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
-		midScreen.x = (WIDTH / 2 - tileSize / 2);
-		midScreen.y = (HEIGHT / 2 - tileSize / 2);
-		characterOffset = midScreen;
 		while(!quit){	
 			// int time = SDL_GetTicks();
 			// float timeDiff;
@@ -108,6 +116,16 @@ int main(int argc, char **argv) {
 				}
 				// printf("%d\n", darknessMod);
 				SDL_SetTextureAlphaMod(colorModTex, darknessMod);
+			}
+			
+			if(characterFacing == 4){
+				placeLocation = (Vector2){-1, 0};
+			}else if(characterFacing == 3){
+				placeLocation = (Vector2){1, 0};
+			}else if(characterFacing == 2){
+				placeLocation = (Vector2){0, -1};
+			}else if(characterFacing == 1){
+				placeLocation = (Vector2){0, 1};
 			}
 			
 			RenderScreen();
@@ -136,6 +154,7 @@ int main(int argc, char **argv) {
 				}
 				isWalking = true;
 				characterFacing = 2;
+				// worldPos.y -= 1;
 			}
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
@@ -144,6 +163,7 @@ int main(int argc, char **argv) {
 				}
 				isWalking = true;
 				characterFacing = 3;
+				// worldPos.x += 1;
 			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
@@ -152,7 +172,9 @@ int main(int argc, char **argv) {
 				}
 				isWalking = true;
 				characterFacing = 1;
+				// worldPos.y += 1;
 			}
+				// worldPos.y += characterFacing % 4;
 			
 			// if(currentKeyStates[SDL_SCANCODE_E]){
 				// printf("%d, %d\n", mapOffsetPos.x * 4, mapOffsetPos.y * 4);
@@ -178,12 +200,13 @@ int main(int argc, char **argv) {
 					}
 				}
 				if(e.type == SDL_KEYUP){
-					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};
+					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
+					keeping everything pixel perfect
 					if(roundSpeed.x != 0){
-						mapOffsetPos.x = mapOffsetPos.x + (4 - roundSpeed.x);
+						mapOffsetPos.x = mapOffsetPos.x - (roundSpeed.x);
 					}
 					if(roundSpeed.y != 0){
-						mapOffsetPos.y = mapOffsetPos.y + (4 - roundSpeed.y);
+						mapOffsetPos.y = mapOffsetPos.y - (roundSpeed.y);
 					}
 					
 					if(e.key.keysym.sym == SDLK_t){
@@ -202,12 +225,15 @@ int main(int argc, char **argv) {
 						showInv = !showInv;
 					}
 					if(e.key.keysym.sym == SDLK_v){
-						if(INV_FindItem(1) != -1 && customMap[worldPos.y][worldPos.x] != 49){
+						if(INV_FindItem(1) != -1 && customMap[worldPos.y + placeLocation.y][worldPos.x  + placeLocation.x] != 49){
 							// printf("%d\n", INV_FindItem(1));
-							customMap[worldPos.y][worldPos.x] = 49;
+							customMap[worldPos.y + placeLocation.y][worldPos.x + placeLocation.x] = 49;
 							INV_WriteCell("sub", INV_FindItem(1), 1, 1);
 							// INV_WriteCell("sub", 0, 1, 1);
 						}
+					}
+					if(e.key.keysym.sym == SDLK_r){
+						INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
 					}
 				}
 				if(e.type == SDL_MOUSEWHEEL){
@@ -256,41 +282,42 @@ int main(int argc, char **argv) {
 		Quit();
 	}
 }
+	Vector2 tempEntity = {0, 0};
 
 void RenderScreen(){
 	clearScreen(gRenderer);
 	
 	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	//Call SDL draw functions here and call RenderScreen from the main loop
-	DrawMap(defSheet, map);
-	DrawMap(defSheet, map1);
-	DrawMap(defSheet, customMap);
+	DrawMap(defSheet, map, 0);
+	DrawMap(defSheet, map1, 0);
+	DrawMap(defSheet, customMap, 0);
 
 	// DrawMap(furnitureSheet, randArray);
 	if(layerOrder == 0){
-		DrawMap(furnitureSheet, furnitureMap);
-		DrawMap(furnitureSheet, passableMap);
+		DrawMap(furnitureSheet, furnitureMap, 0);
+		DrawMap(furnitureSheet, passableMap, 1);
 		DrawCharacter(characterFacing, 4);
 		
 	}else if(layerOrder == 1){
-		DrawMap(furnitureSheet, passableMap);
+		DrawMap(furnitureSheet, passableMap, 0);
 		DrawCharacter(characterFacing, 4);
-		DrawMap(furnitureSheet, furnitureMap);
+		DrawMap(furnitureSheet, furnitureMap, 1);
 		
 	}else if(layerOrder == 2){
-		DrawMap(furnitureSheet, furnitureMap);
+		DrawMap(furnitureSheet, furnitureMap, 0);
 		DrawCharacter(characterFacing, 4);
-		DrawMap(furnitureSheet, passableMap);
+		DrawMap(furnitureSheet, passableMap, 1);
 		
 	}else if(layerOrder == 3){		
 		DrawCharacter(characterFacing, 4);
-		DrawMap(furnitureSheet, passableMap);
-		DrawMap(furnitureSheet, furnitureMap);
+		DrawMap(furnitureSheet, passableMap, 0);
+		DrawMap(furnitureSheet, furnitureMap, 1);
 		
 	}else if(layerOrder == 4){		
 		DrawCharacter(characterFacing, 4);
-		DrawMap(furnitureSheet, furnitureMap);
-		DrawMap(furnitureSheet, passableMap);
+		DrawMap(furnitureSheet, furnitureMap, 0);
+		DrawMap(furnitureSheet, passableMap, 1);
 		
 	}
 	
@@ -315,12 +342,39 @@ void RenderScreen(){
 		((characterOffset.y + 32) + mapOffsetPos.y) / 64,
 	};
 	
+	
+	
+	if(tempEntity.x > mapOffsetPos.x + characterOffset.x){
+		tempEntity.x--;
+	}else if(tempEntity.x < mapOffsetPos.x + characterOffset.x){
+		tempEntity.x++;
+	}
+	if(tempEntity.y > mapOffsetPos.y + characterOffset.y){
+		tempEntity.y--;
+	}else if(tempEntity.y < mapOffsetPos.y + characterOffset.y){
+		tempEntity.y++;
+	}
+	// SDL_Rect entityRect = {tempEntity.x - mapOffsetPos.x, tempEntity.y - mapOffsetPos.y, 64, 64};
+	SDL_Rect entityRect = {tempEntity.x, tempEntity.y, 64, 64};
+	// RenderTextureFromSheet(gRenderer, furnitureSheet, 1, entityRect);
+	RenderTextureInWorld(gRenderer, furnitureSheet, 1, entityRect, RNDRLYR_PLAYER);
+	
+	
+	// SDL_Rect showPointRect = {(worldPos.x * 64 - mapOffsetPos.x) + placeLocation.x, (worldPos.y * 64 - mapOffsetPos.y) + placeLocation.y, 64, 64};
+	// SDL_RenderDrawRect(gRenderer, &showPointRect);
+	
 	// snprintf(coordinates, 1024, "x: %d, y: %d", (mapOffsetPos.x + 32) / 64, (mapOffsetPos.y + 32) / 64);
 	snprintf(coordinates, 1024, "x: %d, y: %d", worldPos.x, worldPos.y);
 	snprintf(charoff, 1024, "x: %d, y: %d", characterOffset.x, characterOffset.y);
 	
 	RenderText_d(gRenderer, coordinates, 0, 0);
-	RenderText_d(gRenderer, charoff, 0, 32);
+	RenderText_d(gRenderer, charoff, 0, 32);	
+	
+	SDL_Rect woahR = {0, 0, 100, 100};
+	AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, 1000);
+	
+	RenderEntities();
+	RenderUpdate();
 	
 	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
 	SDL_RenderPresent(gRenderer);
@@ -338,11 +392,12 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
 	
 	SDL_Rect charRect = {x, y, spacing, spacing};
-	if(strlen(text) > 0){
-		for(int i = 0; i < strlen(text); i++){
-			int charVal = (int)text[i] - (int)' ';
-			if(charVal >= 0){		
-				RenderTextureFromSheet(renderer, fontSheet, charVal, charRect);
+	if(strlen(text) > 0){//Make sure there is a string to display
+		for(int i = 0; i < strlen(text); i++){//Iterate through the characters of the string
+			int charVal = (int)text[i] - (int)' ';//Get an integer value from the character to be drawn
+			//Non character cases
+			if(charVal >= 0){//SPACE
+				AddToRenderQueue(renderer, fontSheet, charVal, charRect, RNDRLYR_TEXT);
 				charRect.x += tracking;
 			}else if(charVal == -22){//NEWLINE (\n)
 				charRect.y += spacing;
@@ -355,7 +410,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 		printf("Error: No text provided on RenderText()\n");
 		return 1;
 	}
-	SDL_SetTextureColorMod(fontSheet.tex, 0, 0, 0);
+	SDL_SetTextureColorMod(fontSheet.tex, 255, 255, 255);
 	return 0;
 }
 void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
@@ -372,5 +427,28 @@ void randomArray(){
 				randArray[y][x] = -1;
 			}
 		}
+	}
+}
+
+void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, SDL_Rect rect, int zPos){
+	rect.x -= mapOffsetPos.x;
+	rect.y -= mapOffsetPos.y;
+	AddToRenderQueue(renderer, sheet, tile, rect, zPos);
+}
+
+Entity *enemies;
+void NewEntity(){
+	enemies = (Entity *) malloc(sizeof(Entity));
+	//Declare renderer component
+	SDL_Rect enemyPos = {50, 50, 64, 64};
+	enemies[0].renderer.renderer = gRenderer;
+	enemies[0].renderer.tileSheet = itemSheet;
+	enemies[0].renderer.tile = 24;
+	enemies[0].renderer.transform = enemyPos;
+}
+
+void RenderEntities(){
+	for(int i = 0; sizeof(enemies) / sizeof(enemies[0]); i++){
+		RenderTextureInWorld(enemies[i].renderer.renderer, enemies[i].renderer.tileSheet, enemies[i].renderer.tile, enemies[i].renderer.transform, 0);
 	}
 }
