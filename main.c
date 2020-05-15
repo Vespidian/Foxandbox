@@ -179,12 +179,6 @@ int main(int argc, char **argv) {
 			// if(currentKeyStates[SDL_SCANCODE_E]){
 				// printf("%d, %d\n", mapOffsetPos.x * 4, mapOffsetPos.y * 4);
 			// }
-			if(currentKeyStates[SDL_SCANCODE_C]){
-				printf("%d, %d\n", characterOffset.x, characterOffset.y);
-			}
-			if(currentKeyStates[SDL_SCANCODE_R]){
-				printf("Width: %d, Height: %d\n", WIDTH, HEIGHT);
-			}
 			if(currentKeyStates[SDL_SCANCODE_Q]){
 				// printf("%d, %d\n", characterOffset.x, characterOffset.y);
 				characterOffset.x = 0;
@@ -200,6 +194,7 @@ int main(int argc, char **argv) {
 					}
 				}
 				if(e.type == SDL_KEYUP){
+					
 					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
 					keeping everything pixel perfect
 					if(roundSpeed.x != 0){
@@ -209,27 +204,16 @@ int main(int argc, char **argv) {
 						mapOffsetPos.y = mapOffsetPos.y - (roundSpeed.y);
 					}
 					
-					if(e.key.keysym.sym == SDLK_t){
-						TextureDestroy();
-						TextureInit();
-						MapInit();
-					}
 					if(e.key.keysym.sym == SDLK_x){
-						if(!enableHitboxes){
-							enableHitboxes = true;
-						}else{
-							enableHitboxes = false;
-						}
+						enableHitboxes = !enableHitboxes;
 					}
 					if(e.key.keysym.sym == SDLK_e){
 						showInv = !showInv;
 					}
 					if(e.key.keysym.sym == SDLK_v){
 						if(INV_FindItem(1) != -1 && customMap[worldPos.y + placeLocation.y][worldPos.x  + placeLocation.x] != 49){
-							// printf("%d\n", INV_FindItem(1));
 							customMap[worldPos.y + placeLocation.y][worldPos.x + placeLocation.x] = 49;
 							INV_WriteCell("sub", INV_FindItem(1), 1, 1);
-							// INV_WriteCell("sub", 0, 1, 1);
 						}
 					}
 					if(e.key.keysym.sym == SDLK_r){
@@ -238,29 +222,31 @@ int main(int argc, char **argv) {
 				}
 				if(e.type == SDL_MOUSEWHEEL){
 					if(e.wheel.y > 0){
-						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 1){
+						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 0){
 							selectedHotbar--;
 						}else{
-							selectedHotbar = INV_WIDTH;
+							selectedHotbar = INV_WIDTH - 1;
 						}
 					}else if(e.wheel.y < 0){
-						if(selectedHotbar < INV_WIDTH && selectedHotbar >= 1){
+						if(selectedHotbar < INV_WIDTH - 1 && selectedHotbar >= 0){
 							selectedHotbar++;
 						}else{
-							selectedHotbar = 1;
+							selectedHotbar = 0;
 						}
 					}
 				}
 				if(e.type == SDL_WINDOWEVENT){
 					if(e.window.event == SDL_WINDOWEVENT_RESIZED){
+						clearScreen(gRenderer);
 						SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 						Vector2 diff = {WIDTH - tmpSize.x, HEIGHT - tmpSize.y};
-						// Vector2 diff = {tmpSize.x - WIDTH, tmpSize.y - HEIGHT};
+						
 						mapOffsetPos.x -= diff.x / 2;
 						mapOffsetPos.y -= diff.y / 2;
-						// characterOffset = (Vector2){WIDTH / 2 - 8, HEIGHT / 2 - 8};
+						
 						characterOffset.x = WIDTH / 2 - tileSize / 2;
 						characterOffset.y = HEIGHT / 2 - tileSize / 2;
+						
 						tmpSize = (Vector2){WIDTH, HEIGHT};
 						windowRect = (SDL_Rect){-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 					}
@@ -324,10 +310,10 @@ void RenderScreen(){
 	//Render the player's hitbox
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 0);
 	if(enableHitboxes){
-		SDL_RenderDrawRect(gRenderer, &charCollider_top);
-		SDL_RenderDrawRect(gRenderer, &charCollider_bottom);
-		SDL_RenderDrawRect(gRenderer, &charCollider_right);
-		SDL_RenderDrawRect(gRenderer, &charCollider_left);
+		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_left, 750);
+		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_right, 750);
+		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_bottom, 750);
+		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_top, 750);
 	}
 	
 	FindCollisions();

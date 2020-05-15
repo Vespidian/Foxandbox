@@ -41,6 +41,9 @@ SDL_Texture *fontTex;
 SDL_Texture *colorModTex;
 WB_Tilesheet colorModSheet;
 
+SDL_Texture *debugTex;
+WB_Tilesheet debugSheet;
+
 WB_Tilesheet defSheet;
 WB_Tilesheet furnitureSheet;
 WB_Tilesheet characterSheet;
@@ -73,6 +76,9 @@ void TextureInit(){
 	
 	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
 	colorModSheet = (WB_Tilesheet){colorModTex, 1, 1, 16};
+	
+	debugTex = IMG_LoadTexture(gRenderer, "images/debug.png");
+	debugSheet = (WB_Tilesheet){debugTex, 8, 8, 16};
 }
 
 void MapInit(){
@@ -101,14 +107,11 @@ bool init(bool initTTF){
 	MapInit();
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
-	// printf("%d\n", invArray[16][0]);
 	
-	// PerlinInit();
 	ReadItemData();
 	
-	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
-	SDL_SetTextureAlphaMod(colorModTex, 0);	
+	SDL_SetTextureAlphaMod(colorModTex, 0);		
 	
 	return success;
 }

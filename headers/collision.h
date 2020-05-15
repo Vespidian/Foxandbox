@@ -11,6 +11,8 @@ extern SDL_Rect charCollider_right;
 extern SDL_Rect charCollider_left;
 extern SDL_Rect charCollider_top;
 
+extern SDL_Rect charCollider;
+
 void FindCollisions();
 
 extern Vector2 charTilePos;

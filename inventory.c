@@ -20,7 +20,7 @@
 // enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
 int invArray[INV_HEIGHT * INV_WIDTH][2];
 
-int selectedHotbar = 1;
+int selectedHotbar = 0;
 
 int maxStack = 99;
 
@@ -152,119 +152,100 @@ void INV_DrawInv(){
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
 	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
 	// SDL_RenderFillRect(gRenderer, &hotBar);
-	AddToRenderQueue(gRenderer, colorModSheet, 0, hotBar, RNDRLYR_UI - 1);
+	AddToRenderQueue(gRenderer, uiSheet, 0, hotBar, RNDRLYR_UI - 1);
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};
 	for(int i = 0; i < INV_WIDTH; i++){
 		slotRect.x = (hotBar.x + 32 * i) + INV_spacing * (i + 1);
-		if(selectedHotbar == i + 1){
+		if(selectedHotbar == i){
 			SDL_Rect tmpRect = {-2, -2, 4, 4};
 			tmpRect.x += slotRect.x;
 			tmpRect.y += slotRect.y;
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
-			SDL_SetRenderDrawColor(gRenderer, 200, 0, 0, 64);
-			// SDL_RenderFillRect(gRenderer, &tmpRect);
-			AddToRenderQueue(gRenderer, colorModSheet, 0, tmpRect, RNDRLYR_UI - 1);
-			// SDL_RenderDrawRect(gRenderer, &slotRect);
+			AddToRenderQueue(gRenderer, uiSheet, 1, tmpRect, RNDRLYR_UI - 1);
 		}
-		AddToRenderQueue(gRenderer, uiSheet, 0, slotRect, RNDRLYR_UI);
-		if(invArray[i+1][0] > -1 && invArray[i+1][1] > 0){
-			AddToRenderQueue(gRenderer, itemSheet, invArray[i+1][0], slotRect, RNDRLYR_INV_ITEMS);
+		AddToRenderQueue(gRenderer, uiSheet, 8, slotRect, RNDRLYR_UI);
+		if(invArray[i][0] > -1 && invArray[i][1] > 0){
+			AddToRenderQueue(gRenderer, itemSheet, invArray[i][0], slotRect, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
-			itoa(invArray[i+1][1], itemqty, 10);
+			itoa(invArray[i][1], itemqty, 10);
 			RenderText_d(gRenderer, itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
 		}
 	}
 	
 	//Drawing the main inventory
-	/* for(int x = 0; x < 64; x++){
-		// printf("%s\n", itemData[x].description);
-		printf("%s\n", itemData[x].name);
-	} */
 	if(showInv){
-		/*SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT / 2 + HEIGHT / 4, // ->
-		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};*/
-		
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
-		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 128);
-		// SDL_RenderFillRect(gRenderer, &invRect);
-		AddToRenderQueue(gRenderer, colorModSheet, 0, invRect, RNDRLYR_UI - 1);
-
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
+		AddToRenderQueue(gRenderer, uiSheet, 0, invRect, RNDRLYR_UI - 1);
 		
-		int invPos = 0;
-		for(int y = 0; y < INV_HEIGHT; y++){
-			for(int x = 0; x < INV_WIDTH; x++){
-				invPos++;
-				invItemRect.x = (invRect.x + 32 * x) + INV_spacing * (x + 1);
-				invItemRect.y = (invRect.y + 32 * y) + INV_spacing * (y + 1);
-				
-				SDL_GetMouseState(&mousePos.x, &mousePos.y);
-				SDL_Point mousePoint = {mousePos.x, mousePos.y};
-				if(SDL_PointInRect(&mousePoint, &invItemRect)){
-					if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-						if(SDL_PollEvent(&e) == 1){
-							if(invArray[invPos][0] == mouseInv[0]){
-								INV_WriteCell("add", invPos - 1, mouseInv[1], mouseInv[0]);
-								mouseInv[0] = -1;
-								mouseInv[1] = 0;
-							}else{
-								//Swap clicked item with held item
-								int tempInv[2] = {mouseInv[0], mouseInv[1]};
-								mouseInv[0] = invArray[invPos][0];
-								mouseInv[1] = invArray[invPos][1];
-								invArray[invPos][0] = tempInv[0];
-								invArray[invPos][1] = tempInv[1];
-							}
+		for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
+			int x = (i % INV_WIDTH), y = (i / INV_HEIGHT);
+			invItemRect.x = (invRect.x + 32 * x) + INV_spacing * (x + 1);
+			invItemRect.y = (invRect.y + 32 * y) + INV_spacing * (y + 1);
+			
+			SDL_GetMouseState(&mousePos.x, &mousePos.y);
+			SDL_Point mousePoint = {mousePos.x, mousePos.y};
+			if(SDL_PointInRect(&mousePoint, &invItemRect)){
+				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
+					if(SDL_PollEvent(&e) == 1){
+						if(invArray[i][0] == mouseInv[0]){
+							INV_WriteCell("add", i, mouseInv[1], mouseInv[0]);
+							mouseInv[0] = -1;
+							mouseInv[1] = 0;
+						}else{
+							//Swap clicked item with held item
+							int tempInv[2] = {mouseInv[0], mouseInv[1]};
+							mouseInv[0] = invArray[i][0];
+							mouseInv[1] = invArray[i][1];
+							invArray[i][0] = tempInv[0];
+							invArray[i][1] = tempInv[1];
 						}
-					}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
-						if(SDL_PollEvent(&e) == 1){
-							if(mouseInv[1] > 0){//Check if mouse has any item
-								if(invArray[invPos][0] == -1 || invArray[invPos][0] == mouseInv[0]){
-									if(mouseInv[1] > 1){
-										INV_WriteCell("add", invPos - 1, 1, mouseInv[0]);
-										mouseInv[1]--;
-									}else{
-										INV_WriteCell("add", invPos - 1, 1, mouseInv[0]);
-										mouseInv[0] = -1;
-										mouseInv[1] = 0;
-									}
+					}
+				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
+					if(SDL_PollEvent(&e) == 1){
+						if(mouseInv[1] > 0){//Check if mouse has any item
+							if(invArray[i][0] == -1 || invArray[i][0] == mouseInv[0]){//Check if cell is empty or has the same item as mouse
+								if(mouseInv[1] > 1){//If there are multiple items in mouseInv add one to inv cell
+									INV_WriteCell("add", i, 1, mouseInv[0]);
+									mouseInv[1]--;
+								}else{//If there was only 1 empty mouse slot
+									INV_WriteCell("add", i, 1, mouseInv[0]);
+									mouseInv[0] = -1;
+									mouseInv[1] = 0;
 								}
-							}else if(invArray[invPos][1] > 1){
-								mouseInv[0] = invArray[invPos][0];
-								mouseInv[1] = invArray[invPos][1] / 2;
-								INV_WriteCell("sub", invPos - 1, invArray[invPos][1] / 2, invArray[invPos][0]);
 							}
+						}else if(invArray[i][1] > 1){//Otherwise take half the items in that inventory cell
+							mouseInv[0] = invArray[i][0];
+							mouseInv[1] = invArray[i][1] / 2;
+							INV_WriteCell("sub", i, invArray[i][1] / 2, invArray[i][0]);
 						}
 					}
-					if(invArray[invPos][0] > -1){
-						SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
-						SDL_Rect itemNameDisp = {invRect.x, invRect.y - 32, strlen(itemData[invArray[invPos][0]].name) * 14, 28};
-						// SDL_RenderFillRect(gRenderer, &itemNameDisp);
-						AddToRenderQueue(gRenderer, colorModSheet, 0, itemNameDisp, RNDRLYR_UI - 1);
-						// SDL_Rect woahR = {0, 0, 100, 100};
-						// AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, UI - 1);
-						RenderText_d(gRenderer, itemData[invArray[invPos][0]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);
-						
-						// SDL_Color tmpBlue = {20, 20, 255, 0xff};
-						// RenderText(gRenderer, itemData[invArray[invPos][0]].description, itemNameDisp.x + 4, itemNameDisp.y - 20, tmpBlue);
-					}
 				}
-				AddToRenderQueue(gRenderer, uiSheet, 0, invItemRect, RNDRLYR_UI);//Draw the background of each cell
+				if(invArray[i][0] > -1){
+					SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
+					SDL_Rect itemNameDisp = {invRect.x, invRect.y - 32, strlen(itemData[invArray[i][0]].name) * 14, 28};
+					AddToRenderQueue(gRenderer, uiSheet, 0, itemNameDisp, RNDRLYR_UI - 1);
+					SDL_Rect woahR = {0, 0, 100, 100};
+					AddToRenderQueue(gRenderer, uiSheet, 0, woahR, RNDRLYR_UI - 1);
+					RenderText_d(gRenderer, itemData[invArray[i][0]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);					
+				}
+			}
+			AddToRenderQueue(gRenderer, uiSheet, 8, invItemRect, RNDRLYR_UI);//Draw the background of each cell
+			
+			if(invArray[i][0] > -1 && invArray[i][1] > 0){//Check if item exists in cell and render it
+				AddToRenderQueue(gRenderer, itemSheet, invArray[i][0], invItemRect, RNDRLYR_INV_ITEMS);
 				
-				if(invArray[invPos][0] > -1 && invArray[invPos][1] > 0){//Check if item exists in cell and render it
-					AddToRenderQueue(gRenderer, itemSheet, invArray[invPos][0], invItemRect, RNDRLYR_INV_ITEMS);
-					
-					char itemqty[16];
-					itoa(invArray[invPos][1], itemqty, 10);
-					RenderText_d(gRenderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
-				}else{
-					invArray[invPos][0] = -1;
-					invArray[invPos][1] = 0;
-				}
+				char itemqty[16];
+				itoa(invArray[i][1], itemqty, 10);
+				RenderText_d(gRenderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
+			}else{
+				invArray[i][0] = -1;
+				invArray[i][1] = 0;
 			}
 		}
 		//Drawing the mouse inventory
@@ -287,37 +268,37 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
 	}
-	if(itemQty != NULL && itemQty != 0){
+	if(itemQty != NULL && itemQty != 0 && itemNum > -1){
 		
 		if(strcmp(mode, "set") == 0){
-			invArray[cell + 1][0] = itemNum;
+			invArray[cell][0] = itemNum;
 			if(itemQty < maxStack){
-				invArray[cell + 1][1] = itemQty;
+				invArray[cell][1] = itemQty;
 			}else{
-				invArray[cell + 1][1] = maxStack;
+				invArray[cell][1] = maxStack;
 			}
 		}else if(strcmp(mode, "add") == 0){
-			invArray[cell + 1][0] = itemNum;
-			if(invArray[cell + 1][0] == itemNum && invArray[cell + 1][1] < maxStack){//Check if item is of different type or exceeding limit
-				invArray[cell + 1][1] += itemQty;
+			invArray[cell][0] = itemNum;
+			if(invArray[cell][0] == itemNum && invArray[cell][1] < maxStack){//Check if item is of different type or exceeding limit
+				invArray[cell][1] += itemQty;
 			}else{
-				printf("Error: INV_WriteCell Atemping to add to full cell (Use 'set' instead of 'add')\n");
+				printf("Error: INV_WriteCell Attempting to add to full cell (Use 'set' instead of 'add')\n");
 				return 1;
 			}
 			return 0;
 		}else if(strcmp(mode, "sub") == 0){
-			if(invArray[cell + 1][0] == itemNum){
-				if(invArray[cell + 1][1] > 0){
-					invArray[cell + 1][1] -= itemQty;
+			if(invArray[cell][0] == itemNum){
+				if(invArray[cell][1] > 0){
+					invArray[cell][1] -= itemQty;
 				}else{
-					invArray[cell + 1][1] = 0;
-					invArray[cell + 1][0] = -1;
+					invArray[cell][1] = 0;
+					invArray[cell][0] = -1;
 				}
 			}
 		}
 	}else{
-		invArray[cell + 1][0] = -1;
-		invArray[cell + 1][1] = 0;
+		invArray[cell][0] = -1;
+		invArray[cell][1] = 0;
 	}
 	return 0;
 }
@@ -325,21 +306,21 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 
 int INV_ReadCell(char *mode, int cell){
 	// return invArray[cell / INV_HEIGHT][cell % INV_WIDTH][0];
-	return invArray[cell + 1][0];
+	return invArray[cell][0];
 }
 
 int INV_FindItem(int itemNum){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i][0] == itemNum){
-			return i - 1;
+		if(invArray[i][0] == itemNum && invArray[i][1] > 0){
+			return i;
 		}
 	}
 	return -1;
 }
-int INV_FindEmpty(int type){
+int INV_FindEmpty(int id){
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i][0] == type && invArray[i][1] <= maxStack){
+		if(invArray[i][0] == id && invArray[i][1] <= maxStack){
 			return i;
 		}
 	}
