@@ -5,7 +5,7 @@
 void RenderEntities();
 void NewEntity();
 
-//Components
+//COMPONENTS
 typedef struct{
 	SDL_Renderer *renderer;
 	WB_Tilesheet tileSheet;
@@ -14,6 +14,12 @@ typedef struct{
 	int zPos;
 }RenderComponent;
 
+
+
+
+
+
+//Mob Components
 typedef struct{
 	int speed;
 	bool followPlayer;
@@ -30,7 +36,8 @@ typedef struct{
 }AttackComponent;
 
 
-//Entities
+
+//ENTITIES
 typedef struct{
 	int id;
 	RenderComponent renderer;

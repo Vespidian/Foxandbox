@@ -30,6 +30,10 @@ extern WB_Tilesheet itemSheet;
 extern WB_Tilesheet uiSheet;
 extern WB_Tilesheet fontSheet;
 
+
+extern SDL_Texture *zombieTex;
+extern WB_Tilesheet zombieSheet;
+
 extern SDL_Texture *colorModTex;
 // extern bool init();
 void Quit();

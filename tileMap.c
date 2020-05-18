@@ -9,23 +9,24 @@
 #include <SDL_image.h>
 
 #include "headers/DataTypes.h"
+#include "headers/ECS.h"
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/drawFunctions.h"
 #include "headers/tileMap.h"
-#include "headers/ECS.h"
 
 int tilePixelSize = 16;
 int tileStretchSize = 64;
 int tileSheetWidth = 8;
 
 
+
 int colMap[32][32] = {};
-int map[32][32] = {};
-int map1[32][32] = {};
-int furnitureMap[32][32] = {};
-int passableMap[32][32] = {};
-int customMap[32][32];
+RenderTileComponent map[32][32] = {};
+RenderTileComponent map1[32][32] = {};
+RenderTileComponent furnitureMap[32][32] = {};
+RenderTileComponent passableMap[32][32] = {};
+RenderTileComponent customMap[32][32] = {};
 
 
 int tempMap1[32][32] = {};
@@ -63,16 +64,6 @@ int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNu
 
 // int RenderTextureFromSheet(){
 void RenderUpdate(){
-	/*RenderComponent tmpRenderItem;//Selection sort
-	for(int i = 0; i < renderItem; i++){
-		for(int j = i + 1; j < renderItem; j++){
-			if(renderBuffer[i].zPos > renderBuffer[j].zPos){
-				tmpRenderItem = renderBuffer[i];
-				renderBuffer[i] = renderBuffer[j];
-				renderBuffer[j] = tmpRenderItem;
-			}
-		}
-	}*/
 	int key, j; //Insertion sort
 	RenderComponent tmpRenderItem;
 	for (int i = 1; i < renderItem; i++) {
@@ -97,7 +88,7 @@ void RenderUpdate(){
 	SetupRenderFrame();
 }
 
-int LoadMap(char *fileLoc, int mapArray[][32]){
+int LoadMap(char *fileLoc, RenderTileComponent mapArray[][32]){
 	FILE *fp = fopen(fileLoc, "r");
 	
 	if(fp == NULL){
@@ -107,7 +98,35 @@ int LoadMap(char *fileLoc, int mapArray[][32]){
 	
 	char buffer[256];
 	char *parsedInt;
+	// printf("%s\n", fileLoc);
+	for(int y = 0; y <= 31; y++){
+		
+		fgets(buffer, sizeof(buffer) / sizeof(buffer[0]), fp);
+		parsedInt = strtok(buffer, ",");
+		
+		for(int x = 0; x <= 31; x++){
+			mapArray[y][x].type = strtol(parsedInt, NULL, 10);
+			parsedInt = strtok(NULL, ",");
+			// printf("%s", parsedInt);
+			// printf("%d", mapArray[y][x].type);
+		}
+		// printf("\n");
+	}
+	fclose(fp);
+	return 0;
+}
+
+int LoadDataMap(char *fileLoc, int mapArray[][32]){//For non rendered maps (e.g. collision)
+	FILE *fp = fopen(fileLoc, "r");
 	
+	if(fp == NULL){
+		printf("Error: Unable to open mapfile location: '%s'\n", fileLoc);
+		return 1;
+	}
+	
+	char buffer[256];
+	char *parsedInt;
+	// printf("%s\n", fileLoc);
 	for(int y = 0; y <= 31; y++){
 		
 		fgets(buffer, sizeof(buffer) / sizeof(buffer[0]), fp);
@@ -125,7 +144,7 @@ int LoadMap(char *fileLoc, int mapArray[][32]){
 	return 0;
 }
 
-void ExtrapolateMap(char *file, int map1[][32], int map2[][32]){
+void ExtrapolateMap(char *file, RenderTileComponent map1[][32], RenderTileComponent map2[][32]){
 	FILE *fp = fopen(file, "r");
 	char buffer[512];
 	char *parsedInt;
@@ -136,52 +155,47 @@ void ExtrapolateMap(char *file, int map1[][32], int map2[][32]){
 		
 		for(int x = 0; x <= 31; x++){
 			if(y % 2 == 0){
-				map1[y][x] = strtol(parsedInt, NULL, 10);
-				map2[y][x] = -1;
+				map1[y][x].type = strtol(parsedInt, NULL, 10);
+				map2[y][x].type = -1;
 			}else{
-				map2[y][x] = strtol(parsedInt, NULL, 10);
-				map1[y][x] = -1;
+				map2[y][x].type = strtol(parsedInt, NULL, 10);
+				map1[y][x].type = -1;
 			}
 			parsedInt = strtok(NULL, ",");
 			// printf("%s", parsedInt);
-			// printf("%d", map2[y][x]);
+			// printf("%d", map2[y][x].type);
 		}
 		// printf("\n");
 	}
 	fclose(fp);
 }
 
-void TextExtrapolate(int map[][32]){
+void TextExtrapolate(RenderTileComponent map[][32]){
 	for(int y = 0; y <= 31; y++){
 		for(int x = 0; x <= 31; x++){
-			printf("%d", map[y][x]);
+			printf("%d", map[y][x].type);
 		}
 		printf("\n");
 	}
 }
 
 // void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
-void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32], int zPos){//NEED to implement z buffering
+void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos){//NEED to implement z buffering
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
-			if(mapArray[y][x] != -1){
+			if(mapArray[y][x].type != -1){
 				Vector2 tilePos = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
 				
-				SDL_Point p = {tilePos.x, tilePos.y};
+				// SDL_Point p = {tilePos.x, tilePos.y};
+				SDL_Point p = (SDL_Point)tilePos;
 				SDL_Rect r = {-tileStretchSize, -tileStretchSize, WIDTH + tileStretchSize, HEIGHT + tileStretchSize};
 				
 				//Check if tile is in viewport and only render it if it is
 				if(SDL_PointInRect(&p, &r)){
 					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-					for(int i = 0; i < tileSheet.w * tileSheet.h; i++){
-						if(mapArray[y][x] == i){
-							// Vector2 tilePosInSheet = GetTileSheetLocation(i, textureSheetNumOfTiles);
-							// SDL_Rect tileLocation = {tilePosInSheet.x, tilePosInSheet.y, 16, 16};
-							// LoadImage(tile, tileLocation, textureSheet);
-							// WB_Tilesheet tileSheet = {textureSheet, sheetWidth, sheetWidth, tilePixelSize};
-							AddToRenderQueue(gRenderer, tileSheet, i, tile, 5);
-						}
-					}
+					AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, zPos + mapArray[y][x].zPos);
+					mapArray[y][x].zPos = 0;
+					
 					// Highlight the tile the mouse is currently on
 					SDL_GetMouseState(&mousePos.x, &mousePos.y);
 					SDL_Point mousePoint = {mousePos.x, mousePos.y};
@@ -194,6 +208,17 @@ void DrawMap(WB_Tilesheet tileSheet, int mapArray[][32], int zPos){//NEED to imp
 			}
 		}
 	}
+}
+
+void DrawLevel(){
+	DrawMap(defSheet, map, 0);
+	DrawMap(defSheet, map1, 0);
+	DrawMap(defSheet, customMap, 0);
+
+
+	DrawMap(furnitureSheet, furnitureMap, 1);
+	DrawMap(furnitureSheet, passableMap, 1);
+	DrawCharacter(characterFacing, 4);
 }
 
 /* void TILE_SetTile(int mapArray[][32], int ) */

@@ -33,6 +33,8 @@ extern bool mouseUp;
 
 int strshft_l(char stringShift[128], int shiftBy);
 
+extern int characterFacing;
+void DrawCharacter(int direction, int numFrames);
 // void PerlinInit();
 // void PerlinNoise(int nCount, float *fSeed, int nOctaves, float *fOutput);
 // extern int perlinNoise1D[];

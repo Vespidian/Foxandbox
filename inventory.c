@@ -9,6 +9,8 @@
 #include <SDL_image.h>
 
 #include "headers/DataTypes.h"
+#include "headers/ECS.h"
+
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/drawFunctions.h"
@@ -194,11 +196,14 @@ void INV_DrawInv(){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(SDL_PollEvent(&e) == 1){
 						if(invArray[i][0] == mouseInv[0]){
-							INV_WriteCell("add", i, mouseInv[1], mouseInv[0]);
-							mouseInv[0] = -1;
-							mouseInv[1] = 0;
-						}else{
-							//Swap clicked item with held item
+							int mouseRemainder = INV_WriteCell("add", i, mouseInv[1], mouseInv[0]);
+							if(mouseRemainder == 0){
+								mouseInv[0] = -1;
+								mouseInv[1] = 0;
+							}else{
+								mouseInv[1] = mouseRemainder;
+							}
+						}else{//Swap clicked item with held item
 							int tempInv[2] = {mouseInv[0], mouseInv[1]};
 							mouseInv[0] = invArray[i][0];
 							mouseInv[1] = invArray[i][1];
@@ -209,11 +214,11 @@ void INV_DrawInv(){
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(SDL_PollEvent(&e) == 1){
 						if(mouseInv[1] > 0){//Check if mouse has any item
-							if(invArray[i][0] == -1 || invArray[i][0] == mouseInv[0]){//Check if cell is empty or has the same item as mouse
+							if(invArray[i][0] == -1 || invArray[i][0] == mouseInv[0] && invArray[i][1] < maxStack){//Check if cell is empty or has the same item as mouse
 								if(mouseInv[1] > 1){//If there are multiple items in mouseInv add one to inv cell
 									INV_WriteCell("add", i, 1, mouseInv[0]);
 									mouseInv[1]--;
-								}else{//If there was only 1 empty mouse slot
+								}else{//If there was only 1, empty mouse slot
 									INV_WriteCell("add", i, 1, mouseInv[0]);
 									mouseInv[0] = -1;
 									mouseInv[1] = 0;
@@ -230,8 +235,6 @@ void INV_DrawInv(){
 					SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
 					SDL_Rect itemNameDisp = {invRect.x, invRect.y - 32, strlen(itemData[invArray[i][0]].name) * 14, 28};
 					AddToRenderQueue(gRenderer, uiSheet, 0, itemNameDisp, RNDRLYR_UI - 1);
-					SDL_Rect woahR = {0, 0, 100, 100};
-					AddToRenderQueue(gRenderer, uiSheet, 0, woahR, RNDRLYR_UI - 1);
 					RenderText_d(gRenderer, itemData[invArray[i][0]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);					
 				}
 			}
@@ -263,7 +266,7 @@ void INV_DrawInv(){
 }
 
 int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
-	printf("%s %d, to %d\n", mode, itemQty, cell);
+	// printf("%s %d, to %d\n", mode, itemQty, cell);
 	if(cell > INV_HEIGHT * INV_WIDTH){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
@@ -279,13 +282,16 @@ int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
 			}
 		}else if(strcmp(mode, "add") == 0){
 			invArray[cell][0] = itemNum;
-			if(invArray[cell][0] == itemNum && invArray[cell][1] < maxStack){//Check if item is of different type or exceeding limit
-				invArray[cell][1] += itemQty;
-			}else{
-				printf("Error: INV_WriteCell Attempting to add to full cell (Use 'set' instead of 'add')\n");
-				return 1;
+			if(invArray[cell][0] == itemNum && invArray[cell][1] <= maxStack){//Check if item is of different type or exceeding limit
+				if(invArray[cell][1] + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
+					int remainder = (itemQty - (maxStack - invArray[cell][1]));
+					invArray[cell][1] += maxStack - invArray[cell][1];//Fill the cell
+					return remainder;//Return the remainder if the stack is full
+				}else{
+					invArray[cell][1] += itemQty;
+					return 0;
+				}
 			}
-			return 0;
 		}else if(strcmp(mode, "sub") == 0){
 			if(invArray[cell][0] == itemNum){
 				if(invArray[cell][1] > 0){

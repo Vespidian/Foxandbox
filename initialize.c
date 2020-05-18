@@ -10,6 +10,7 @@
 // #include <SDL_net.h>
 
 #include "headers/DataTypes.h"
+#include "headers/ECS.h"
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/drawFunctions.h"
@@ -53,6 +54,9 @@ WB_Tilesheet uiSheet;
 WB_Tilesheet fontSheet;
 
 
+SDL_Texture *zombieTex;
+WB_Tilesheet zombieSheet;
+
 void TextureInit(){
 	tileSheetTex = IMG_LoadTexture(gRenderer, "images/groundTiles.png");
 	defSheet = (WB_Tilesheet){tileSheetTex, 16, 16, 16};
@@ -79,12 +83,17 @@ void TextureInit(){
 	
 	debugTex = IMG_LoadTexture(gRenderer, "images/debug.png");
 	debugSheet = (WB_Tilesheet){debugTex, 8, 8, 16};
+	
+	
+	//Entities
+	zombieTex = IMG_LoadTexture(gRenderer, "images/entities/zombie.png");
+	zombieSheet = (WB_Tilesheet){zombieTex, 4, 8, 16};
 }
 
 void MapInit(){
 	LoadMap("maps/testMap_layer0.csv", map);
 	LoadMap("maps/testMap_layer1.csv", map1);
-	LoadMap("maps/testMap_colliders.csv", colMap);
+	LoadDataMap("maps/testMap_colliders.csv", colMap);
 		
 	ExtrapolateMap("maps/testMap_temp.csv", furnitureMap, passableMap);
 }
@@ -103,10 +112,12 @@ bool init(bool initTTF){
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");
 	SDL_SetWindowIcon(gWindow, gIcon);
 
+	// memset(colMap, -1, sizeof(colMap));
 	TextureInit();
 	MapInit();
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
+	
 	
 	ReadItemData();
 	
