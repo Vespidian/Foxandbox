@@ -14,7 +14,10 @@ typedef struct{
 	int zPos;
 }RenderComponent;
 
-
+typedef struct{
+	int type;
+	int zPos;
+}RenderTileComponent;
 
 
 

@@ -27,7 +27,6 @@ extern int layerOrder;
 extern bool enableHitboxes;
 
 void randomArray();
-extern int randArray[32][32];
 
 extern bool mouseUp;
 
@@ -40,5 +39,13 @@ void DrawCharacter(int direction, int numFrames);
 // extern int perlinNoise1D[];
 // extern int noiseSeed1D[];
 // extern const int noiseSize;
+void SmoothMap();
+void DefineBorder();
+
+
+
+
+extern RenderTileComponent tempArray[32][32];
+void RenderCursor();
 
 #endif

@@ -17,6 +17,8 @@
 #include "headers/tileMap.h"
 #include "headers/collision.h"
 
+bool noClip = false;
+
 SDL_Rect charCollider_bottom;
 SDL_Rect charCollider_right;
 SDL_Rect charCollider_left;
@@ -35,17 +37,19 @@ int currentCollisions[3] = {-1, -1, -1};
 Vector2 charTilePos = {0, 0};
 
 void CheckCollisions(SDL_Rect tileR){
-	if(SDL_HasIntersection(&tileR, &charCollider_top)){
-		colUp = true;
-	}
-	if(SDL_HasIntersection(&tileR, &charCollider_bottom)){
-		colDown = true;
-	}
-	if(SDL_HasIntersection(&tileR, &charCollider_left)){
-		colLeft = true;
-	}
-	if(SDL_HasIntersection(&tileR, &charCollider_right)){
-		colRight = true;
+	if(!noClip){
+		if(SDL_HasIntersection(&tileR, &charCollider_top)){
+			colUp = true;
+		}
+		if(SDL_HasIntersection(&tileR, &charCollider_bottom)){
+			colDown = true;
+		}
+		if(SDL_HasIntersection(&tileR, &charCollider_left)){
+			colLeft = true;
+		}
+		if(SDL_HasIntersection(&tileR, &charCollider_right)){
+			colRight = true;
+		}
 	}
 }
 
@@ -126,4 +130,12 @@ void FindCollisions(){
 			}
 		}
 	}
+	/*Vector2 entityPos;
+	for(int y = entityPos.y - 1; y < entityPos.y + 1; y++){
+		for(int x = entityPos.x - 1; x < entityPos.y + 1; x++){
+			// Vector2 playerPos = {0, 0};
+			SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
+			
+		}
+	}*/
 }

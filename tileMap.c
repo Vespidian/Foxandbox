@@ -28,6 +28,7 @@ RenderTileComponent furnitureMap[32][32] = {};
 RenderTileComponent passableMap[32][32] = {};
 RenderTileComponent customMap[32][32] = {};
 
+RenderTileComponent randArray[32][32] = {};
 
 int tempMap1[32][32] = {};
 int tempMap2[32][32] = {};
@@ -195,15 +196,6 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 					AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, zPos + mapArray[y][x].zPos);
 					mapArray[y][x].zPos = 0;
-					
-					// Highlight the tile the mouse is currently on
-					SDL_GetMouseState(&mousePos.x, &mousePos.y);
-					SDL_Point mousePoint = {mousePos.x, mousePos.y};
-					if(SDL_PointInRect(&mousePoint, &tile)){
-						SDL_Rect mouseHighlight = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y, tileStretchSize, tileStretchSize};
-						SDL_SetRenderDrawColor(gRenderer, 255, 211, 0, 0xff);
-						SDL_RenderDrawRect(gRenderer, &mouseHighlight);
-					}
 				}
 			}
 		}
@@ -211,7 +203,14 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 }
 
 void DrawLevel(){
-	DrawMap(defSheet, map, 0);
+	// DrawMap(defSheet, map, 0);
+	// if(e.key.keysym.sym == SDLK_o){
+		DrawMap(defSheet, randArray, 0);
+		
+	// }else{
+		// DrawMap(defSheet, tempArray, 0);
+		
+	// }
 	DrawMap(defSheet, map1, 0);
 	DrawMap(defSheet, customMap, 0);
 

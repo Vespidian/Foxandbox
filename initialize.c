@@ -58,8 +58,9 @@ SDL_Texture *zombieTex;
 WB_Tilesheet zombieSheet;
 
 void TextureInit(){
-	tileSheetTex = IMG_LoadTexture(gRenderer, "images/groundTiles.png");
-	defSheet = (WB_Tilesheet){tileSheetTex, 16, 16, 16};
+	// tileSheetTex = IMG_LoadTexture(gRenderer, "images/groundTiles.png");
+	tileSheetTex = IMG_LoadTexture(gRenderer, "images/AUTOTILE_grass-water.png");
+	defSheet = (WB_Tilesheet){tileSheetTex, 6, 8, 16};
 	
 	furnitureTex = IMG_LoadTexture(gRenderer, "images/furniture.png");
 	furnitureSheet = (WB_Tilesheet){furnitureTex, 8, 8, 16};
@@ -117,6 +118,9 @@ bool init(bool initTTF){
 	MapInit();
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
+	
+	
+	randomArray();//
 	
 	
 	ReadItemData();

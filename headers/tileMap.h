@@ -3,11 +3,6 @@
 
 extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
-typedef struct{
-	int type;
-	int zPos;
-}RenderTileComponent;
-
 extern int colMap[32][32];
 
 extern RenderTileComponent map[32][32];
@@ -15,6 +10,8 @@ extern RenderTileComponent map1[32][32];
 extern RenderTileComponent furnitureMap[32][32];
 extern RenderTileComponent passableMap[32][32];
 extern RenderTileComponent customMap[32][32];
+
+extern RenderTileComponent randArray[32][32];
 
 
 extern int tempMap1[32][32];

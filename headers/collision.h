@@ -1,6 +1,8 @@
 #ifndef COLLISION_H_
 #define COLLISION_H_
 
+extern bool noClip;
+
 extern bool colUp;
 extern bool colDown;
 extern bool colLeft;
