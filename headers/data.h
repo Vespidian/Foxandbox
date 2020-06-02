@@ -26,11 +26,10 @@ extern int tileSize;
 extern int layerOrder;
 extern bool enableHitboxes;
 
-void randomArray();
-
 extern bool mouseUp;
+extern bool uiMode;
 
-int strshft_l(char stringShift[128], int shiftBy);
+char *strshft_l(char stringShift[128], int shiftBy);
 
 extern int characterFacing;
 void DrawCharacter(int direction, int numFrames);
@@ -39,13 +38,8 @@ void DrawCharacter(int direction, int numFrames);
 // extern int perlinNoise1D[];
 // extern int noiseSeed1D[];
 // extern const int noiseSize;
-void SmoothMap();
-void DefineBorder();
 
 
-
-
-extern RenderTileComponent tempArray[32][32];
 void RenderCursor();
 
 #endif

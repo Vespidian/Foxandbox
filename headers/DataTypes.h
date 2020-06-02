@@ -31,13 +31,15 @@ typedef struct{
 typedef struct{
 	char name[64];
 	char description[128];
+	WB_Tilesheet sheet;
+	int tile;
 	
 }INV_Item;
 
 typedef struct{
 	INV_Item item;
-	WB_Tilesheet sheet;
-	int tile;
+	INV_Item itemDrop;
+	int dropQty;
 	
 }INV_Block;
 

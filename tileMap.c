@@ -14,6 +14,8 @@
 #include "headers/data.h"
 #include "headers/drawFunctions.h"
 #include "headers/tileMap.h"
+#include "headers/mapGeneration.h"
+
 
 int tilePixelSize = 16;
 int tileStretchSize = 64;
@@ -196,6 +198,24 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 					AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, zPos + mapArray[y][x].zPos);
 					mapArray[y][x].zPos = 0;
+					
+					/*SDL_GetMouseState(&mousePos.x, &mousePos.y);
+					SDL_Point mousePoint = {mousePos.x, mousePos.y};
+					if(SDL_PointInRect(&mousePoint, &tile)){
+						SDL_Rect mouseHighlight = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y, tileStretchSize, tileStretchSize};
+						// AddToRenderQueue(gRenderer, debugSheet, 0, mouseHighlight, RNDRLYR_UI - 1);
+						if(e.type == SDL_MOUSEBUTTONDOWN){//Place and remove tiles
+							if(e.button.button == SDL_BUTTON_LEFT){
+								TileMapEdit(tempArray, (Vector2){x, y}, 0, false);
+								TileMapEdit(randArray, (Vector2){x, y}, 0, false);
+								DefineBorder();
+							}else if(e.button.button == SDL_BUTTON_RIGHT){
+								TileMapEdit(randArray, (Vector2){x, y}, 47, false);
+								TileMapEdit(tempArray, (Vector2){x, y}, 47, false);
+								DefineBorder();
+							}
+						}
+					}*/
 				}
 			}
 		}
@@ -204,13 +224,8 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 
 void DrawLevel(){
 	// DrawMap(defSheet, map, 0);
-	// if(e.key.keysym.sym == SDLK_o){
-		DrawMap(defSheet, randArray, 0);
-		
-	// }else{
-		// DrawMap(defSheet, tempArray, 0);
-		
-	// }
+	DrawMap(defSheet, randArray, 0);
+
 	DrawMap(defSheet, map1, 0);
 	DrawMap(defSheet, customMap, 0);
 

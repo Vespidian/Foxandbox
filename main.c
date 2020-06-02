@@ -6,9 +6,7 @@
 #include <time.h>
 
 #include <SDL2/SDL.h>
-// #include <SDL_ttf.h>
 #include <SDL_image.h>
-// #include <SDL_net.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -18,6 +16,7 @@
 #include "headers/tileMap.h"
 #include "headers/collision.h"
 #include "headers/inventory.h"
+#include "headers/mapGeneration.h"
 // Normally SDL2 will redefine the main entry point of the program for Windows applications
 // this doesn't seem to play nice with TCC, so we just undefine the redefinition
 #ifdef __TINYC__
@@ -50,6 +49,7 @@ bool enableHitboxes = false;
 
 bool isWalking = false;
 int characterFacing = 1;
+bool uiMode = false;
 
 void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int numFrames, int delay){
 	
@@ -89,6 +89,7 @@ void Setup(){
 	characterOffset = midScreen;
 	NewEntity();
 	SetupRenderFrame();
+	GenerateProceduralMap(50, 5);
 	
 }
 Vector2 tmpSize;	
@@ -115,11 +116,6 @@ void ResizeWindow(){
 	tmpSize = (Vector2){WIDTH, HEIGHT};
 	windowRect = (SDL_Rect){-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 }
-
-
-
-RenderTileComponent tempArray[32][32] = {};
-void DefineBorder();
 
 int main(int argc, char **argv) {
 	init();
@@ -232,13 +228,8 @@ int main(int argc, char **argv) {
 						mapOffsetPos.y += roundSpeed.y;
 					}*/
 					
-					if(e.key.keysym.sym == SDLK_h){
+					if(e.key.keysym.sym == SDLK_c){
 						noClip = !noClip;
-						DefineBorder();
-
-					}
-					if(e.key.keysym.sym == SDLK_y){
-						SmoothMap();
 					}
 					if(e.key.keysym.sym == SDLK_x){
 						enableHitboxes = !enableHitboxes;
@@ -252,7 +243,7 @@ int main(int argc, char **argv) {
 							INV_WriteCell("sub", INV_FindItem(1), 1, 1);
 						}*/
 						tempArray[worldPos.y + placeLocation.y][worldPos.x + placeLocation.x].type = 0;
-						DefineBorder();
+						// DefineBorder();
 					}
 					if(e.key.keysym.sym == SDLK_r){
 						INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
@@ -360,11 +351,11 @@ void RenderScreen(){
 	// SDL_RenderDrawRect(gRenderer, &showPointRect);
 	
 	// snprintf(coordinates, 1024, "x: %d, y: %d", (mapOffsetPos.x + 32) / 64, (mapOffsetPos.y + 32) / 64);
-	snprintf(coordinates, 1024, "x: %d, y: %d", worldPos.x, worldPos.y);
-	snprintf(charoff, 1024, "x: %d, y: %d", characterOffset.x, characterOffset.y);
+	snprintf(coordinates, 1024, "PlayerPosition in regards to the map ->\nx: %d, y: %d", worldPos.x, worldPos.y);
+	snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
 	
 	RenderText_d(gRenderer, coordinates, 0, 0);
-	RenderText_d(gRenderer, charoff, 0, 32);	
+	RenderText_d(gRenderer, charoff, 0, 48);	
 	
 	SDL_Rect woahR = {0, 0, 100, 100};
 	AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, 1000);
@@ -416,190 +407,36 @@ void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
 }
 
 
-void RenderCursor(){
-	// Highlight the tile the mouse is currently on
+void RenderCursor(){// Highlight the tile the mouse is currently on
+	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * 32, 64 * 32};
 	SDL_GetMouseState(&mousePos.x, &mousePos.y);
-	SDL_Point mousePoint = {mousePos.x, mousePos.y};
-	// if(SDL_PointInRect(&mousePoint, &tile)){
-		Vector2 mapMousePos = {((mousePos.x)) / 64, ((mousePos.y)) / 64};
-		SDL_Rect mouseHighlight = {mapMousePos.x * 64 + mapOffsetPos.x % 64, mapMousePos.y * 64 + mapOffsetPos.y % 64, 64, 64};
-		// SDL_SetRenderDrawColor(gRenderer, 255, 211, 0, 0xff);
-		// SDL_RenderDrawRect(gRenderer, &mouseHighlight);
-		AddToRenderQueue(gRenderer, debugSheet, 0, mouseHighlight, RNDRLYR_UI - 1);
+	Vector2 mouseTile = {mousePos.x, mousePos.y};
+	mouseTile.x = ((mousePos.x + mapOffsetPos.x) / 64);
+	mouseTile.y = ((mousePos.y + mapOffsetPos.y) / 64);
+	SDL_Point cursor = {(mouseTile.x * 64) - mapOffsetPos.x, (mouseTile.y * 64) - mapOffsetPos.y};
+	if(SDL_PointInRect(&cursor, &mapRect) && !uiMode){
+		AddToRenderQueue(gRenderer, debugSheet, 0, (SDL_Rect){cursor.x, cursor.y, 64, 64}, RNDRLYR_UI - 1);
 		
-	// }
-}
-
-
-
-
-enum types {GRASS = 0, WATER = 47};
-int GetSurroundCount(Vector2 tile){
-	int surroundCount = 0;
-	for(int y = tile.y - 1; y <= tile.y + 1; y++){
-		for(int x = tile.x - 1; x <= tile.x + 1; x++){
-			if(x >= 0 && x < 32 && y >= 0 && y < 32){
-				if(x != tile.x || y != tile.y){
-					if(tempArray[y][x].type == GRASS){
-						surroundCount++;
-					}
-				}
-			}
+		{//MouseText
+			char mousePosT[256];
+			snprintf(mousePosT, 1024, "MOUSEPOS ->\nx: %d, y: %d", mouseTile.x, mouseTile.y);
+			RenderText_d(gRenderer, mousePosT, 0, 96);
 		}
-	}
-	// printf("%d\n", surroundCount);
-	return surroundCount;
-}
-
-
-// void ResetEdges(){
-	// for(int y = 0; y < 32; y++){
-		// for(int x = 0; x < 32; x++){
-			// if(randArray[y][x].type > GRASS && randArray[y][x].type < WATER){
-				// randArray[y][x].type = GRASS;
-				// printf("wow\n");
-			// }
-		// }
-	// }
-// }
-
-void DefineBorder(){
-/*
-16  |  1  | 32
-____|_____|____
- 8  | /// |  2
-____|_____|____
-128 |  4  | 64
-
-*/
-	int correlationArray[] = {255, 2, 8, 10, 11, 16, 18, 22, 24, 26, 27, 30, 31, 64, 66, 72, 74, 75, 80, 82, 86, 88, 90, 91, 94, 95, 104, 106, 107, 120, 122, 123, 126, 127, 208, 210, 214, 216, 218, 219, 222, 223, 248, 250, 251, 254, 0};
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			int adjacentCaseNumber = 0;			
-			int cornerCaseNumber = 0;	
-			int finalCaseNumber = 0;
-			// int numSurrounds = 0;
-			
-			
-			// Marching Squares:
-			/*caseNumber += (tempArray[y + 1][x].type == WATER) << 0;
-			caseNumber += (tempArray[y + 1][x + 1].type == WATER) << 1;
-			caseNumber += (tempArray[y][x + 1].type == WATER) << 2;
-			caseNumber += (tempArray[y][x].type == WATER) << 3;
-			randArray[y][x].type = caseNumber;*/
-			
-			
-			//Auto Tiling
-			bool topLeft = (tempArray[y + 1][x - 1].type == GRASS);
-			bool topRight = (tempArray[y + 1][x + 1].type == GRASS);
-			bool bottomLeft = (tempArray[y - 1][x - 1].type == GRASS);
-			bool bottomRight = (tempArray[y - 1][x + 1].type == GRASS);
-			bool top = (tempArray[y + 1][x].type == GRASS);
-			bool bottom = (tempArray[y - 1][x].type == GRASS);
-			bool right = (tempArray[y][x + 1].type == GRASS);
-			bool left = (tempArray[y][x - 1].type == GRASS);
-			if(tempArray[y][x].type == GRASS){
-				//Reduce possible options down to 47
-				if(topLeft){
-					if(!top || !left){
-						topLeft = false;
-					}
-				}
-				if(topRight){
-					if(!top || !right){
-						topRight = false;
-					}
-				}
-				if(bottomLeft){
-					if(!bottom || !left){
-						bottomLeft = false;
-					}
-				}
-				if(bottomRight){
-					if(!bottom || !right){
-						bottomRight = false;
-					}
-				}
-				cornerCaseNumber += topLeft << 0;//CRN
-				adjacentCaseNumber += top << 1;//ADJ
-				cornerCaseNumber += topRight << 2;//CRN
-				adjacentCaseNumber += left << 3;//ADJ
-				adjacentCaseNumber += right << 4;//ADJ
-				cornerCaseNumber += bottomLeft << 5;//CRN
-				adjacentCaseNumber += bottom << 6;//ADJ
-				cornerCaseNumber += bottomRight << 7;//CRN
-				
-				finalCaseNumber = adjacentCaseNumber + cornerCaseNumber;
-				
-				//Order the 47 possible options in a compact way
-				for(int i = 0; i < 47; i++){
-					if(finalCaseNumber == correlationArray[i]){
-						finalCaseNumber = i;
-						break;
-					}
-				}
-				
-				// printf("%d\n", finalCaseNumber);
-				randArray[y][x].type = finalCaseNumber;
-				
-			}
-			// if(finalCaseNumber >= GRASS && finalCaseNumber < WATER){
-			if(randArray[y][x].type == WATER){
-				// colMap[y][x] = -1;
-			// }else{
-				colMap[y][x] = 0;
-			}
-		}
-		// printf("\n");
-	}
-}
-
-void SmoothMap(){
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			tempArray[y][x] = randArray[y][x];
-		}
-	}
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			int surroundTiles = GetSurroundCount((Vector2){x, y});
-			
-			if(surroundTiles > 4){
-				randArray[y][x].type = GRASS;
-				// colMap[y][x] = -1;
-			}else if(surroundTiles < 4){
-				randArray[y][x].type = WATER;
-				// colMap[y][x] = 0;
+		
+		
+		if(e.type == SDL_MOUSEBUTTONDOWN){//Place and remove tiles
+			if(e.button.button == SDL_BUTTON_LEFT){
+				TileMapEdit(tempArray, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
+				TileMapEdit(randArray, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
+				DefineBorder(randArray);
+			}else if(e.button.button == SDL_BUTTON_RIGHT){
+				TileMapEdit(randArray, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
+				TileMapEdit(tempArray, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
+				DefineBorder(randArray);
 			}
 		}
 	}
 }
-void randomArray(){
-	int percentGrass = 50;
-	time_t rawTime;
-	struct tm *timeinfo;
-	time(&rawTime);
-	timeinfo = localtime(&rawTime);
-	int worldSeed = timeinfo->tm_sec;
-	SeedLehmer(worldSeed, 0, 0);
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			if(getRnd(0, 100) <= percentGrass){
-				randArray[y][x].type = GRASS;
-			}else{
-				randArray[y][x].type = WATER;
-			}
-		}
-	}
-	// SmoothMap();
-}
-
-
-
-
-
-
-
 
 
 
@@ -612,11 +449,6 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 	rect.y -= mapOffsetPos.y;
 	AddToRenderQueue(renderer, sheet, tile, rect, zPos);
 }
-
-
-
-
-
 
 
 

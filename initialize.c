@@ -119,10 +119,6 @@ bool init(bool initTTF){
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
 	
-	
-	randomArray();//
-	
-	
 	ReadItemData();
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);

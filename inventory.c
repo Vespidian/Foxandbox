@@ -30,6 +30,7 @@ Vector2 numOffset = {-2, 16};
 int mouseInv[2] = {-1, 0};
 bool showInv = false;
 INV_Item itemData[64];
+INV_Block blockData[128];
 INV_Recipe recipes[64];
 int numberOfRecipes = 0;
 
@@ -59,42 +60,76 @@ int ReadItemData(){
 		return 1;
 	}
 	char buffer[512];
-	int i = 0;
-	char heading[64];
+	char declarationType[64];
 	
+	int itemCounter = 0;
 	while(fgets(buffer, sizeof(buffer), file)){
 		if(buffer[0] != '\n'){
-			if(buffer[0] == '	'){
-				strshft_l(buffer, 1);
+			if(buffer[0] == '	' && buffer[1] != '\n'){
+				strcpy(buffer, strshft_l(buffer, 1));
 				
-				if(strcmp(heading, "BLOCKS") == 0){//Check if iterating through blocks
-					// char id[16];
-					// strcpy(id, strtok(buffer, ":"));
-					// strcpy(id, strtok(NULL, "|"));
-					// printf("%s\n", id);
-					// strshft_l(id, 3);	
-					// printf("%d\n", atoi(id));
-					// printf("%s\n", id);
+				// printf("%s	-> %d\n", declarationType, itemCounter);
+				if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
+					strcpy(itemData[itemCounter].name, strtok(buffer, ":"));
+					strcpy(itemData[itemCounter].description, strtok(NULL, "|"));
+				}else if(strcmp(declarationType, "BLOCKS") == 0){//Check if iterating through blocks
+					char tileNum[16];
+					int flagCount = 1;
+					char flag[32];
+					char *flags[1];
+					*flags = malloc(6 * sizeof(char*));
+					// flags[0] = malloc(1 * sizeof(*flags));
 					
-				}else{
-					strcpy(itemData[i].name, strtok(buffer, ":"));
-					strcpy(itemData[i].description, strtok(NULL, "|"));
-				}
-				i++;
-				// printf("Current heading: %s\n", heading);
+					strcpy(blockData[itemCounter].item.name, strtok(buffer, ":"));
+					strcpy(tileNum, strshft_l(strtok(NULL, "|"), 3));
+
+					
+					strcpy(flag, strtok(NULL, "|"));
+					while(strcmp(flag, "\n") != 0){
+						// printf("boop\n");
+						*flags = realloc(*flags, (flagCount + 2) * sizeof(char*));
+						flags[flagCount - 1] = malloc(strlen(flag) + 1);
+						strcpy(flags[flagCount - 1], flag);
+						// printf("%s\n", flags[flagCount]);
+						
+						// printf("%s\n", flag);
+						strcpy(flag, strtok(NULL, "|"));
+						flagCount++;
+					}
+						// printf("yay\n");
+
+					/*while(flag != NULL){//Retrieve flags
+						strcpy(flag, strtok(NULL, "|"));
+						// strcpy(flags[flagCount], strtok(NULL, "|"));
+						printf("widended\n");	
+						flags = realloc(flags, (flagCount + 1) * sizeof(*flags));
+						
+						// printf("%s\n", flags[flagCount]);	
+						flagCount++;
+					}*/
+					// strcpy(blockData[itemCounter].item.name, strtok(NULL, "|"));
+					// printf("%s\n", tileNum);
+					// printf("%s\n", strtok(buffer, ":"));
+					// printf("%s\n", strtok(NULL, "|"));
+					// printf("%s\n", strshft_l(strtok(NULL, "|"), 1));
+					// printf("%s\n", strtok(NULL, "|"));
+					
+					free(*flags);
+					// free(flag);
+				}	
+				itemCounter++;
+				// printf("Current declarationType: %s\n", declarationType);
 			}else if(buffer[0] == ':' && buffer[1] == ':'){
-				strshft_l(buffer, 2);
-				i = 0;
-				// buffer[strlen(buffer) - 1] = ' ';
-				// buffer[strlen(buffer) - 2] = ' ';
-				// printf("Reading %s\n", buffer);
-				strcpy(heading, buffer);
-				// printf("Reading: %s\n", buffer);
+				strcpy(buffer, strshft_l(buffer, 2));
+				// strshft_l(buffer, 2);
+				itemCounter = 0;
+				buffer[strlen(buffer) - 1] = '\0';
+				strcpy(declarationType, buffer);
 			}/*else  if(buffer[0] == '/' && buffer[1] == '/'){
 				
 			} */
 		}
-		// printf("%s >> %s\n", itemData[i].name, itemData[i].description);
+		// printf("%s >> %s\n", itemData[itemCounter].name, itemData[itemCounter].description);
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
 	}
 	// printf("%s\n", itemData[0].name);
@@ -179,6 +214,7 @@ void INV_DrawInv(){
 	
 	//Drawing the main inventory
 	if(showInv){
+		uiMode = true;
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
@@ -235,6 +271,9 @@ void INV_DrawInv(){
 					SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0);
 					SDL_Rect itemNameDisp = {invRect.x, invRect.y - 32, strlen(itemData[invArray[i][0]].name) * 14, 28};
 					AddToRenderQueue(gRenderer, uiSheet, 0, itemNameDisp, RNDRLYR_UI - 1);
+					// char *itemText;
+					// snprintf(itemText, 256, "%s x%d", itemData[invArray[i][0]].name,invArray[i][1]);
+					// RenderText_d(gRenderer, itemText, itemNameDisp.x + 4, itemNameDisp.y + 6);					
 					RenderText_d(gRenderer, itemData[invArray[i][0]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);					
 				}
 			}
@@ -260,6 +299,8 @@ void INV_DrawInv(){
 			itoa(mouseInv[1], itemqty, 10);
 			RenderText_d(gRenderer, itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);
 		}
+	}else{
+		uiMode = false;
 	}
 	// printf("\n");
 	// printf("\n");
