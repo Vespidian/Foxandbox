@@ -49,6 +49,7 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 	renderItem = 0;
 	renderBuffer = malloc(sizeof(RenderComponent));
 }
+
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int zPos){
 	if(tileSheet.tex == NULL){
 		printf("Error: Tilesheet not defined properly!\n");
@@ -232,7 +233,7 @@ void DrawLevel(){
 
 	DrawMap(furnitureSheet, furnitureMap, 1);
 	DrawMap(furnitureSheet, passableMap, 1);
-	DrawCharacter(characterFacing, 4);
+	DrawCharacter(characterFacing, 6);
 }
 
 /* void TILE_SetTile(int mapArray[][32], int ) */

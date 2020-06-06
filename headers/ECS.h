@@ -20,6 +20,20 @@ typedef struct{
 }RenderTileComponent;
 
 
+//Particle System
+typedef struct{
+	bool alive;
+	SDL_Rect pos;
+	int duration;
+	Vector2 dir;
+	
+}ParticleComponent;
+
+typedef struct{
+	SDL_Rect area;
+	ParticleComponent *particles;
+	int maxParticles;
+}ParticleSystem;
 
 
 //Mob Components

@@ -65,8 +65,8 @@ void TextureInit(){
 	furnitureTex = IMG_LoadTexture(gRenderer, "images/furniture.png");
 	furnitureSheet = (WB_Tilesheet){furnitureTex, 8, 8, 16};
 	
-	characterTex = IMG_LoadTexture(gRenderer, "images/character.png");
-	characterSheet = (WB_Tilesheet){characterTex, 4, 6, 16};
+	characterTex = IMG_LoadTexture(gRenderer, "images/foxanim.png");
+	characterSheet = (WB_Tilesheet){characterTex, 6, 4, 16};
 	
 	backgroundTex = IMG_LoadTexture(gRenderer, "images/background.png");
 	

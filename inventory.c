@@ -86,17 +86,17 @@ int ReadItemData(){
 					
 					strcpy(flag, strtok(NULL, "|"));
 					while(strcmp(flag, "\n") != 0){
-						// printf("boop\n");
+						printf("boop\n");
 						*flags = realloc(*flags, (flagCount + 2) * sizeof(char*));
 						flags[flagCount - 1] = malloc(strlen(flag) + 1);
 						strcpy(flags[flagCount - 1], flag);
 						// printf("%s\n", flags[flagCount]);
 						
-						// printf("%s\n", flag);
+						printf("%s\n", flag);
 						strcpy(flag, strtok(NULL, "|"));
 						flagCount++;
 					}
-						// printf("yay\n");
+						printf("yay\n");
 
 					/*while(flag != NULL){//Retrieve flags
 						strcpy(flag, strtok(NULL, "|"));

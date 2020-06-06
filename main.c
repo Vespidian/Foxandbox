@@ -48,11 +48,10 @@ int layerOrder = 0;
 bool enableHitboxes = false;
 
 bool isWalking = false;
-int characterFacing = 1;
+int characterFacing = 0;
 bool uiMode = false;
 
 void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int numFrames, int delay){
-	
 	int frame = 0;
 	frame = (SDL_GetTicks() / delay) % numFrames;
 	
@@ -63,9 +62,9 @@ void DrawCharacter(int direction, int numFrames){
 	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
 	
 	if(isWalking){
-		DrawAnimation(charPos, characterSheet, (direction) * 4, numFrames, 200);
+		DrawAnimation(charPos, characterSheet, (direction) * 6, numFrames, 100);
 	}else{
-		DrawAnimation(charPos, characterSheet, (direction) * 4, 1, 200);
+		DrawAnimation(charPos, characterSheet, (direction + 2) * 6, numFrames, 100);
 	}
 }
 
@@ -76,7 +75,7 @@ int darknessMod = 0;
 bool isDay = true;
 bool doDayCycle = false;
 Vector2 worldPos = {0, 0};
-int playerSpeed = 4;
+int playerSpeed = 3;
 Vector2 placeLocation = {0, 0};
 
 void Setup(){
@@ -90,6 +89,8 @@ void Setup(){
 	NewEntity();
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
+	
+	NewParticleSystem();
 	
 }
 Vector2 tmpSize;	
@@ -166,36 +167,36 @@ int main(int argc, char **argv) {
 			if(currentKeyStates[SDL_SCANCODE_A]){
 				if(!colLeft){
 					// if(SDL_GetTicks() % 2 != 0)
-						mapOffsetPos.x -= playerSpeed;
+					mapOffsetPos.x -= playerSpeed;
+					isWalking = true;
 				}
-				isWalking = true;
-				characterFacing = 4;
+				characterFacing = 0;
 			}
 			if(currentKeyStates[SDL_SCANCODE_W]){
 				if(!colUp){
 					// if(SDL_GetTicks() % 2 == 0)
-						mapOffsetPos.y -= playerSpeed;
+					mapOffsetPos.y -= playerSpeed;
+					isWalking = true;
 				}
-				isWalking = true;
-				characterFacing = 2;
+				// characterFacing = 0;
 				// worldPos.y -= 1;
 			}
 			if(currentKeyStates[SDL_SCANCODE_D]){
 				if(!colRight){
 					// if(SDL_GetTicks() % 2 == 0)
-						mapOffsetPos.x += playerSpeed;
+					mapOffsetPos.x += playerSpeed;
+					isWalking = true;
 				}
-				isWalking = true;
-				characterFacing = 3;
+				characterFacing = 1;
 				// worldPos.x += 1;
 			}
 			if(currentKeyStates[SDL_SCANCODE_S]){
 				if(!colDown){
 					// if(SDL_GetTicks() % 2 == 0)
-						mapOffsetPos.y += playerSpeed;
+					mapOffsetPos.y += playerSpeed;
+					isWalking = true;
 				}
-				isWalking = true;
-				characterFacing = 1;
+				// characterFacing = 1;
 				// worldPos.y += 1;
 			}
 				// worldPos.y += characterFacing % 4;
@@ -330,6 +331,9 @@ void RenderScreen(){
 	};
 	
 	
+	RenderParticleSystem(pSystem);
+	
+	
 	/*if(tempEntity.x > mapOffsetPos.x + characterOffset.x){
 		tempEntity.x--;
 	}else if(tempEntity.x < mapOffsetPos.x + characterOffset.x){
@@ -351,7 +355,7 @@ void RenderScreen(){
 	// SDL_RenderDrawRect(gRenderer, &showPointRect);
 	
 	// snprintf(coordinates, 1024, "x: %d, y: %d", (mapOffsetPos.x + 32) / 64, (mapOffsetPos.y + 32) / 64);
-	snprintf(coordinates, 1024, "PlayerPosition in regards to the map ->\nx: %d, y: %d", worldPos.x, worldPos.y);
+	snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", worldPos.x, worldPos.y);
 	snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
 	
 	RenderText_d(gRenderer, coordinates, 0, 0);
@@ -452,6 +456,62 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 
 
 
+ParticleSystem pSystem;
+
+void ResetParticle(ParticleComponent *particle, SDL_Rect spawnArea){
+	particle->alive = true;//Activate the particle
+	particle->duration = getRnd(20, 70);
+	particle->pos.x = getRnd(spawnArea.x, spawnArea.x + spawnArea.w);
+	particle->pos.y = getRnd(spawnArea.y, spawnArea.y + spawnArea.h);
+	particle->pos.w = 4;
+	particle->pos.h = 4;
+	
+	particle->dir.x = getRnd(-1, 2);
+	particle->dir.y = getRnd(-1, 2);
+	// printf("%d\n", particle.pos.w);
+}
+
+void NewParticleSystem(){
+	pSystem.area = (SDL_Rect){200, 200, 16, 16};
+	pSystem.maxParticles = 10;
+	pSystem.particles = malloc(sizeof(ParticleComponent));
+	
+	for(int i = 0; i < pSystem.maxParticles; i++){	
+		pSystem.particles = realloc(pSystem.particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
+		ResetParticle(&pSystem.particles[i], pSystem.area);
+		
+		/*pSystem.particles[i].alive = true;//Activate the particle
+		pSystem.particles[i].duration = getRnd(50, 100);
+		pSystem.particles[i].pos.x = getRnd(pSystem.area.x, pSystem.area.x + pSystem.area.w);
+		pSystem.particles[i].pos.y = getRnd(pSystem.area.y, pSystem.area.y + pSystem.area.h);
+		pSystem.particles[i].pos.w = 4;
+		pSystem.particles[i].pos.h = 4;
+		pSystem.particles[i].dir.x = getRnd(-1, 2);
+		pSystem.particles[i].dir.y = getRnd(-1, 2);*/
+		
+		// printf("%d\n", i);
+	}
+}
+
+void RenderParticleSystem(ParticleSystem system){
+	for(int i = 0; i < system.maxParticles; i++){
+		// ParticleComponent particle = system.particles[i];
+		if(system.particles[i].alive == true){
+			system.particles[i].pos.x += system.particles[i].dir.x;
+			system.particles[i].pos.y += system.particles[i].dir.y;
+			system.particles[i].duration -= 1;
+			if(system.particles[i].duration <= 0){
+				system.particles[i].duration = 0;
+				system.particles[i].alive = false;
+			}
+			AddToRenderQueue(gRenderer, uiSheet, 0, system.particles[i].pos, 1000);
+			printf(".");
+		}else{
+			ResetParticle(&system.particles[i], system.area);
+		}
+	}
+	
+}
 
 
 Entity *enemies;
