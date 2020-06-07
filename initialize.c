@@ -45,6 +45,9 @@ WB_Tilesheet colorModSheet;
 SDL_Texture *debugTex;
 WB_Tilesheet debugSheet;
 
+SDL_Texture *particleTex;
+WB_Tilesheet particleSheet;
+
 WB_Tilesheet defSheet;
 WB_Tilesheet furnitureSheet;
 WB_Tilesheet characterSheet;
@@ -85,6 +88,8 @@ void TextureInit(){
 	debugTex = IMG_LoadTexture(gRenderer, "images/debug.png");
 	debugSheet = (WB_Tilesheet){debugTex, 8, 8, 16};
 	
+	particleTex = IMG_LoadTexture(gRenderer, "images/particles.png");
+	particleSheet = (WB_Tilesheet){particleTex, 4, 4, 4};
 	
 	//Entities
 	zombieTex = IMG_LoadTexture(gRenderer, "images/entities/zombie.png");
@@ -107,7 +112,7 @@ bool init(bool initTTF){
 	// }
 	
 	gWindow = SDL_CreateWindow("Explorable World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	
 	// SDL_SetWindowResizable(gWindow, true);
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");

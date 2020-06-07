@@ -22,6 +22,9 @@ extern WB_Tilesheet colorModSheet;
 extern SDL_Texture *debugTex;
 extern WB_Tilesheet debugSheet;
 
+extern SDL_Texture *particleTex;
+extern WB_Tilesheet particleSheet;
+
 extern WB_Tilesheet defSheet;
 extern WB_Tilesheet furnitureSheet;
 extern WB_Tilesheet characterSheet;

@@ -39,7 +39,7 @@ void DrawCharacter(int direction, int numFrames);
 // extern int noiseSeed1D[];
 // extern const int noiseSize;
 
-void NewParticleSystem();
+void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration);
 extern ParticleSystem pSystem;
 void RenderParticleSystem(ParticleSystem system);
 

@@ -50,6 +50,11 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 	renderBuffer = malloc(sizeof(RenderComponent));
 }
 
+int AddToRenderQueue_custom(SDL_Renderer *gRenderer, SDL_Texture *tex, int tileSize, SDL_Rect destRect, int zPos){
+	WB_Tilesheet sheet = {tex, 1, 1, tileSize};
+	AddToRenderQueue(gRenderer, sheet, 0, destRect, zPos);
+}	
+
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int zPos){
 	if(tileSheet.tex == NULL){
 		printf("Error: Tilesheet not defined properly!\n");

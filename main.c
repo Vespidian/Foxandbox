@@ -70,6 +70,7 @@ void DrawCharacter(int direction, int numFrames){
 
 SDL_Rect windowRect;
 
+ParticleSystem pSys1;
 
 int darknessMod = 0;
 bool isDay = true;
@@ -90,7 +91,8 @@ void Setup(){
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
 	
-	NewParticleSystem();
+	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});
+	// pSys1.fade = false;
 	
 }
 Vector2 tmpSize;	
@@ -331,8 +333,8 @@ void RenderScreen(){
 	};
 	
 	
-	RenderParticleSystem(pSystem);
-	
+	RenderParticleSystem(pSys1);
+
 	
 	/*if(tempEntity.x > mapOffsetPos.x + characterOffset.x){
 		tempEntity.x--;
@@ -456,61 +458,96 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 
 
 
-ParticleSystem pSystem;
 
-void ResetParticle(ParticleComponent *particle, SDL_Rect spawnArea){
-	particle->alive = true;//Activate the particle
-	particle->duration = getRnd(20, 70);
+/*
+Need to:
+- Write a function the returns an SDL_Rect from a WB_Tilesheet input and a number int
+- 
+*/
+
+void SpawnParticle(ParticleComponent *particle, int pType, SDL_Rect spawnArea, Range xR, Range yR, Range duration){
+	particle->active = true;//Activate the particle
+	// particle->duration = getRnd(20, 70);
+	particle->type = pType;
+	particle->initDuration = getRnd(duration.min, duration.max);
+	particle->duration = particle->initDuration;
+	particle->size = 4;
 	particle->pos.x = getRnd(spawnArea.x, spawnArea.x + spawnArea.w);
 	particle->pos.y = getRnd(spawnArea.y, spawnArea.y + spawnArea.h);
-	particle->pos.w = 4;
-	particle->pos.h = 4;
+	particle->pos.w = particle->size;
+	particle->pos.h = particle->size;
 	
-	particle->dir.x = getRnd(-1, 2);
-	particle->dir.y = getRnd(-1, 2);
+	particle->dir.x = getRnd(xR.min, xR.max + 1);
+	particle->dir.y = getRnd(yR.min, yR.max + 1);
+	
 	// printf("%d\n", particle.pos.w);
 }
 
-void NewParticleSystem(){
-	pSystem.area = (SDL_Rect){200, 200, 16, 16};
-	pSystem.maxParticles = 10;
-	pSystem.particles = malloc(sizeof(ParticleComponent));
+void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration){
+	pSystem->playSystem = true;
+	pSystem->pType = pType;
+		// printf("%d", testingParticles.playSystem);
+	// pSystem.area = (SDL_Rect){200, 200, 16, 16};
+	// pSystem.area = (SDL_Rect){0, 0, WIDTH, HEIGHT};
+	pSystem->area = (SDL_Rect)area;
+	pSystem->fade = true;
+	// pSystem.maxParticles = 25;
+	pSystem->maxParticles = particleNum;
+	// pSystem->sysDir = sysDir;
+	pSystem->xR = xR;
+	pSystem->yR = yR;
+	pSystem->duration = duration;
 	
-	for(int i = 0; i < pSystem.maxParticles; i++){	
-		pSystem.particles = realloc(pSystem.particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
-		ResetParticle(&pSystem.particles[i], pSystem.area);
+	pSystem->particles = malloc(sizeof(ParticleComponent));
+	
+	for(int i = 0; i < pSystem->maxParticles; i++){	
+		pSystem->particles = realloc(pSystem->particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
 		
-		/*pSystem.particles[i].alive = true;//Activate the particle
-		pSystem.particles[i].duration = getRnd(50, 100);
-		pSystem.particles[i].pos.x = getRnd(pSystem.area.x, pSystem.area.x + pSystem.area.w);
-		pSystem.particles[i].pos.y = getRnd(pSystem.area.y, pSystem.area.y + pSystem.area.h);
-		pSystem.particles[i].pos.w = 4;
-		pSystem.particles[i].pos.h = 4;
-		pSystem.particles[i].dir.x = getRnd(-1, 2);
-		pSystem.particles[i].dir.y = getRnd(-1, 2);*/
+		pSystem->particles[i].pTex = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1, 1);
+		SDL_SetTextureBlendMode(pSystem->particles[i].pTex, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderTarget(gRenderer, pSystem->particles[i].pTex);
+
+		//Implement using the particle->type as the texture location
+		SDL_Rect sourceRect = {(pType % 4) * 1, (pType / 4) * 1, 1, 1};
+		// SDL_Rect sourceRect = {(pType % 4) * 4, (pType / 4) * 4, 4, 4};
+		SDL_Rect destRect = {0, 0, 1, 1};
+		SDL_RenderCopy(gRenderer, particleSheet.tex, &sourceRect, &destRect);
 		
+		SDL_SetRenderTarget(gRenderer, NULL);
+		
+		// SpawnParticle(&pSystem->particles[i], pSystem->area, pSystem->xR, pSystem->yR, pSystem->duration);
+		SpawnParticle(&pSystem->particles[i], pType, area, xR, yR, duration);
 		// printf("%d\n", i);
 	}
 }
 
 void RenderParticleSystem(ParticleSystem system){
-	for(int i = 0; i < system.maxParticles; i++){
-		// ParticleComponent particle = system.particles[i];
-		if(system.particles[i].alive == true){
-			system.particles[i].pos.x += system.particles[i].dir.x;
-			system.particles[i].pos.y += system.particles[i].dir.y;
-			system.particles[i].duration -= 1;
-			if(system.particles[i].duration <= 0){
-				system.particles[i].duration = 0;
-				system.particles[i].alive = false;
+	if(system.playSystem){
+		// system.area = (SDL_Rect){mousePos.x, mousePos.y, 16, 16};
+		for(int i = 0; i < system.maxParticles; i++){
+			ParticleComponent particle = (ParticleComponent)system.particles[i];
+			if(particle.active == true){
+				particle.pos.x += particle.dir.x;
+				particle.pos.y += particle.dir.y;
+				particle.duration -= 1;
+				if(system.fade == true){
+					SDL_SetTextureAlphaMod(particle.pTex, (particle.duration * 255) / particle.initDuration);
+				}
+				if(particle.duration <= 0){//Reset the particle
+					particle.duration = 0;
+					particle.active = false;
+				}
+				
+				// AddToRenderQueue_custom(gRenderer, particle.pTex, 4, particle.pos, RNDRLYR_UI - 5);
+				AddToRenderQueue_custom(gRenderer, particle.pTex, 1, particle.pos, RNDRLYR_UI - 5);
+				// AddToRenderQueue(gRenderer, particleSheet, 0, particle.pos, RNDRLYR_UI - 5);
+				// printf(".");
+				system.particles[i] = (ParticleComponent)particle;
+			}else{
+				SpawnParticle(&system.particles[i], system.pType, system.area, system.xR, system.yR, system.duration);
 			}
-			AddToRenderQueue(gRenderer, uiSheet, 0, system.particles[i].pos, 1000);
-			printf(".");
-		}else{
-			ResetParticle(&system.particles[i], system.area);
 		}
 	}
-	
 }
 
 

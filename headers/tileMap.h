@@ -24,6 +24,7 @@ extern int tempMap2[32][32];
 
 extern int tilePixelSize;
 
+int AddToRenderQueue_custom(SDL_Renderer *gRenderer, SDL_Texture *tex, int tileSize, SDL_Rect destRect, int zPos);
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int zPos);
 void RenderUpdate();
 void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, SDL_Rect rect, int zPos);

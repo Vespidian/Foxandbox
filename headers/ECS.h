@@ -22,17 +22,32 @@ typedef struct{
 
 //Particle System
 typedef struct{
-	bool alive;
+	bool active;
 	SDL_Rect pos;
+	int type;
+	int size;
+	int initDuration;
 	int duration;
 	Vector2 dir;
+	SDL_Texture *pTex;
 	
 }ParticleComponent;
 
 typedef struct{
-	SDL_Rect area;
 	ParticleComponent *particles;
+	int pType;
 	int maxParticles;
+	Range duration;
+	bool fade;
+	
+	bool playSystem;
+	SDL_Rect area;
+	Range xR;
+	Range yR;
+	
+	WB_Tilesheet pSheet;
+	SDL_Rect destRect;
+	
 }ParticleSystem;
 
 

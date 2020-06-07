@@ -43,6 +43,7 @@ del tileMap.c
 del collision.c
 del inventory.c
 del mapGeneration.c
+
 rmdir /S /Q headers
 
 xcopy /Y main.exe %sourceDir%

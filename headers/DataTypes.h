@@ -11,6 +11,10 @@ typedef struct{
 	float y;
 }fVector2;
 
+typedef struct{
+	int min;
+	int max;
+}Range;
 
 //INV Structs
 typedef struct{
