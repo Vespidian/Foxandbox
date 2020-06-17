@@ -1,16 +1,13 @@
 #ifndef ENTITIES_H_
 #define ENTITIES_H_
 
-//TEMP
-void RenderEntities();
-void NewEntity();
-
-//COMPONENTS
+//Render Components
 typedef struct{
 	SDL_Renderer *renderer;
 	WB_Tilesheet tileSheet;
 	int tile;
 	SDL_Rect transform;
+	int alpha;
 	int zPos;
 }RenderComponent;
 
@@ -20,16 +17,17 @@ typedef struct{
 }RenderTileComponent;
 
 
+
 //Particle System
 typedef struct{
 	bool active;
 	SDL_Rect pos;
-	int type;
+	// int type;
 	int size;
 	int initDuration;
 	int duration;
 	Vector2 dir;
-	SDL_Texture *pTex;
+	// SDL_Texture *pTex;
 	
 }ParticleComponent;
 
@@ -42,6 +40,7 @@ typedef struct{
 	
 	bool playSystem;
 	SDL_Rect area;
+	bool boundaryCheck;
 	Range xR;
 	Range yR;
 	
@@ -51,11 +50,46 @@ typedef struct{
 }ParticleSystem;
 
 
-//Mob Components
+
+//Inventory components
+typedef struct{
+	char name[64];
+	char description[128];
+	WB_Tilesheet sheet;
+	int tile;
+	
+}INV_ItemComponent;
+
+typedef struct{
+	INV_ItemComponent item;
+	INV_ItemComponent itemDrop;
+	int dropQty;
+	
+}INV_BlockComponent;
+
+typedef struct{
+	int inItem;
+	int inQty;
+	int outItem;
+	int outQty;
+	
+}INV_RecipeComponent;
+
+
+
+//Entity Components
 typedef struct{
 	int speed;
 	bool followPlayer;
-}FollowComponent;
+}MovementComponent;
+
+typedef struct{
+	bool colUp;
+	bool colDown;
+	bool colLeft;
+	bool colRight;
+	SDL_Rect collisionBox;
+}CollisionComponent;
 
 typedef struct{
 	int health;
@@ -69,16 +103,17 @@ typedef struct{
 
 
 
-//ENTITIES
+//Entity Types
 typedef struct{
 	int id;
 	RenderComponent renderer;
-	FollowComponent follow;
+	MovementComponent movement;
+	CollisionComponent collider;
 	HealthComponent health;
 	AttackComponent attack;
 	
 }Entity;
 
-
+extern Entity character;
 
 #endif

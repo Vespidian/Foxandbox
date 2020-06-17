@@ -9,10 +9,9 @@
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
-
 #include "headers/data.h"
 #include "headers/initialize.h"
-#include "headers/drawFunctions.h"
+
 
 SDL_Event e;
 
@@ -63,21 +62,6 @@ uint32_t Lehmer32(){
 
 int getRnd(int min, int max){
 	return(Lehmer32() % (max - min)) + min;
-}
-
-
-bool GetClick(int x1, int y1, int x2, int y2){
-	Vector2 mousePos;
-	while(SDL_PollEvent(&e) != 0){
-		if(e.type == SDL_MOUSEBUTTONDOWN){
-			SDL_GetMouseState(&mousePos.x, &mousePos.y);
-			if((mousePos.x >= x1 && mousePos.x <= x2) && (mousePos.y >= y1 && mousePos.y <= y2)){
-				return true;
-			}else{
-				return false;
-			}
-		}
-	}
 }
 
 char *strshft_l(char stringShift[128], int shiftBy){
