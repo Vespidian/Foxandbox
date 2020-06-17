@@ -7,10 +7,9 @@ typedef struct{
 }Vector2;
 
 typedef struct{
-	float x;
-	float y;
-}fVector2;
-
+	int min;
+	int max;
+}Range;
 
 //INV Structs
 typedef struct{
@@ -22,33 +21,5 @@ typedef struct{
 
 
 //Inventory items
-/* typedef struct{
-	Vector2 pos;
-	int itemType;
-	int itemQty;
-}GroundItem; */
-
-typedef struct{
-	char name[64];
-	char description[128];
-	WB_Tilesheet sheet;
-	int tile;
-	
-}INV_Item;
-
-typedef struct{
-	INV_Item item;
-	INV_Item itemDrop;
-	int dropQty;
-	
-}INV_Block;
-
-typedef struct{
-	int inItem;
-	int inQty;
-	int outItem;
-	int outQty;
-	
-}INV_Recipe;
 
 #endif
