@@ -12,6 +12,7 @@ echo d | xcopy /S /Y maps %buildDir%\maps
 echo d | xcopy /S /Y fonts %buildDir%\fonts
 echo d | xcopy /S /Y images %buildDir%\images
 echo d | xcopy /S /Y data %buildDir%\data
+echo d | xcopy /S /Y scripts %buildDir%\scripts
 
 
 echo -----------------------------------

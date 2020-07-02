@@ -12,6 +12,10 @@ extern RenderTileComponent customMap[32][32];
 
 extern int renderItemIndex;
 extern int tilePixelSize;
+extern const int tileStretchSize;
+
+extern WB_Tilesheet *tilesheets;
+WB_Tilesheet *find_tilesheet(char *name);
 
 int LoadMap(char *fileLoc, RenderTileComponent mapArray[][32]);
 int LoadDataMap(char *fileLoc, int mapArray[][32]);

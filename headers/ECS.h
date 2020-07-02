@@ -63,6 +63,7 @@ typedef struct{
 typedef struct{
 	INV_ItemComponent item;
 	INV_ItemComponent itemDrop;
+	char **flags;
 	int dropQty;
 	
 }INV_BlockComponent;
@@ -84,11 +85,20 @@ typedef struct{
 }MovementComponent;
 
 typedef struct{
+	Vector2 tilePos;
+	Vector2 screenPos;
+}TransformComponent;
+
+typedef struct{
+	SDL_Rect collisionBox;
+	SDL_Rect boundingBox;
+	
+	bool noClip;
+	
 	bool colUp;
 	bool colDown;
 	bool colLeft;
 	bool colRight;
-	SDL_Rect collisionBox;
 }CollisionComponent;
 
 typedef struct{
@@ -106,9 +116,12 @@ typedef struct{
 //Entity Types
 typedef struct{
 	int id;
+	
 	RenderComponent renderer;
-	MovementComponent movement;
+	TransformComponent transform;
 	CollisionComponent collider;
+	
+	MovementComponent movement;
 	HealthComponent health;
 	AttackComponent attack;
 	

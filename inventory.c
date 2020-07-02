@@ -5,8 +5,7 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -28,7 +27,8 @@ int maxStack = 99;
 Vector2 numOffset = {-2, 16};
 int mouseInv[2] = {-1, 0};
 bool showInv = false;
-INV_ItemComponent itemData[64];
+// INV_ItemComponent itemData[64];
+INV_ItemComponent *itemData;
 INV_BlockComponent blockData[128];
 INV_RecipeComponent recipes[64];
 int numberOfRecipes = 0;
@@ -60,61 +60,48 @@ int ReadItemData(){
 	char buffer[512];
 	char declarationType[64];
 	
+	
+	itemData = malloc(sizeof(INV_ItemComponent *));
+	
 	int itemCounter = 0;
 	while(fgets(buffer, sizeof(buffer), file)){
 		if(buffer[0] != '\n'){
-			if(buffer[0] == '	' && buffer[1] != '\n'){
+			if(buffer[0] == '\t' && buffer[1] != '\n'){
 				strcpy(buffer, strshft_l(buffer, 1));
 				
 				// printf("%s	-> %d\n", declarationType, itemCounter);
-				if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
+				/*if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
+					itemData = realloc(itemData, (itemCounter + 1) * sizeof(INV_ItemComponent *));
 					strcpy(itemData[itemCounter].name, strtok(buffer, ":"));
 					strcpy(itemData[itemCounter].description, strtok(NULL, "|"));
+					
+					printf("%s\n", itemData[itemCounter].name);
 				}else if(strcmp(declarationType, "BLOCKS") == 0){//Check if iterating through blocks
+					
 					char tileNum[16];
 					int flagCount = 1;
-					char flag[32];
-					char *flags[1];
-					*flags = malloc(6 * sizeof(char*));
-					// flags[0] = malloc(1 * sizeof(*flags));
+					// char **flags = malloc(flagCount * sizeof(char *));
+					blockData[itemCounter].flags[flagCount] = malloc(flagCount * sizeof(char *));
+					char flag[64];
+					
 					
 					strcpy(blockData[itemCounter].item.name, strtok(buffer, ":"));
 					strcpy(tileNum, strshft_l(strtok(NULL, "|"), 3));
-
 					
+					printf("%s:\n", blockData[itemCounter].item.name);
 					strcpy(flag, strtok(NULL, "|"));
 					while(strcmp(flag, "\n") != 0){
-						printf("boop\n");
-						*flags = realloc(*flags, (flagCount + 2) * sizeof(char*));
-						flags[flagCount - 1] = malloc(strlen(flag) + 1);
-						strcpy(flags[flagCount - 1], flag);
-						// printf("%s\n", flags[flagCount]);
 						
-						printf("%s\n", flag);
+						// *flags = realloc(*flags, (flagCount + 1) * sizeof(char*));
+						// flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
+						blockData[itemCounter].flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
+						strcpy(blockData[itemCounter].flags[flagCount], flag);
+						
+						printf("+   %s\n", blockData[flagCount].flags[flagCount]);
 						strcpy(flag, strtok(NULL, "|"));
 						flagCount++;
 					}
-						printf("yay\n");
-
-					/*while(flag != NULL){//Retrieve flags
-						strcpy(flag, strtok(NULL, "|"));
-						// strcpy(flags[flagCount], strtok(NULL, "|"));
-						printf("widended\n");	
-						flags = realloc(flags, (flagCount + 1) * sizeof(*flags));
-						
-						// printf("%s\n", flags[flagCount]);	
-						flagCount++;
-					}*/
-					// strcpy(blockData[itemCounter].item.name, strtok(NULL, "|"));
-					// printf("%s\n", tileNum);
-					// printf("%s\n", strtok(buffer, ":"));
-					// printf("%s\n", strtok(NULL, "|"));
-					// printf("%s\n", strshft_l(strtok(NULL, "|"), 1));
-					// printf("%s\n", strtok(NULL, "|"));
-					
-					free(*flags);
-					// free(flag);
-				}	
+				}*/
 				itemCounter++;
 				// printf("Current declarationType: %s\n", declarationType);
 			}else if(buffer[0] == ':' && buffer[1] == ':'){
@@ -131,7 +118,7 @@ int ReadItemData(){
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
 	}
 	// printf("%s\n", itemData[0].name);
-	INV_InitRecipes();
+	// INV_InitRecipes();
 	fclose(file);
 	return 0;
 }
@@ -182,7 +169,7 @@ void UpdateHotbar(){
 	//Drawing the hotbar
 	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
-	AddToRenderQueue(gRenderer, uiSheet, 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};//Rect representing each slot in the hotbar
 	for(int i = 0; i < INV_WIDTH; i++){//Iterate through the slots of the hotbar
@@ -193,9 +180,9 @@ void UpdateHotbar(){
 			tmpRect.y += slotRect.y;
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
-			AddToRenderQueue(gRenderer, uiSheet, 1, tmpRect, -1, RNDRLYR_UI - 1);
+			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
 		}
-		AddToRenderQueue(gRenderer, uiSheet, 8, slotRect, -1, RNDRLYR_UI);
+		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){
 			AddToRenderQueue(gRenderer, itemSheet, invArray[i][0], slotRect, -1, RNDRLYR_INV_ITEMS);
 			
@@ -219,7 +206,7 @@ void INV_DrawInv(){
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
-		AddToRenderQueue(gRenderer, uiSheet, 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
+		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
 		
 		SDL_Point mousePoint = {mousePos.x, mousePos.y};
 		mousePoint.x = (mousePoint.x - invRect.x - INV_spacing / 2) / (itemRectSize + INV_spacing);
@@ -277,11 +264,11 @@ void INV_DrawInv(){
 				
 				if(invArray[i][ITM_SECT] > -1){
 					SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(itemData[invArray[i][ITM_SECT]].name) * 14, 28};
-					AddToRenderQueue(gRenderer, uiSheet, 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
+					AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
 					RenderText_d(gRenderer, itemData[invArray[i][ITM_SECT]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 				}
 			}
-			AddToRenderQueue(gRenderer, uiSheet, 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
+			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			
 			if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){//Check if item exists in cell and render it
 				AddToRenderQueue(gRenderer, itemSheet, invArray[i][ITM_SECT], invItemRect, -1, RNDRLYR_INV_ITEMS);

@@ -3,10 +3,16 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <time.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <luaconf.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -43,6 +49,8 @@ Vector2 midScreen = {0, 0};
 
 bool enableHitboxes = false;
 
+int inputMode = 0;
+int numInputModes = 2;
 bool isWalking = false;
 int characterFacing = 0;
 bool uiInteractMode = false;
@@ -55,9 +63,13 @@ bool doDayCycle = false;
 float playerSpeed = 2;
 
 bool mouseClicked = false;
+bool mouseHeld = false;
 
 ParticleSystem pSys1;
 
+void RenderConsole();
+int chatLogSize = 0;
+char **chatHistory;
 
 void clearScreen(SDL_Renderer *renderer){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
@@ -71,18 +83,116 @@ void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int nu
 	AddToRenderQueue(gRenderer, tileSheet, startFrame + frame, dest, -1, RNDRLYR_PLAYER);
 }
 
+WB_Tilesheet *tilesheets = NULL;
+int num_tilesheets = 0;
+
+WB_Tilesheet *find_tilesheet(char *name){
+	for(int i = 0; i < num_tilesheets; i++){
+		if(strcmp(name, tilesheets[i].name) == 0){
+			return &tilesheets[i];
+		}
+	}
+}
 void DrawCharacter(int direction, int numFrames){
 	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
 	
 	if(isWalking){
-		DrawAnimation(charPos, characterSheet, (direction) * 6, numFrames, 100);
+		DrawAnimation(charPos, *find_tilesheet("character"), (direction) * 6, numFrames, 100);
 	}else{
-		DrawAnimation(charPos, characterSheet, (direction + 2) * 6, numFrames, 100);
+		DrawAnimation(charPos, *find_tilesheet("character"), (direction + 2) * 6, numFrames, 100);
 	}
 }
 
+
+int runScript(char *fileName){
+	lua_State *L = luaL_newstate();
+	luaL_openlibs(L);
+	luaL_dofile(L, fileName);
+	lua_close(L);
+}
+
+int num_from_table(lua_State *L, char *field){
+	luaL_checktype(L, 2, LUA_TTABLE);//Push table into the stack
+	lua_getfield(L, -1, field);//Find the field of the table
+	int returnValue = -1;
+	if(lua_type(L, -1) == LUA_TNUMBER){//Make sure its a number
+		returnValue = lua_tonumber(L, -1);
+	}
+	return returnValue;
+}
+
+int load_tilesheet(lua_State *L){
+	tilesheets = realloc(tilesheets, (num_tilesheets + 1) * sizeof(WB_Tilesheet));
+	
+	luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, -1, "name");
+	strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
+	
+	lua_getfield(L, -2, "path");
+	tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, lua_tostring(L, -1));
+	
+	lua_getfield(L, -3, "tile_size");
+	tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
+	//Identify the width and height of the tilesheet based on tile size
+	SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
+	tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
+	tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
+	
+	num_tilesheets++;
+	return 0;
+}
+
+int pass_table(lua_State *L){
+	char **temp;
+	temp = malloc(2 * sizeof(char[8]));
+	// char temp[8][32] = {};
+	printf("%s flags:\n", lua_tostring(L, 1));
+	
+	//Get flags
+	luaL_checktype(L, 2, LUA_TTABLE);
+	size_t ec = 0;
+	lua_pushnil(L);
+	while(lua_next(L, 2)){
+		if(lua_type(L, -1) == LUA_TSTRING){//Only accept strings
+			char *tmp = malloc(sizeof(char *));
+			strcpy(tmp, lua_tostring(L, -1));
+			temp[ec] = malloc(sizeof(char[strlen(tmp)]));
+			strcpy(temp[ec], tmp);
+			ec++;
+			free(tmp);
+		}
+		lua_pop(L, 1);
+	}
+	
+	
+	printf("%d\n", num_from_table(L, "tile"));
+	
+	//Print flags
+	for(int i = 0; i < ec; i++){
+		printf("%s\n", temp[i]	);
+	}
+	
+	//Return value
+	lua_pushinteger(L, (lua_Integer)ec);
+	free(*temp);
+	return 1;
+}
+
 void Setup(){
+	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
+	SDL_RenderPresent(gRenderer);
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+	
+	tilesheets = malloc(sizeof(WB_Tilesheet));
+	lua_State *L = luaL_newstate();
+	luaL_openlibs(L);
+	
+	lua_register(L, "register_tile", pass_table);
+	lua_register(L, "load_tilesheet", load_tilesheet);
+	
+	luaL_dofile(L, "scripts/init.lua");
+	lua_close(L);
+	
 	
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
@@ -91,13 +201,19 @@ void Setup(){
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
 	
-	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
-	SDL_RenderPresent(gRenderer);
 	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
-	// NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 100, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
+	// NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
 	pSys1.boundaryCheck = true;
 	// pSys1.fade = false;
 	pSys1.playSystem = false;
+	
+	chatHistory = malloc(1 * sizeof(char));
+	// character.collider = (CollisionComponent){false, false, false, false};
+	// runScript("scripts/init.lua");
+
+	
+	// printf("%s\n", find_tilesheet("character")->name);
+	// printf("%s\n", tilesheets[2].name);
 	
 }
 
@@ -126,6 +242,7 @@ void ResizeWindow(){
 	windowRect = (SDL_Rect){-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 }
 
+char currentCollectedText[128] = "";
 int main(int argc, char **argv) {
 	init();
 	if(init){
@@ -133,7 +250,6 @@ int main(int argc, char **argv) {
 		tmpSize = (Vector2){WIDTH, HEIGHT};
 		while(!quit){	
 			loopStartTime = SDL_GetTicks();
-		
 			if((doDayCycle && SDL_GetTicks() / 10) % 20 == 1){
 				if(darknessMod == 0){
 					isDay = true;
@@ -159,46 +275,54 @@ int main(int argc, char **argv) {
 				placeLocation = (Vector2){0, 1};
 			}
 			
+			float playerDeltaTime = playerSpeed * deltaTime;
 			
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-			if(currentKeyStates[SDL_SCANCODE_RETURN] || currentKeyStates[SDL_SCANCODE_ESCAPE]){
+			if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
 				quit = true;
 			}
 			
 			isWalking = false;
-			if(currentKeyStates[SDL_SCANCODE_A]){
-				if(!colLeft){
-					mapOffsetPos.x -= playerSpeed * deltaTime;
-					isWalking = true;
+			if(inputMode == 0){
+				if(currentKeyStates[SDL_SCANCODE_A]){
+					if(!character.collider.colLeft){
+						mapOffsetPos.x -= playerDeltaTime;
+						isWalking = true;
+					}
+					characterFacing = 0;
 				}
-				characterFacing = 0;
-			}
-			if(currentKeyStates[SDL_SCANCODE_W]){
-				if(!colUp){
-					mapOffsetPos.y -= playerSpeed * deltaTime;
-					isWalking = true;
+				if(currentKeyStates[SDL_SCANCODE_D]){
+					if(!character.collider.colRight){
+						mapOffsetPos.x += playerDeltaTime;
+						isWalking = true;
+					}
+					characterFacing = 1;
 				}
-			}
-			if(currentKeyStates[SDL_SCANCODE_D]){
-				if(!colRight){
-					mapOffsetPos.x += playerSpeed * deltaTime;
-					isWalking = true;
+				if(currentKeyStates[SDL_SCANCODE_W]){
+					if(!character.collider.colUp){
+						mapOffsetPos.y -= playerDeltaTime;
+						isWalking = true;
+					}
 				}
-				characterFacing = 1;
-			}
-			if(currentKeyStates[SDL_SCANCODE_S]){
-				if(!colDown){
-					mapOffsetPos.y += playerSpeed * deltaTime;
-					isWalking = true;
+				if(currentKeyStates[SDL_SCANCODE_S]){
+					if(!character.collider.colDown){
+						mapOffsetPos.y += playerDeltaTime;
+						isWalking = true;
+					}
 				}
-			}
-			if(currentKeyStates[SDL_SCANCODE_Q]){
-				characterOffset.x = 0;
-				characterOffset.y = 0;
-				printf("Character Offset Reset!");
+				
+				if(currentKeyStates[SDL_SCANCODE_Q]){
+					characterOffset.x = 0;
+					characterOffset.y = 0;
+					printf("Character Offset Reset!");
+				}
 			}
 			
 			mouseClicked = false;
+			mouseHeld = false;
+			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+				mouseHeld = true;
+			}
 			while(SDL_PollEvent(&e) != 0){
 				SDL_GetMouseState(&mousePos.x, &mousePos.y);
 				
@@ -215,11 +339,21 @@ int main(int argc, char **argv) {
 						mouseClicked = false;
 					// }
 				}*/
-				
+				if(inputMode == 1){
+					if(e.type == SDL_TEXTINPUT){
+						strcat(currentCollectedText, e.text.text);
+					}
+				}
 				if(e.type == SDL_KEYDOWN){
-					if(e.key.keysym.sym == SDLK_y){
-						characterOffset.x = midScreen.x;
-						characterOffset.y = midScreen.y;
+					if(inputMode == 0){
+						if(e.key.keysym.sym == SDLK_y){
+							characterOffset.x = midScreen.x;
+							characterOffset.y = midScreen.y;
+						}
+					}else if(inputMode == 1){
+						if(e.key.keysym.sym == SDLK_BACKSPACE){
+							currentCollectedText[strlen(currentCollectedText) - 1] = '\0';
+						}
 					}
 				}
 				if(e.type == SDL_KEYUP){
@@ -231,37 +365,53 @@ int main(int argc, char **argv) {
 					if(roundSpeed.y != 0){
 						mapOffsetPos.y -= roundSpeed.y;
 					}
-					
-					if(e.key.keysym.sym == SDLK_c){
-						noClip = !noClip;
+					if(e.key.keysym.sym == SDLK_RETURN){
+						if(inputMode == 1){
+							// printf("%s\n", currentCollectedText);
+							printf("%s\n", chatHistory[chatLogSize]);
+
+						}
+						if(inputMode < numInputModes - 1){
+							inputMode++;
+							
+							printf("wow\n");
+							chatHistory = realloc(chatHistory, (chatLogSize + 1) * sizeof(char **));
+							chatHistory[chatLogSize] = malloc(sizeof(char[strlen(currentCollectedText) + 1]));
+							strcpy(chatHistory[chatLogSize], currentCollectedText);
+							chatLogSize++;
+							currentCollectedText[0] = '\0';
+						}else{
+							inputMode = 0;
+						}
 					}
-					if(e.key.keysym.sym == SDLK_x){
-						enableHitboxes = !enableHitboxes;
-					}
-					if(e.key.keysym.sym == SDLK_e){
-						showInv = !showInv;
-					}
-					if(e.key.keysym.sym == SDLK_v){
-						/*if(INV_FindItem(1) != -1 && customMap[playerCoord.y + placeLocation.y][playerCoord.x  + placeLocation.x].type != 49){
-							customMap[playerCoord.y + placeLocation.y][playerCoord.x + placeLocation.x].type = 49;
-							INV_WriteCell("sub", INV_FindItem(1), 1, 1);
-						}*/
-						buildLayer_tmp[playerCoord.y + placeLocation.y][playerCoord.x + placeLocation.x].type = 0;
-						// AutotileMap();
-					}
-					if(e.key.keysym.sym == SDLK_r){
-						INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
-						// TextExtrapolate(colMap);
-					}
-					if(e.key.keysym.sym == SDLK_b){
-						SDL_DisplayMode gMode;
-						SDL_GetDesktopDisplayMode(0, &gMode);
-						WIDTH = gMode.w;
-						HEIGHT = gMode.h;
-						SDL_SetWindowBordered(gWindow, false);
-						SDL_SetWindowPosition(gWindow, 0, 0);
-						SDL_SetWindowSize(gWindow, WIDTH, HEIGHT);
-						ResizeWindow();
+					if(inputMode == 0){
+						if(e.key.keysym.sym == SDLK_c){
+							character.collider.noClip = !character.collider.noClip;
+						}
+						if(e.key.keysym.sym == SDLK_x){
+							enableHitboxes = !enableHitboxes;
+						}
+						if(e.key.keysym.sym == SDLK_e){
+							showInv = !showInv;
+						}
+						if(e.key.keysym.sym == SDLK_v){
+							// SDL_StartTextInput();
+							// SDL_TextInputEvent
+						}
+						if(e.key.keysym.sym == SDLK_r){
+							INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
+							// TextExtrapolate(colMap);
+						}
+						if(e.key.keysym.sym == SDLK_b){
+							SDL_DisplayMode gMode;
+							SDL_GetDesktopDisplayMode(0, &gMode);
+							WIDTH = gMode.w;
+							HEIGHT = gMode.h;
+							SDL_SetWindowBordered(gWindow, false);
+							SDL_SetWindowPosition(gWindow, 0, 0);
+							SDL_SetWindowSize(gWindow, WIDTH, HEIGHT);
+							ResizeWindow();
+						}
 					}
 				}
 				if(e.type == SDL_MOUSEWHEEL){
@@ -326,10 +476,10 @@ void RenderScreen(){
 	
 	//Render the player's hitbox
 	if(enableHitboxes){
-		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_left, -1, 750);
-		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_right, -1, 750);
-		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_bottom, -1, 750);
-		AddToRenderQueue(gRenderer, uiSheet, 1, charCollider_top, -1, 750);
+		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_left, -1, 750);
+		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_right, -1, 750);
+		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_bottom, -1, 750);
+		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_top, -1, 750);
 	}
 	
 	FindCollisions();
@@ -339,7 +489,8 @@ void RenderScreen(){
 	char coordinates[256];
 	char charoff[256];
 	
-	playerCoord = (Vector2){
+	// playerCoord = (Vector2){
+	character.transform.tilePos = (Vector2){
 		((characterOffset.x + 32) + mapOffsetPos.x) / 64,
 		((characterOffset.y + 32) + mapOffsetPos.y) / 64,
 	};
@@ -348,8 +499,9 @@ void RenderScreen(){
 	pSys1.area = mapRect;
 	RenderParticleSystem(pSys1);
 	
+	RenderConsole();
 	
-	snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", playerCoord.x, playerCoord.y);
+	snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", character.transform.tilePos.x, character.transform.tilePos.y);
 	snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
 	
 	RenderText_d(gRenderer, coordinates, 0, 0);
@@ -377,6 +529,12 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 	rect.x -= mapOffsetPos.x;
 	rect.y -= mapOffsetPos.y;
 	AddToRenderQueue(renderer, sheet, tile, rect, -1, zPos);
+}
+
+void RenderConsole(){
+	SDL_Rect console = {0, WIDTH - 200, 300, 200};
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, console, 220, RNDRLYR_UI);
+	RenderText_d(gRenderer, currentCollectedText, 0, WIDTH - 32);
 }
 
 

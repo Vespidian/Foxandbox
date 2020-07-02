@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"

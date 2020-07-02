@@ -6,7 +6,7 @@
 extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
 extern int invArray[INV_HEIGHT * INV_WIDTH][2];
 
-extern INV_ItemComponent itemData[64];//Dictionary of current items
+extern INV_ItemComponent *itemData;//Dictionary of current items
 
 extern bool showInv;
 extern int selectedHotbar;//Number representation of currently selected hotbar slot

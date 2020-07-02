@@ -5,8 +5,7 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -17,7 +16,7 @@
 
 
 int tilePixelSize = 16;
-int tileStretchSize = 64;
+const int tileStretchSize = 64;
 int tileSheetWidth = 8;
 
 
@@ -82,11 +81,11 @@ void RenderUpdate(){
 	
 	Vector2 tileInSheet;
 	for(int i = 0; i < renderItemIndex; i++){
-		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tileW;
-		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tileW;
+		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tile_size;
+		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tile_size;
 		
 		SDL_SetTextureAlphaMod(renderBuffer[i].tileSheet.tex, renderBuffer[i].alpha);
-		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet.tileW, renderBuffer[i].tileSheet.tileW};
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet.tile_size, renderBuffer[i].tileSheet.tile_size};
 		SDL_RenderCopy(renderBuffer[i].renderer, renderBuffer[i].tileSheet.tex, &sourceRect, &renderBuffer[i].transform);	
 	}
 	SetupRenderFrame();
@@ -189,14 +188,14 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 }
 
 void DrawLevel(){
-	// DrawMap(defSheet, map, 0);
-	DrawMap(defSheet, buildLayer, 0);
+	// DrawMap(*find_tilesheet("default_ground"), map, 0);
+	DrawMap(*find_tilesheet("default_ground"), buildLayer, 0);
 
-	DrawMap(defSheet, map1, 0);
-	DrawMap(defSheet, customMap, 0);
+	DrawMap(*find_tilesheet("default_ground"), map1, 0);
+	DrawMap(*find_tilesheet("default_ground"), customMap, 0);
 
 
-	DrawMap(furnitureSheet, furnitureMap, 1);
+	DrawMap(*find_tilesheet("furniture"), furnitureMap, 1);
 	DrawCharacter(characterFacing, 6);
 }
 

@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -37,7 +37,7 @@ int GetSurroundCount(Vector2 tile){
 }
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
-	RandomMap(ratioPercent);
+	// RandomMap(ratioPercent);
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap();
 	}

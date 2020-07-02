@@ -35,6 +35,7 @@ void DrawCharacter(int direction, int numFrames);
 
 
 extern bool mouseClicked;
+extern bool mouseHeld;
 
 
 
