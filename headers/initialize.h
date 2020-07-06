@@ -17,28 +17,11 @@ void TextureInit();
 void TextureDestroy();
 
 
-extern SDL_Texture *tileSheetTex;
-extern WB_Tilesheet defSheet;
-
-
-extern SDL_Texture *furnitureTex;
-extern WB_Tilesheet furnitureSheet;
-
-
-extern SDL_Texture *characterTex;
-extern WB_Tilesheet characterSheet;
-
+extern SDL_Texture *undefinedTex;
+extern WB_Tilesheet undefinedSheet;
 
 extern SDL_Texture *backgroundTex;
 extern WB_Tilesheet backgroundSheet;
-
-
-extern SDL_Texture *itemTex;
-extern WB_Tilesheet itemSheet;
-
-
-extern SDL_Texture *uiTex;
-extern WB_Tilesheet uiSheet;
 
 
 extern SDL_Texture *fontTex;

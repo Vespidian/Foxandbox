@@ -1,12 +1,19 @@
 #ifndef INVENTORY_H_
 #define INVENTORY_H_
 
-// extern const int INV_WIDTH;
-// extern const int INV_HEIGHT;
-extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
-extern int invArray[INV_HEIGHT * INV_WIDTH][2];
+typedef struct item_cell{
+	ItemComponent item;
+	int qty;
+    bool occupied;
+}itmcell_t;
 
-extern INV_ItemComponent itemData[64];//Dictionary of current items
+extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
+extern itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
+
+extern ItemComponent undefinedItem;
+extern ItemComponent *itemData;//Dictionary of current items
+
+extern BlockComponent undefinedBlock;
 
 extern bool showInv;
 extern int selectedHotbar;//Number representation of currently selected hotbar slot
@@ -18,10 +25,14 @@ int INV_InitRecipes();
 //Basic inventory functions
 void INV_Init();
 void INV_DrawInv();
-int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum);
+int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item);
 
 //Find functions
-int INV_FindEmpty(int type);
-int INV_FindItem(int itemNum);
+ItemComponent *find_item(char *name);
+int INV_FindItem(ItemComponent itemNum);
+int INV_FindEmpty(ItemComponent item);
+//Lua functions
+int register_item(lua_State *L);
+int register_block(lua_State *L);
 
 #endif

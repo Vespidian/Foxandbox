@@ -1,11 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include <math.h>
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <luaconf.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"

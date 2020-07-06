@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_ttf.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <luaconf.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -18,38 +21,202 @@
 #include "headers/inventory.h"
 
 enum INV_SECTIONS {ITM_SECT, QTY_SECT};
-int invArray[INV_HEIGHT * INV_WIDTH][2];
+itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
 
 int selectedHotbar = 0;
 
-int INV_spacing = 8;
-int maxStack = 99;
+const int INV_spacing = 8;
+const int maxStack = 99;
 
 Vector2 numOffset = {-2, 16};
-int mouseInv[2] = {-1, 0};
+itmcell_t mouseInv;
 bool showInv = false;
-INV_ItemComponent itemData[64];
-INV_BlockComponent blockData[128];
-INV_RecipeComponent recipes[64];
+
+ItemComponent undefinedItem;
+ItemComponent *itemData;
+int numItems = 0;
+
+BlockComponent undefinedBlock;
+BlockComponent *blockData;
+int numBlocks = 0;
+
+
+
+RecipeComponent recipes[64];
 int numberOfRecipes = 0;
 int grabTime = 0;
+
+ItemComponent *find_item(char *name){
+	for(int i = 0; i < numItems; i++){
+		if(strcmp(name, itemData[i].name) == 0){
+			return &itemData[i];
+		}
+	}
+	return &undefinedItem;
+}
+
+BlockComponent *find_block(char *name){
+	for(int i = 0; i < numBlocks; i++){
+		if(strcmp(name, blockData[i].item->name) == 0){
+			return &blockData[i];
+		}
+	}
+	return &undefinedBlock;
+}
 
 void INV_Init(){
 	int invPos = 0;
 	for(int y = 0; y < INV_HEIGHT; y++){
 		for(int x = 0; x < INV_WIDTH; x++){
 			invPos++;
-			invArray[invPos][0] = -1;
-			invArray[invPos][1] = 0;
+			invArray[invPos].occupied = false;
+			invArray[invPos].qty = 0;
 		}
 	}
-	INV_WriteCell("set", 0, 2, 1);
-	INV_WriteCell("set", 12, 90, 2);
-	INV_WriteCell("set", 8, 1, 3);
-	INV_WriteCell("set", 3, 1, 1);
-	INV_WriteCell("set", 4, 1, 0);
-	INV_WriteCell("set", 11, 0, -1);
-	INV_WriteCell("set", 14, 20, 4);
+	// printf("%s\n", find_item("stone")->name);
+	// printf("%s\n", itemData[0].name);
+	// INV_WriteCell("set", 0, 2, undefinedItem);
+	// INV_WriteCell("set", 0, 2, *find_item("stone"));
+	// INV_WriteCell("set", 12, 90, 2);
+	// INV_WriteCell("set", 8, 1, 3);
+	// INV_WriteCell("set", 3, 1, 1);
+	// INV_WriteCell("set", 4, 1, 0);
+	// INV_WriteCell("set", 11, 0, -1);
+	// INV_WriteCell("set", 14, 20, 4);
+}
+
+
+int register_item(lua_State *L){
+	numItems++;
+	itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
+
+	luaL_checktype(L, 1, LUA_TTABLE);
+
+	lua_getfield(L, -1, "name");
+	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+		// itemData[numItems].name = malloc(sizeof(char *) * strlen(lua_tostring(L, -1)));
+		strcpy(itemData[numItems].name, lua_tostring(L, -1));
+		printf("%s\n", find_item("stone")->name);
+	}else{
+		strcpy(itemData[numItems].name, "undefined");
+	}
+
+	lua_getfield(L, -2, "sheet");
+	if(lua_tostring(L, -1) != NULL){
+		itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+	}else{
+		itemData[numItems].sheet = undefinedSheet;
+	}
+
+	lua_getfield(L, -3, "tile_index");
+	if(lua_tonumber(L, -1) != NULL){
+		itemData[numItems].tile = lua_tonumber(L, -1);
+	}else{
+		itemData[numItems].tile = -1;
+	}
+
+	itemData[numItems].isBlock = false;
+	return 0;
+}
+
+int register_block(lua_State *L){
+	numBlocks++;
+	blockData = realloc(blockData, (numBlocks + 1) * sizeof(BlockComponent));
+
+	luaL_checktype(L, 1, LUA_TTABLE);
+
+	lua_getfield(L, -1, "name");
+	if(strcmp(find_item((char *)lua_tostring(L, -1))->name, "undefined") == 0){//Check if the item already exists
+		numItems++;
+		itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
+
+		if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+			strcpy(itemData[numItems].name, lua_tostring(L, -1));
+		}else{
+			strcpy(itemData[numItems].name, "undefined");
+		}
+
+		lua_getfield(L, -2, "item_sheet");
+		if(lua_tostring(L, -1) != NULL){
+			itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+		}else{
+			itemData[numItems].sheet = undefinedSheet;
+		}
+
+		lua_getfield(L, -3, "item_tile_index");
+		if(lua_tonumber(L, -1) != NULL){
+			itemData[numItems].tile = lua_tonumber(L, -1);
+		}else{
+			itemData[numItems].tile = 0;
+		}
+
+		blockData[numBlocks].item = &itemData[numItems];
+		itemData[numItems].isBlock = true;
+	}else{//If it does, use it
+		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
+		find_item((char *)lua_tostring(L, -1))->isBlock = true;
+	}
+
+	lua_getfield(L, -4, "block_sheet");
+	if(lua_tostring(L, -1) != NULL){
+		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+	}else{
+		blockData[numBlocks].sheet = undefinedSheet;
+	}
+
+	lua_getfield(L, -5, "block_tile_index");
+	if(lua_tonumber(L, -1) != NULL){
+		blockData[numBlocks].tile = lua_tonumber(L, -1);
+	}else{
+		blockData[numBlocks].tile = 0;
+	}
+
+
+	lua_getfield(L, -6, "dropped_item");
+	if(lua_tostring(L, -1) != NULL){
+		if(find_item((char *)lua_tostring(L, -1)) != NULL){
+			blockData[numBlocks].dropItem = find_item((char *)lua_tostring(L, -1));
+		}else{
+			blockData[numBlocks].dropItem = blockData[numBlocks].item;
+		}
+	}else{
+		blockData[numBlocks].dropItem = &undefinedItem;
+	}
+
+	lua_getfield(L, -7, "dropped_qty");
+	if(lua_tonumber(L, -1) != NULL){
+		blockData[numBlocks].dropQty = lua_tonumber(L, -1);
+	}else{
+		blockData[numBlocks].dropQty = 1;
+	}
+
+
+	blockData[numBlocks].flags = malloc(sizeof(char **));
+	lua_getfield(L, -8, "flags");
+	if(lua_istable(L, -1)){
+		size_t len = lua_rawlen(L, -1);
+		int numFlags = 0;
+		for(int i = 0; i <= len; i++){
+			lua_pushinteger(L, i + 1);
+			lua_gettable(L, -2);	
+			if(lua_tostring(L, -1) != NULL){
+				// char *temp = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
+				// strcpy(temp, lua_tostring(L, -1));
+				blockData[numBlocks].flags[numFlags] = calloc(strlen(lua_tostring(L, -1)) + 1, sizeof(char));
+				// printf("%d   ", strlen(lua_tostring(L, -1)));
+				strcpy(blockData[numBlocks].flags[numFlags], lua_tostring(L, -1));
+				// blockData[numBlocks].flags[numFlags][strlen(blockData[numBlocks].flags[numFlags])] = '\0';
+				// strcpy(blockData[numBlocks].flags[numFlags], temp);
+
+				printf("%s\n", blockData[numBlocks].flags[numFlags]);
+				numFlags++;
+			}
+			lua_pop(L, 1);
+		}
+	}
+
+
+	return 0;
 }
 
 int ReadItemData(){
@@ -60,61 +227,48 @@ int ReadItemData(){
 	char buffer[512];
 	char declarationType[64];
 	
+	
+	
+	
 	int itemCounter = 0;
 	while(fgets(buffer, sizeof(buffer), file)){
 		if(buffer[0] != '\n'){
-			if(buffer[0] == '	' && buffer[1] != '\n'){
+			if(buffer[0] == '\t' && buffer[1] != '\n'){
 				strcpy(buffer, strshft_l(buffer, 1));
 				
 				// printf("%s	-> %d\n", declarationType, itemCounter);
-				if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
+				/*if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
+					itemData = realloc(itemData, (itemCounter + 1) * sizeof(ItemComponent *));
 					strcpy(itemData[itemCounter].name, strtok(buffer, ":"));
 					strcpy(itemData[itemCounter].description, strtok(NULL, "|"));
+					
+					printf("%s\n", itemData[itemCounter].name);
 				}else if(strcmp(declarationType, "BLOCKS") == 0){//Check if iterating through blocks
+					
 					char tileNum[16];
 					int flagCount = 1;
-					char flag[32];
-					char *flags[1];
-					*flags = malloc(6 * sizeof(char*));
-					// flags[0] = malloc(1 * sizeof(*flags));
+					// char **flags = malloc(flagCount * sizeof(char *));
+					blockData[itemCounter].flags[flagCount] = malloc(flagCount * sizeof(char *));
+					char flag[64];
+					
 					
 					strcpy(blockData[itemCounter].item.name, strtok(buffer, ":"));
 					strcpy(tileNum, strshft_l(strtok(NULL, "|"), 3));
-
 					
+					printf("%s:\n", blockData[itemCounter].item.name);
 					strcpy(flag, strtok(NULL, "|"));
 					while(strcmp(flag, "\n") != 0){
-						printf("boop\n");
-						*flags = realloc(*flags, (flagCount + 2) * sizeof(char*));
-						flags[flagCount - 1] = malloc(strlen(flag) + 1);
-						strcpy(flags[flagCount - 1], flag);
-						// printf("%s\n", flags[flagCount]);
 						
-						printf("%s\n", flag);
+						// *flags = realloc(*flags, (flagCount + 1) * sizeof(char*));
+						// flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
+						blockData[itemCounter].flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
+						strcpy(blockData[itemCounter].flags[flagCount], flag);
+						
+						printf("+   %s\n", blockData[flagCount].flags[flagCount]);
 						strcpy(flag, strtok(NULL, "|"));
 						flagCount++;
 					}
-						printf("yay\n");
-
-					/*while(flag != NULL){//Retrieve flags
-						strcpy(flag, strtok(NULL, "|"));
-						// strcpy(flags[flagCount], strtok(NULL, "|"));
-						printf("widended\n");	
-						flags = realloc(flags, (flagCount + 1) * sizeof(*flags));
-						
-						// printf("%s\n", flags[flagCount]);	
-						flagCount++;
-					}*/
-					// strcpy(blockData[itemCounter].item.name, strtok(NULL, "|"));
-					// printf("%s\n", tileNum);
-					// printf("%s\n", strtok(buffer, ":"));
-					// printf("%s\n", strtok(NULL, "|"));
-					// printf("%s\n", strshft_l(strtok(NULL, "|"), 1));
-					// printf("%s\n", strtok(NULL, "|"));
-					
-					free(*flags);
-					// free(flag);
-				}	
+				}*/
 				itemCounter++;
 				// printf("Current declarationType: %s\n", declarationType);
 			}else if(buffer[0] == ':' && buffer[1] == ':'){
@@ -131,7 +285,7 @@ int ReadItemData(){
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
 	}
 	// printf("%s\n", itemData[0].name);
-	INV_InitRecipes();
+	// INV_InitRecipes();
 	fclose(file);
 	return 0;
 }
@@ -182,7 +336,7 @@ void UpdateHotbar(){
 	//Drawing the hotbar
 	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
-	AddToRenderQueue(gRenderer, uiSheet, 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};//Rect representing each slot in the hotbar
 	for(int i = 0; i < INV_WIDTH; i++){//Iterate through the slots of the hotbar
@@ -193,14 +347,14 @@ void UpdateHotbar(){
 			tmpRect.y += slotRect.y;
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
-			AddToRenderQueue(gRenderer, uiSheet, 1, tmpRect, -1, RNDRLYR_UI - 1);
+			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
 		}
-		AddToRenderQueue(gRenderer, uiSheet, 8, slotRect, -1, RNDRLYR_UI);
-		if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){
-			AddToRenderQueue(gRenderer, itemSheet, invArray[i][0], slotRect, -1, RNDRLYR_INV_ITEMS);
+		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
+		if(invArray[i].occupied == true && invArray[i].qty > 0){
+			AddToRenderQueue(gRenderer, invArray[i].item.sheet, invArray[i].item.tile, slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
-			itoa(invArray[i][1], itemqty, 10);
+			itoa(invArray[i].qty, itemqty, 10);
 			RenderText_d(gRenderer, itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
 		}
 	}
@@ -219,7 +373,7 @@ void INV_DrawInv(){
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
-		AddToRenderQueue(gRenderer, uiSheet, 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
+		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
 		
 		SDL_Point mousePoint = {mousePos.x, mousePos.y};
 		mousePoint.x = (mousePoint.x - invRect.x - INV_spacing / 2) / (itemRectSize + INV_spacing);
@@ -232,37 +386,42 @@ void INV_DrawInv(){
 			// if(SDL_GetTicks() > grabTime + 100){//
 				// grabTime = SDL_GetTicks();//
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-					if(invArray[hoveredCell][ITM_SECT] == mouseInv[0]){
-						int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv[1], mouseInv[0]);
+					if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
+						int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
 						if(mouseRemainder == 0){
-							mouseInv[0] = -1;
-							mouseInv[1] = 0;
+							mouseInv.occupied = false;
+							mouseInv.qty = 0;
 						}else{
-							mouseInv[1] = mouseRemainder;
+							mouseInv.occupied = true;
+							mouseInv.qty = mouseRemainder;
 						}
 					}else{//Swap clicked item with held item
-						int tempInv[2] = {mouseInv[0], mouseInv[1]};
-						mouseInv[0] = invArray[hoveredCell][ITM_SECT];
-						mouseInv[1] = invArray[hoveredCell][1];
-						invArray[hoveredCell][ITM_SECT] = tempInv[0];
-						invArray[hoveredCell][QTY_SECT] = tempInv[1];
+						itmcell_t tempInv = {mouseInv.item, mouseInv.qty, mouseInv.occupied};
+						// printf("%s\n", mouseInv.occupied ? "true" : "false");
+						mouseInv.item = invArray[hoveredCell].item;
+						mouseInv.qty = invArray[hoveredCell].qty;
+						mouseInv.occupied = invArray[hoveredCell].occupied;
+						invArray[hoveredCell].item = tempInv.item;
+						invArray[hoveredCell].qty = tempInv.qty;
+						invArray[hoveredCell].occupied = tempInv.occupied;
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
-					if(mouseInv[1] > 0){//Check if mouse has any item
-						if(invArray[hoveredCell][ITM_SECT] == -1 || invArray[hoveredCell][ITM_SECT] == mouseInv[0] && invArray[hoveredCell][QTY_SECT] < maxStack){//Check if cell is empty or has the same item as mouse
-							if(mouseInv[1] > 1){//If there are multiple items in mouseInv add one to inv cell
-								INV_WriteCell("add", hoveredCell, 1, mouseInv[0]);
-								mouseInv[1]--;
+					if(mouseInv.qty > 0){//Check if mouse has any item
+						if(invArray[hoveredCell].occupied == true || strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
+							if(mouseInv.qty > 1){//If there are multiple items in mouseInv add one to inv cell
+								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
+								mouseInv.qty--;
 							}else{//If there was only 1, empty mouse slot
-								INV_WriteCell("add", hoveredCell, 1, mouseInv[0]);
-								mouseInv[0] = -1;
-								mouseInv[1] = 0;
+								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
+								mouseInv.occupied = false;
+								mouseInv.qty = 0;
 							}
 						}
-					}else if(invArray[hoveredCell][QTY_SECT] > 1){//Otherwise take half the items in that inventory cell
-						mouseInv[0] = invArray[hoveredCell][ITM_SECT];
-						mouseInv[1] = invArray[hoveredCell][QTY_SECT] / 2;
-						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell][QTY_SECT] / 2, invArray[hoveredCell][ITM_SECT]);
+					}else if(invArray[hoveredCell].qty > 1){//Otherwise take half the items in that inventory cell
+						mouseInv.item = invArray[hoveredCell].item;
+						mouseInv.qty = invArray[hoveredCell].qty / 2;
+						mouseInv.occupied = true;
+						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell].qty / 2, invArray[hoveredCell].item);
 					}
 				}
 			}
@@ -275,32 +434,32 @@ void INV_DrawInv(){
 			
 			if(SDL_PointInRect(&mousePoint, &invItemRect)){
 				
-				if(invArray[i][ITM_SECT] > -1){
-					SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(itemData[invArray[i][ITM_SECT]].name) * 14, 28};
-					AddToRenderQueue(gRenderer, uiSheet, 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
-					RenderText_d(gRenderer, itemData[invArray[i][ITM_SECT]].name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
+				if(invArray[i].occupied == true){
+					SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(invArray[i].item.name) * 14, 28};
+					AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
+					RenderText_d(gRenderer, invArray[i].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 				}
 			}
-			AddToRenderQueue(gRenderer, uiSheet, 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
+			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			
-			if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(gRenderer, itemSheet, invArray[i][ITM_SECT], invItemRect, -1, RNDRLYR_INV_ITEMS);
+			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
+				AddToRenderQueue(gRenderer, invArray[i].item.sheet, invArray[i].item.tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
-				itoa(invArray[i][1], itemqty, 10);
+				itoa(invArray[i].qty, itemqty, 10);
 				RenderText_d(gRenderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
 			}else{
-				invArray[i][ITM_SECT] = -1;
-				invArray[i][QTY_SECT] = 0;
+				invArray[i].occupied = false;
+				invArray[i].qty = 0;
 			}
 		}
 		//Drawing the mouse inventory
-		if(mouseInv[0] > -1 && mouseInv[1] > 0){
+		if(mouseInv.occupied == true && mouseInv.qty > 0){
 			SDL_Rect mouseItem = {mousePos.x - 16, mousePos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(gRenderer, itemSheet, mouseInv[0], mouseItem, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(gRenderer, mouseInv.item.sheet, mouseInv.item.tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
-			itoa(mouseInv[1], itemqty, 10);
+			itoa(mouseInv.qty, itemqty, 10);
 			RenderText_d(gRenderer, itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);//Draw item quantity for each item
 		}
 	}else{
@@ -309,66 +468,74 @@ void INV_DrawInv(){
 }
 
 
-int INV_WriteCell(char *mode, int cell, int itemQty, int itemNum){
+int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 	if(cell > INV_HEIGHT * INV_WIDTH){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
 	}
-	if(itemQty != NULL && itemQty != 0 && itemNum > -1){
+		// printf("im here!\n");
+
+	if(itemQty != NULL && itemQty != 0){
 		
 		if(strcmp(mode, "set") == 0){
-			invArray[cell][ITM_SECT] = itemNum;
+			invArray[cell].item = item;
+			invArray[cell].occupied = true;
 			if(itemQty < maxStack){
-				invArray[cell][QTY_SECT] = itemQty;
+				invArray[cell].qty = itemQty;
+				invArray[cell].occupied = true;
 			}else{
-				invArray[cell][QTY_SECT] = maxStack;
+				invArray[cell].qty = maxStack;
+				invArray[cell].occupied = true;
 			}
 		}else if(strcmp(mode, "add") == 0){
-			invArray[cell][ITM_SECT] = itemNum;
-			if(invArray[cell][ITM_SECT] == itemNum && invArray[cell][QTY_SECT] <= maxStack){//Check if item is of different type or exceeding limit
-				if(invArray[cell][QTY_SECT] + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
-					int remainder = (itemQty - (maxStack - invArray[cell][1]));
-					invArray[cell][QTY_SECT] += maxStack - invArray[cell][1];//Fill the cell
+			invArray[cell].item = item;
+			invArray[cell].occupied = true;
+			if(strcmp(invArray[cell].item.name, item.name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
+				if(invArray[cell].qty + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
+					int remainder = (itemQty - (maxStack - invArray[cell].qty));
+					invArray[cell].qty += maxStack - invArray[cell].qty;//Fill the cell
 					return remainder;//Return the remainder if the stack is full
 				}else{
-					invArray[cell][QTY_SECT] += itemQty;
+					invArray[cell].qty += itemQty;
+					invArray[cell].occupied = true;
 					return 0;
 				}
 			}
 		}else if(strcmp(mode, "sub") == 0){
-			if(invArray[cell][ITM_SECT] == itemNum){
-				if(invArray[cell][QTY_SECT] > 0){
-					invArray[cell][QTY_SECT] -= itemQty;
+			if(strcmp(invArray[cell].item.name, item.name) == 0){
+				if(invArray[cell].qty > 0){
+					invArray[cell].qty -= itemQty;
+					invArray[cell].occupied = true;
 				}else{
-					invArray[cell][QTY_SECT] = 0;
-					invArray[cell][ITM_SECT] = -1;
+					invArray[cell].qty = 0;
+					invArray[cell].occupied = false;
 				}
 			}
 		}
 	}else{
-		invArray[cell][ITM_SECT] = -1;
-		invArray[cell][QTY_SECT] = 0;
+		invArray[cell].qty = 0;
+		invArray[cell].occupied = false;
 	}
 	return 0;
 }
 
-int INV_FindItem(int itemNum){
+int INV_FindItem(ItemComponent itemNum){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i][ITM_SECT] == itemNum && invArray[i][QTY_SECT] > 0){
+		if(strcmp(invArray[i].item.name, itemNum.name) == 0 && invArray[i].qty > 0){
 			return i;
 		}
 	}
 	return -1;
 }
-int INV_FindEmpty(int id){
+int INV_FindEmpty(ItemComponent item){
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i][ITM_SECT] == id && invArray[i][QTY_SECT] <= maxStack){
+		if(strcmp(invArray[i].item.name, item.name) == 0 && invArray[i].qty <= maxStack){
 			return i;
 		}
 	}
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i][ITM_SECT] == -1){
+		if(invArray[i].occupied == false){
 			return i;
 		}
 	}

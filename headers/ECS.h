@@ -1,20 +1,6 @@
 #ifndef ENTITIES_H_
 #define ENTITIES_H_
 
-//Render Components
-typedef struct{
-	SDL_Renderer *renderer;
-	WB_Tilesheet tileSheet;
-	int tile;
-	SDL_Rect transform;
-	int alpha;
-	int zPos;
-}RenderComponent;
-
-typedef struct{
-	int type;
-	int zPos;
-}RenderTileComponent;
 
 
 
@@ -53,19 +39,26 @@ typedef struct{
 
 //Inventory components
 typedef struct{
+	// char *name;
 	char name[64];
 	char description[128];
 	WB_Tilesheet sheet;
 	int tile;
+	bool isBlock;
 	
-}INV_ItemComponent;
+}ItemComponent;
 
 typedef struct{
-	INV_ItemComponent item;
-	INV_ItemComponent itemDrop;
-	int dropQty;
+	ItemComponent *item;
+	ItemComponent *dropItem;//If null just drop item
+	int dropQty;//If null drop 1
+
+	WB_Tilesheet sheet;
+	int tile;
+
+	char **flags;
 	
-}INV_BlockComponent;
+}BlockComponent;
 
 typedef struct{
 	int inItem;
@@ -73,8 +66,24 @@ typedef struct{
 	int outItem;
 	int outQty;
 	
-}INV_RecipeComponent;
+}RecipeComponent;
 
+
+//Render Components
+typedef struct{
+	SDL_Renderer *renderer;
+	WB_Tilesheet tileSheet;
+	int tile;
+	SDL_Rect transform;
+	int alpha;
+	int zPos;
+}RenderComponent;
+
+typedef struct{
+	int type;
+	int zPos;
+	BlockComponent *block;
+}RenderTileComponent;
 
 
 //Entity Components
@@ -84,11 +93,20 @@ typedef struct{
 }MovementComponent;
 
 typedef struct{
+	Vector2 tilePos;
+	Vector2 screenPos;
+}TransformComponent;
+
+typedef struct{
+	SDL_Rect collisionBox;
+	SDL_Rect boundingBox;
+	
+	bool noClip;
+	
 	bool colUp;
 	bool colDown;
 	bool colLeft;
 	bool colRight;
-	SDL_Rect collisionBox;
 }CollisionComponent;
 
 typedef struct{
@@ -106,9 +124,12 @@ typedef struct{
 //Entity Types
 typedef struct{
 	int id;
+	
 	RenderComponent renderer;
-	MovementComponent movement;
+	TransformComponent transform;
 	CollisionComponent collider;
+	
+	MovementComponent movement;
 	HealthComponent health;
 	AttackComponent attack;
 	

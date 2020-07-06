@@ -2,18 +2,17 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <stddef.h>
 
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
-#include "headers/renderSystems.h"
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/mapGeneration.h"
+#include "headers/renderSystems.h"
 
 const int particleCap = 10000;
 int particleCount = 0;
@@ -126,7 +125,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 			}
 		}
 	}else if(strlen(text) < 1){
-		printf("Error: No text provided on RenderText()\n");
+		// printf("Error: No text provided on RenderText()\n");
 		return 1;
 	}
 	SDL_SetTextureColorMod(fontSheet.tex, 255, 255, 255);
@@ -151,16 +150,24 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 		snprintf(mousePosT, 1024, "MOUSEPOS ->\nx: %d, y: %d", mouseTile.x, mouseTile.y);
 		RenderText_d(gRenderer, mousePosT, 0, 96);
 		
-		if(e.type == SDL_MOUSEBUTTONDOWN){//Place and remove tiles
-			if(e.button.button == SDL_BUTTON_LEFT){
+		if(mouseHeld){//Place and remove tiles
+			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
 				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
 				AutotileMap(buildLayer);
-			}else if(e.button.button == SDL_BUTTON_RIGHT){
+			}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
 				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
 				AutotileMap(buildLayer);
 			}
 		}
 	}
+}
+
+
+
+bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
+	bool isClicked = false;
+	
+	return isClicked;
 }

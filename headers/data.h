@@ -1,6 +1,10 @@
 #ifndef DATA_H_
 #define DATA_H_
 
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <luaconf.h>
 
 char *__strtok_r (char *s, const char *delim, char **save_ptr);
 
@@ -33,9 +37,11 @@ extern bool uiInteractMode;
 
 void DrawCharacter(int direction, int numFrames);
 
-
 extern bool mouseClicked;
+extern bool mouseHeld;
 
+//Lua functions
+int num_from_table(lua_State *L, char *field);
 
 
 #endif

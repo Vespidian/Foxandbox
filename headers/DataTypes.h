@@ -13,10 +13,11 @@ typedef struct{
 
 //INV Structs
 typedef struct{
+	char name[64];
 	SDL_Texture *tex;
+	int tile_size;
 	int w;
 	int h;
-	int tileW;
 }WB_Tilesheet;
 
 
