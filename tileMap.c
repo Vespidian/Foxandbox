@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #include <SDL2/SDL.h>
@@ -12,13 +11,11 @@
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/tileMap.h"
-#include "headers/mapGeneration.h"
 
 
 int tilePixelSize = 16;
 const int tileStretchSize = 64;
 int tileSheetWidth = 8;
-
 
 
 int colMap[32][32] = {};
@@ -46,10 +43,10 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 }
 
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
-	if(tileSheet.tex == NULL){
-		printf("Error: Tilesheet not defined properly!\n");
-		return 1;
-	}
+	// if(tileSheet.tex == NULL){
+	// 	printf("Error: Tilesheet not defined properly!\n");
+	// 	return 1;
+	// }
 	if(alpha == -1){
 		alpha = 255;
 	}
@@ -58,6 +55,10 @@ int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNu
 		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, tileSheet, tileNum, destRect, alpha, zPos};
 		renderItemIndex++;
 		return 0;
+	}else if(strcmp(tileSheet.name, "undefined") == 0 || tileSheet.tex == NULL){
+		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
+		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, undefinedSheet, 0, destRect, 255, zPos};
+		renderItemIndex++;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
 		return 1;

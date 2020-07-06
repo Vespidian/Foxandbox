@@ -1,20 +1,6 @@
 #ifndef ENTITIES_H_
 #define ENTITIES_H_
 
-//Render Components
-typedef struct{
-	SDL_Renderer *renderer;
-	WB_Tilesheet tileSheet;
-	int tile;
-	SDL_Rect transform;
-	int alpha;
-	int zPos;
-}RenderComponent;
-
-typedef struct{
-	int type;
-	int zPos;
-}RenderTileComponent;
 
 
 
@@ -53,18 +39,24 @@ typedef struct{
 
 //Inventory components
 typedef struct{
+	// char *name;
 	char name[64];
 	char description[128];
 	WB_Tilesheet sheet;
 	int tile;
+	bool isBlock;
 	
 }ItemComponent;
 
 typedef struct{
-	ItemComponent item;
-	ItemComponent itemDrop;
+	ItemComponent *item;
+	ItemComponent *dropItem;//If null just drop item
+	int dropQty;//If null drop 1
+
+	WB_Tilesheet sheet;
+	int tile;
+
 	char **flags;
-	int dropQty;
 	
 }BlockComponent;
 
@@ -76,6 +68,22 @@ typedef struct{
 	
 }RecipeComponent;
 
+
+//Render Components
+typedef struct{
+	SDL_Renderer *renderer;
+	WB_Tilesheet tileSheet;
+	int tile;
+	SDL_Rect transform;
+	int alpha;
+	int zPos;
+}RenderComponent;
+
+typedef struct{
+	int type;
+	int zPos;
+	BlockComponent *block;
+}RenderTileComponent;
 
 
 //Entity Components

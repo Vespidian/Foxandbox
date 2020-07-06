@@ -7,10 +7,6 @@ void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Ra
 void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration);
 void RenderParticleSystem(ParticleSystem system);
 
-// void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration);
-// extern ParticleSystem pSystem;
-// void RenderParticleSystem(ParticleSystem system);
-
 int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod);
 void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
 void RenderCursor();

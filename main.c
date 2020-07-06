@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <time.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -92,6 +89,7 @@ WB_Tilesheet *find_tilesheet(char *name){
 			return &tilesheets[i];
 		}
 	}
+	return &undefinedSheet;
 }
 void DrawCharacter(int direction, int numFrames){
 	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
@@ -126,18 +124,28 @@ int register_tilesheet(lua_State *L){
 	
 	luaL_checktype(L, 1, LUA_TTABLE);
 	lua_getfield(L, -1, "name");
-	strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
+	if(lua_tostring(L, -1) != NULL){
+		strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
+	}else{
+		strcpy(tilesheets[num_tilesheets].name, "undefined");
+	}
 	
 	lua_getfield(L, -2, "path");
-	tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, lua_tostring(L, -1));
-	
+	if(lua_tostring(L, -1) != NULL){
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, lua_tostring(L, -1));
+	}else{
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, "undefined");
+	}
+
 	lua_getfield(L, -3, "tile_size");
-	tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
-	//Identify the width and height of the tilesheet based on tile size
-	SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
-	tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
-	tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
-	
+	if(lua_tonumber(L, -1) != NULL){
+		tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
+		//Identify the width and height of the tilesheet based on tile size
+		SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
+		tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
+		tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
+	}
+
 	num_tilesheets++;
 	return 0;
 }
@@ -184,16 +192,20 @@ void Setup(){
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	
 	tilesheets = malloc(sizeof(WB_Tilesheet));
+	itemData = malloc(sizeof(ItemComponent));
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 	
-	lua_register(L, "register_tile", pass_table);
+	lua_register(L, "register_item", register_item);
 	lua_register(L, "register_tilesheet", register_tilesheet);
+	lua_register(L, "register_block", register_block);
 	
 	luaL_dofile(L, "scripts/init.lua");
-	lua_close(L);
-	
-	
+	// lua_close(L);
+
+	INV_WriteCell("set", 0, 2, *find_item("stone"));
+
+
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);
@@ -399,7 +411,7 @@ int main(int argc, char **argv) {
 							// SDL_TextInputEvent
 						}
 						if(e.key.keysym.sym == SDLK_r){
-							INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
+							// INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
 							// TextExtrapolate(colMap);
 						}
 						if(e.key.keysym.sym == SDLK_b){

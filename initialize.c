@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include <math.h>
-#include <string.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -10,7 +7,6 @@
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
 #include "headers/initialize.h"
-// #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/inventory.h"
 
@@ -25,11 +21,11 @@ int HEIGHT = 960;
 bool success = true;
 
 
+SDL_Texture *undefinedTex;
+WB_Tilesheet undefinedSheet;
+
 SDL_Texture *backgroundTex;
 WB_Tilesheet backgroundSheet;
-
-SDL_Texture *itemTex;
-WB_Tilesheet *find_tilesheet("items");
 
 SDL_Texture *fontTex;
 WB_Tilesheet fontSheet;
@@ -46,10 +42,10 @@ WB_Tilesheet colorModSheet;
 
 
 void TextureInit(){
+	undefinedTex = IMG_LoadTexture(gRenderer, "images/undefined.png");
+	undefinedSheet = (WB_Tilesheet){"undefined", undefinedTex, 16, 1, 1};
+
 	backgroundTex = IMG_LoadTexture(gRenderer, "images/loadScreen.png");
-	
-	itemTex = IMG_LoadTexture(gRenderer, "images/items.png");
-	*find_tilesheet("items") = (WB_Tilesheet){"loadScreen", itemTex, 16, 8, 16};
 	
 	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){"font", fontTex, 16, 12, 8};
@@ -72,6 +68,11 @@ void MapInit(){
 	
 }
 
+void UndefinedInit(){
+	undefinedItem = (ItemComponent){"undefined", "", undefinedSheet, 0};
+	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0};
+}
+
 bool init(){
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
@@ -82,7 +83,7 @@ bool init(){
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");
 	SDL_SetWindowIcon(gWindow, gIcon);
 
-
+	UndefinedInit();
 	TextureInit();
 	MapInit();
 	INV_Init();
