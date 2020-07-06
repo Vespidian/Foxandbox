@@ -10,7 +10,7 @@
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
 #include "headers/initialize.h"
-#include "headers/data.h"
+// #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/inventory.h"
 
@@ -29,7 +29,7 @@ SDL_Texture *backgroundTex;
 WB_Tilesheet backgroundSheet;
 
 SDL_Texture *itemTex;
-WB_Tilesheet itemSheet;
+WB_Tilesheet *find_tilesheet("items");
 
 SDL_Texture *fontTex;
 WB_Tilesheet fontSheet;
@@ -49,7 +49,7 @@ void TextureInit(){
 	backgroundTex = IMG_LoadTexture(gRenderer, "images/loadScreen.png");
 	
 	itemTex = IMG_LoadTexture(gRenderer, "images/items.png");
-	itemSheet = (WB_Tilesheet){"loadScreen", itemTex, 16, 8, 16};
+	*find_tilesheet("items") = (WB_Tilesheet){"loadScreen", itemTex, 16, 8, 16};
 	
 	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){"font", fontTex, 16, 12, 8};

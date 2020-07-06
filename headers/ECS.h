@@ -58,15 +58,15 @@ typedef struct{
 	WB_Tilesheet sheet;
 	int tile;
 	
-}INV_ItemComponent;
+}ItemComponent;
 
 typedef struct{
-	INV_ItemComponent item;
-	INV_ItemComponent itemDrop;
+	ItemComponent item;
+	ItemComponent itemDrop;
 	char **flags;
 	int dropQty;
 	
-}INV_BlockComponent;
+}BlockComponent;
 
 typedef struct{
 	int inItem;
@@ -74,7 +74,7 @@ typedef struct{
 	int outItem;
 	int outQty;
 	
-}INV_RecipeComponent;
+}RecipeComponent;
 
 
 

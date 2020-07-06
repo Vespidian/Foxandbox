@@ -121,7 +121,7 @@ int num_from_table(lua_State *L, char *field){
 	return returnValue;
 }
 
-int load_tilesheet(lua_State *L){
+int register_tilesheet(lua_State *L){
 	tilesheets = realloc(tilesheets, (num_tilesheets + 1) * sizeof(WB_Tilesheet));
 	
 	luaL_checktype(L, 1, LUA_TTABLE);
@@ -188,7 +188,7 @@ void Setup(){
 	luaL_openlibs(L);
 	
 	lua_register(L, "register_tile", pass_table);
-	lua_register(L, "load_tilesheet", load_tilesheet);
+	lua_register(L, "register_tilesheet", register_tilesheet);
 	
 	luaL_dofile(L, "scripts/init.lua");
 	lua_close(L);
@@ -545,7 +545,7 @@ void NewEntity(){
 	//Declare renderer component
 	SDL_Rect enemyPos = {50, 50, 64, 64};
 	enemies[0].renderer.renderer = gRenderer;
-	enemies[0].renderer.tileSheet = itemSheet;
+	enemies[0].renderer.tileSheet = *find_tilesheet("items");
 	enemies[0].renderer.tile = 24;
 	enemies[0].renderer.transform = enemyPos;
 }

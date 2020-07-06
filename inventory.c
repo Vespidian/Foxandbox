@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #include <SDL2/SDL.h>
@@ -27,10 +26,10 @@ int maxStack = 99;
 Vector2 numOffset = {-2, 16};
 int mouseInv[2] = {-1, 0};
 bool showInv = false;
-// INV_ItemComponent itemData[64];
-INV_ItemComponent *itemData;
-INV_BlockComponent blockData[128];
-INV_RecipeComponent recipes[64];
+// ItemComponent itemData[64];
+ItemComponent *itemData;
+BlockComponent blockData[128];
+RecipeComponent recipes[64];
 int numberOfRecipes = 0;
 int grabTime = 0;
 
@@ -61,7 +60,7 @@ int ReadItemData(){
 	char declarationType[64];
 	
 	
-	itemData = malloc(sizeof(INV_ItemComponent *));
+	itemData = malloc(sizeof(ItemComponent *));
 	
 	int itemCounter = 0;
 	while(fgets(buffer, sizeof(buffer), file)){
@@ -71,7 +70,7 @@ int ReadItemData(){
 				
 				// printf("%s	-> %d\n", declarationType, itemCounter);
 				/*if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
-					itemData = realloc(itemData, (itemCounter + 1) * sizeof(INV_ItemComponent *));
+					itemData = realloc(itemData, (itemCounter + 1) * sizeof(ItemComponent *));
 					strcpy(itemData[itemCounter].name, strtok(buffer, ":"));
 					strcpy(itemData[itemCounter].description, strtok(NULL, "|"));
 					
@@ -184,7 +183,7 @@ void UpdateHotbar(){
 		}
 		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){
-			AddToRenderQueue(gRenderer, itemSheet, invArray[i][0], slotRect, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(gRenderer, *find_tilesheet("items"), invArray[i][0], slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i][1], itemqty, 10);
@@ -271,7 +270,7 @@ void INV_DrawInv(){
 			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			
 			if(invArray[i][ITM_SECT] > -1 && invArray[i][QTY_SECT] > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(gRenderer, itemSheet, invArray[i][ITM_SECT], invItemRect, -1, RNDRLYR_INV_ITEMS);
+				AddToRenderQueue(gRenderer, *find_tilesheet("items"), invArray[i][ITM_SECT], invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
 				itoa(invArray[i][1], itemqty, 10);
@@ -284,7 +283,7 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv[0] > -1 && mouseInv[1] > 0){
 			SDL_Rect mouseItem = {mousePos.x - 16, mousePos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(gRenderer, itemSheet, mouseInv[0], mouseItem, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(gRenderer, *find_tilesheet("items"), mouseInv[0], mouseItem, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv[1], itemqty, 10);

@@ -1,6 +1,11 @@
 #ifndef TILEMAP_H_
 #define TILEMAP_H_
 
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <luaconf.h>
+
 extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
 extern int colMap[32][32];
@@ -16,6 +21,7 @@ extern const int tileStretchSize;
 
 extern WB_Tilesheet *tilesheets;
 WB_Tilesheet *find_tilesheet(char *name);
+int register_tilesheet(lua_State *L);
 
 int LoadMap(char *fileLoc, RenderTileComponent mapArray[][32]);
 int LoadDataMap(char *fileLoc, int mapArray[][32]);

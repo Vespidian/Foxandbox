@@ -1,16 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
-#include <stddef.h>
 #include <time.h>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
-#include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/mapGeneration.h"

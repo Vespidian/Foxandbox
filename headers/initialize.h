@@ -22,7 +22,7 @@ extern WB_Tilesheet backgroundSheet;
 
 
 extern SDL_Texture *itemTex;
-extern WB_Tilesheet itemSheet;
+extern WB_Tilesheet *find_tilesheet("items");
 
 
 extern SDL_Texture *fontTex;
