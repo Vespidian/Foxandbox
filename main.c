@@ -61,6 +61,7 @@ float playerSpeed = 2;
 
 bool mouseClicked = false;
 bool mouseHeld = false;
+bool showDebugInfo = true;
 
 ParticleSystem pSys1;
 
@@ -185,11 +186,7 @@ int pass_table(lua_State *L){
 	free(*temp);
 	return 1;
 }
-
-void Setup(){
-	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
-	SDL_RenderPresent(gRenderer);
-	
+void loadLua(){
 	tilesheets = malloc(sizeof(WB_Tilesheet));
 	itemData = malloc(sizeof(ItemComponent));
 	lua_State *L = luaL_newstate();
@@ -200,9 +197,19 @@ void Setup(){
 	lua_register(L, "register_block", register_block);
 	lua_register(L, "populate_autotile", populate_autotile);
 	
-	luaL_dofile(L, "scripts/init.lua");
+	luaL_dofile(L, "scripts/init.lua");	
+}
+
+void Setup(){
+	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
+	SDL_RenderPresent(gRenderer);
+	
+	loadLua();
+	
 	// lua_close(L);
 	INV_WriteCell("set", 0, 2, *find_item("stone"));
+	INV_WriteCell("set", 6, 99, *find_item("feather"));
+	INV_WriteCell("set", 2, 24, *find_item("wood"));
 	MapInit();
 
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
@@ -377,6 +384,12 @@ int main(int argc, char **argv) {
 					if(roundSpeed.y != 0){
 						mapOffsetPos.y -= roundSpeed.y;
 					}
+					if(e.key.keysym.sym == SDLK_F3){
+						showDebugInfo = !showDebugInfo;
+					}
+					// if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
+					// 	loadLua();
+					// }
 					if(e.key.keysym.sym == SDLK_RETURN){
 						if(inputMode == 1){
 							// printf("%s\n", currentCollectedText);
@@ -513,21 +526,20 @@ void RenderScreen(){
 	
 	RenderConsole();
 	
-	snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", character.transform.tilePos.x, character.transform.tilePos.y);
-	snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
-	
-	RenderText_d(gRenderer, coordinates, 0, 0);
-	RenderText_d(gRenderer, charoff, 0, 48);	
-	
+	if(showDebugInfo){
+		snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", character.transform.tilePos.x, character.transform.tilePos.y);
+		snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
+		RenderText_d(gRenderer, coordinates, 0, 0);
+		RenderText_d(gRenderer, charoff, 0, 48);	
+		char frameCount[64];
+		snprintf(frameCount, 128, "%d RenderCopy calls", renderItemIndex);
+		RenderText_d(gRenderer, frameCount, WIDTH - 200, 0);
+	}
+
 	SDL_Rect woahR = {0, 0, 100, 100};
 	AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, 0, 1000);
 	RenderCursor();
 	
-	
-	char frameCount[64];
-	snprintf(frameCount, 128, "%d RenderCopy calls", renderItemIndex);
-	RenderText_d(gRenderer, frameCount, WIDTH - 200, 0);
-
 	
 	RenderUpdate();
 	particleCount = 0;

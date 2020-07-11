@@ -48,6 +48,16 @@ register_item({
 	sheet = "items",
 	tile_index = 1,
 })
+register_item({
+	name = "wood",
+	sheet = "items",
+	tile_index = 2,
+})
+register_item({
+	name = "feather",
+	sheet = "items",
+	tile_index = 4,
+})
 
 register_block({
 	name = "block",

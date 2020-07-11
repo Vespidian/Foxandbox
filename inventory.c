@@ -47,7 +47,6 @@ int numAutotiles = -1;
 
 RecipeComponent recipes[64];
 int numberOfRecipes = 0;
-int grabTime = 0;
 
 ItemComponent *find_item(char *name){
 	for(int i = 0; i < numItems; i++){
@@ -99,7 +98,6 @@ int register_item(lua_State *L){
 	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
 		// itemData[numItems].name = malloc(sizeof(char *) * strlen(lua_tostring(L, -1)));
 		strcpy(itemData[numItems].name, lua_tostring(L, -1));
-		printf("%s\n", find_item("stone")->name);
 	}else{
 		strcpy(itemData[numItems].name, "undefined");
 	}
@@ -437,8 +435,6 @@ void INV_DrawInv(){
 		}
 		if(SDL_PointInRect(&mousePos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 			if(mouseClicked == true){
-			// if(SDL_GetTicks() > grabTime + 100){//
-				// grabTime = SDL_GetTicks();//
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
 						int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
@@ -451,7 +447,6 @@ void INV_DrawInv(){
 						}
 					}else{//Swap clicked item with held item
 						itmcell_t tempInv = {mouseInv.item, mouseInv.qty, mouseInv.occupied};
-						// printf("%s\n", mouseInv.occupied ? "true" : "false");
 						mouseInv.item = invArray[hoveredCell].item;
 						mouseInv.qty = invArray[hoveredCell].qty;
 						mouseInv.occupied = invArray[hoveredCell].occupied;
@@ -461,7 +456,7 @@ void INV_DrawInv(){
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.qty > 0){//Check if mouse has any item
-						if(invArray[hoveredCell].occupied == true || strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
+						if(invArray[hoveredCell].occupied == false || strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
 							if(mouseInv.qty > 1){//If there are multiple items in mouseInv add one to inv cell
 								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
 								mouseInv.qty--;
@@ -479,6 +474,11 @@ void INV_DrawInv(){
 					}
 				}
 			}
+			if(invArray[hoveredCell].occupied == true){//If cell occupied and cursor is hovered, render item name
+				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(invArray[hoveredCell].item.name) * 14, 28};
+				AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
+				RenderText_d(gRenderer, invArray[hoveredCell].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
+			}
 		}
 		
 		for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){//Inventory render loop
@@ -486,14 +486,6 @@ void INV_DrawInv(){
 			invItemRect.x = (invRect.x + itemRectSize * x) + INV_spacing * (x + 1);
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
 			
-			if(SDL_PointInRect(&mousePoint, &invItemRect)){
-				
-				if(invArray[i].occupied == true){
-					SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(invArray[i].item.name) * 14, 28};
-					AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
-					RenderText_d(gRenderer, invArray[i].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
-				}
-			}
 			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
@@ -527,7 +519,6 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
 	}
-		// printf("im here!\n");
 
 	if(itemQty != NULL && itemQty != 0){
 		

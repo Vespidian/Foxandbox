@@ -143,13 +143,15 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	mouseTile.y = ((mousePos.y + mapOffsetPos.y) / 64);
 	SDL_Point cursor = {(mouseTile.x * 64) - mapOffsetPos.x, (mouseTile.y * 64) - mapOffsetPos.y};
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
-		AddToRenderQueue(gRenderer, debugSheet, 0, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 1);
+		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 1);
 		
 		//MouseText
-		char mousePosT[256];
-		snprintf(mousePosT, 1024, "MOUSEPOS ->\nx: %d, y: %d", mouseTile.x, mouseTile.y);
-		RenderText_d(gRenderer, mousePosT, 0, 96);
-		
+		if(showDebugInfo){
+			char mousePosT[256];
+			snprintf(mousePosT, 1024, "MOUSEPOS ->\nx: %d, y: %d", mouseTile.x, mouseTile.y);
+			RenderText_d(gRenderer, mousePosT, 0, 96);
+		}
+
 		if(mouseHeld){//Place and remove tiles
 			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, 0, false);

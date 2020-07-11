@@ -39,6 +39,7 @@ void DrawCharacter(int direction, int numFrames);
 
 extern bool mouseClicked;
 extern bool mouseHeld;
+extern bool showDebugInfo;
 
 //Lua functions
 int num_from_table(lua_State *L, char *field);
