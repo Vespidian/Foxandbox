@@ -436,23 +436,35 @@ void INV_DrawInv(){
 		if(SDL_PointInRect(&mousePos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 			if(mouseClicked == true){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-					if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
-						int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
-						if(mouseRemainder == 0){
-							mouseInv.occupied = false;
-							mouseInv.qty = 0;
-						}else{
-							mouseInv.occupied = true;
-							mouseInv.qty = mouseRemainder;
+					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0){//Check for double clicked
+						//Collect all the items of that type to the mouse pointer
+						int totalFound = 0;
+						while(INV_FindItem(mouseInv.item) != -1 && totalFound < maxStack){
+							totalFound += invArray[INV_FindItem(mouseInv.item)].qty;
+							invArray[INV_FindItem(mouseInv.item)].qty = 0;
+							invArray[INV_FindItem(mouseInv.item)].occupied = false;
 						}
-					}else{//Swap clicked item with held item
-						itmcell_t tempInv = {mouseInv.item, mouseInv.qty, mouseInv.occupied};
-						mouseInv.item = invArray[hoveredCell].item;
-						mouseInv.qty = invArray[hoveredCell].qty;
-						mouseInv.occupied = invArray[hoveredCell].occupied;
-						invArray[hoveredCell].item = tempInv.item;
-						invArray[hoveredCell].qty = tempInv.qty;
-						invArray[hoveredCell].occupied = tempInv.occupied;
+						mouseInv.occupied = true;
+						mouseInv.qty = totalFound;
+					}else{
+						if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
+							int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
+							if(mouseRemainder == 0){
+								mouseInv.occupied = false;
+								mouseInv.qty = 0;
+							}else{
+								mouseInv.occupied = true;
+								mouseInv.qty = mouseRemainder;
+							}
+						}else{//Swap clicked item with held item
+							itmcell_t tempInv = {mouseInv.item, mouseInv.qty, mouseInv.occupied};
+							mouseInv.item = invArray[hoveredCell].item;
+							mouseInv.qty = invArray[hoveredCell].qty;
+							mouseInv.occupied = invArray[hoveredCell].occupied;
+							invArray[hoveredCell].item = tempInv.item;
+							invArray[hoveredCell].qty = tempInv.qty;
+							invArray[hoveredCell].occupied = tempInv.occupied;
+						}
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.qty > 0){//Check if mouse has any item
@@ -567,7 +579,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 int INV_FindItem(ItemComponent itemNum){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(strcmp(invArray[i].item.name, itemNum.name) == 0 && invArray[i].qty > 0){
+		if(strcmp(invArray[i].item.name, itemNum.name) == 0 && invArray[i].occupied == true){
 			return i;
 		}
 	}

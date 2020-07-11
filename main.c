@@ -347,7 +347,6 @@ int main(int argc, char **argv) {
 				
 				if(e.type == SDL_MOUSEBUTTONDOWN){
 					if(e.key.state == SDL_RELEASED){
-						printf("boop\n");
 						mouseClicked = true;
 					}
 				}
