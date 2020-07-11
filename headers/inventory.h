@@ -11,9 +11,12 @@ extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
 extern itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
 
 extern ItemComponent undefinedItem;
-extern ItemComponent *itemData;//Dictionary of current items
+extern ItemComponent *itemData;
+extern int numItems;
 
 extern BlockComponent undefinedBlock;
+extern BlockComponent *blockData;
+extern int numBlocks;
 
 extern bool showInv;
 extern int selectedHotbar;//Number representation of currently selected hotbar slot
@@ -34,5 +37,6 @@ int INV_FindEmpty(ItemComponent item);
 //Lua functions
 int register_item(lua_State *L);
 int register_block(lua_State *L);
+int populate_autotile(lua_State *L);
 
 #endif

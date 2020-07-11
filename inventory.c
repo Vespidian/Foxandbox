@@ -34,11 +34,14 @@ bool showInv = false;
 
 ItemComponent undefinedItem;
 ItemComponent *itemData;
-int numItems = 0;
+int numItems = -1;
 
 BlockComponent undefinedBlock;
 BlockComponent *blockData;
-int numBlocks = 0;
+int numBlocks = -1;
+
+AutotileComponent *autotile;
+int numAutotiles = -1;
 
 
 
@@ -214,27 +217,78 @@ int register_block(lua_State *L){
 			lua_pop(L, 1);
 		}
 	}
+	blockData[numBlocks].autoTile = false;
 
+	return 0;
+}	
+
+int populate_autotile(lua_State *L){
+	numAutotiles++;
+	autotile = realloc(autotile, (numAutotiles + 1) * sizeof(AutotileComponent));
+
+	luaL_checktype(L, 1, LUA_TTABLE);
+
+	//Get name
+	lua_getfield(L, -1, "name");
+	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+		autotile[numAutotiles].name = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
+		strcpy(autotile[numAutotiles].name, lua_tostring(L, -1));
+	}else{//Undefined
+		autotile[numAutotiles].name = calloc(strlen("undefined"), sizeof(char));
+		strcpy(autotile[numAutotiles].name, "undefined");
+	}
+
+
+	//Get base item
+	lua_getfield(L, -2, "base_block");
+	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+		autotile[numAutotiles].baseBlock = find_block((char *)lua_tostring(L, -1));
+	}else{//Undefined
+		autotile[numAutotiles].baseBlock = &undefinedBlock;
+	}
+
+	//Get sub item
+	lua_getfield(L, -3, "sub_block");
+	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+		autotile[numAutotiles].subBlock = find_block((char *)lua_tostring(L, -1));
+	}else{//Undefined
+		autotile[numAutotiles].subBlock = &undefinedBlock;
+	}
+
+	//For loop to loop between the base and sub
+	BlockComponent block;
+	block.item = autotile[numAutotiles].baseBlock->item;
+	block.dropItem = autotile[numAutotiles].baseBlock->dropItem;
+	block.dropQty = autotile[numAutotiles].baseBlock->dropQty;
+	block.sheet = autotile[numAutotiles].baseBlock->sheet;
+	block.autoTile = true;
+	for(int i = 1; i <= 46; i++){
+		block.tile = i;
+		autotile[numAutotiles].auto_block[i - 1] = (BlockComponent_local)block;
+		snprintf(autotile[numAutotiles].auto_block[i - 1].item.name, strlen(autotile[numAutotiles].baseBlock->item->name) + 2,\
+		"%s%d", autotile[numAutotiles].baseBlock->item->name, i);
+		printf("%s\n", autotile[numAutotiles].auto_block[i - 1].item.name);
+	}
 
 	return 0;
 }
 
 int ReadItemData(){
-	FILE *file = fopen("data/items.dat", "r");
-	if(file == NULL){
-		return 1;
-	}
-	char buffer[512];
-	char declarationType[64];
+	// FILE *file = fopen("data/items.dat", "r");
+	// if(file == NULL){
+	// 	return 1;
+	// }
+	// char buffer[512];
+	// char declarationType[64];
 	
 	
 	
 	
-	int itemCounter = 0;
-	while(fgets(buffer, sizeof(buffer), file)){
-		if(buffer[0] != '\n'){
-			if(buffer[0] == '\t' && buffer[1] != '\n'){
-				strcpy(buffer, strshft_l(buffer, 1));
+	// int itemCounter = 0;
+	// while(fgets(buffer, sizeof(buffer), file)){
+	// 	if(buffer[0] != '\n'){
+	// 		if(buffer[0] == '\t' && buffer[1] != '\n'){
+	// 			strcpy(buffer, strshft_l(buffer, 1));
 				
 				// printf("%s	-> %d\n", declarationType, itemCounter);
 				/*if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
@@ -269,25 +323,25 @@ int ReadItemData(){
 						flagCount++;
 					}
 				}*/
-				itemCounter++;
-				// printf("Current declarationType: %s\n", declarationType);
-			}else if(buffer[0] == ':' && buffer[1] == ':'){
-				strcpy(buffer, strshft_l(buffer, 2));
-				// strshft_l(buffer, 2);
-				itemCounter = 0;
-				buffer[strlen(buffer) - 1] = '\0';
-				strcpy(declarationType, buffer);
-			}/*else  if(buffer[0] == '/' && buffer[1] == '/'){
+		// 		itemCounter++;
+		// 		// printf("Current declarationType: %s\n", declarationType);
+		// 	}else if(buffer[0] == ':' && buffer[1] == ':'){
+		// 		strcpy(buffer, strshft_l(buffer, 2));
+		// 		// strshft_l(buffer, 2);
+		// 		itemCounter = 0;
+		// 		buffer[strlen(buffer) - 1] = '\0';
+		// 		strcpy(declarationType, buffer);
+		// 	}/*else  if(buffer[0] == '/' && buffer[1] == '/'){
 				
-			} */
-		}
+		// 	} */
+		// }
 		// printf("%s >> %s\n", itemData[itemCounter].name, itemData[itemCounter].description);
 		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
-	}
+	// }
 	// printf("%s\n", itemData[0].name);
 	// INV_InitRecipes();
-	fclose(file);
-	return 0;
+	// fclose(file);
+	// return 0;
 }
 
 int INV_InitRecipes(){

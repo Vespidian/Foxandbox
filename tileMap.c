@@ -11,6 +11,7 @@
 #include "headers/initialize.h"
 #include "headers/data.h"
 #include "headers/tileMap.h"
+#include "headers/inventory.h"
 
 
 int tilePixelSize = 16;
@@ -109,7 +110,15 @@ int LoadMap(char *fileLoc, RenderTileComponent mapArray[][32]){
 		parsedInt = strtok(buffer, ",");
 		
 		for(int x = 0; x <= 31; x++){
+			// mapArray[y][x].block = malloc(sizeof(BlockComponent));
 			mapArray[y][x].type = strtol(parsedInt, NULL, 10);
+			// if(strtol(parsedInt, NULL, 10) > numBlocks || strtol(parsedInt, NULL, 10) == -1){
+			// 	mapArray[y][x].block = &undefinedBlock;
+			// }else{
+			// 	mapArray[y][x].block = &blockData[strtol(parsedInt, NULL, 10)];
+			// 	// printf("%d\n", mapArray[y][x].block->tile);
+			// 	printf("%d\n", strtol(parsedInt, NULL, 10));
+			// }
 			parsedInt = strtok(NULL, ",");
 			// printf("%s", parsedInt);
 			// printf("%d", mapArray[y][x].type);
@@ -147,42 +156,18 @@ int LoadDataMap(char *fileLoc, int mapArray[][32]){//For non rendered maps (e.g.
 	fclose(fp);
 	return 0;
 }
-
+int mapSize = 32;
 // void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
-void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos){//NEED to implement z buffering
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
+void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos){//Draw map from 2D array
+	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < mapSize; y++){
+		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < mapSize; x++){
 			if(mapArray[y][x].type != -1){
 				Vector2 tilePos = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
-				
-				// SDL_Point p = {tilePos.x, tilePos.y};
-				SDL_Point p = (SDL_Point)tilePos;
-				SDL_Rect r = {-tileStretchSize, -tileStretchSize, WIDTH + tileStretchSize, HEIGHT + tileStretchSize};
-				
-				//Check if tile is in viewport and only render it if it is
-				if(SDL_PointInRect(&p, &r)){
-					SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-					AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, -1, zPos + mapArray[y][x].zPos);
-					mapArray[y][x].zPos = 0;
-					
-					/*SDL_GetMouseState(&mousePos.x, &mousePos.y);
-					SDL_Point mousePoint = {mousePos.x, mousePos.y};
-					if(SDL_PointInRect(&mousePoint, &tile)){
-						SDL_Rect mouseHighlight = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y, tileStretchSize, tileStretchSize};
-						// AddToRenderQueue(gRenderer, debugSheet, 0, mouseHighlight, RNDRLYR_UI - 1);
-						if(e.type == SDL_MOUSEBUTTONDOWN){//Place and remove tiles
-							if(e.button.button == SDL_BUTTON_LEFT){
-								TileMapEdit(buildLayer_tmp, (Vector2){x, y}, 0, false);
-								TileMapEdit(buildLayer, (Vector2){x, y}, 0, false);
-								AutotileMap();
-							}else if(e.button.button == SDL_BUTTON_RIGHT){
-								TileMapEdit(buildLayer, (Vector2){x, y}, 47, false);
-								TileMapEdit(buildLayer_tmp, (Vector2){x, y}, 47, false);
-								AutotileMap();
-							}
-						}
-					}*/
-				}
+
+				SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
+				AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, -1, zPos + mapArray[y][x].zPos);
+				// AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].block->tile, tile, -1, zPos + mapArray[y][x].zPos);
+				mapArray[y][x].zPos = 0;
 			}
 		}
 	}

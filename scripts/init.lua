@@ -54,9 +54,35 @@ register_block({
 	item_sheet = "image.png",
 	item_tile_index = 0,
 
-	block_sheet = "image.png",
+	block_sheet = "images/AUTOTile_grass-water.png",
+	block_tile_index = 1,
+	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+})
+
+register_block({
+	name = "grass",
+	item_sheet = "images/AUTOTile_grass-water.png",
+	item_tile_index = 0,
+
+	block_sheet = "images/AUTOTile_grass-water.png",
 	block_tile_index = 0,
-	flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+})
+
+register_block({
+	name = "water",
+	item_sheet = "images/AUTOTile_grass-water.png",
+	item_tile_index = 47,
+
+	block_sheet = "images/AUTOTile_grass-water.png",
+	block_tile_index = 47,
+	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+})
+
+populate_autotile({
+	name = "grass_water",
+	base_block = "grass",
+	sub_block = "water",
 })
 
 -- register_block({

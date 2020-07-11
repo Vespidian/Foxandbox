@@ -189,7 +189,6 @@ int pass_table(lua_State *L){
 void Setup(){
 	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	SDL_RenderPresent(gRenderer);
-	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	
 	tilesheets = malloc(sizeof(WB_Tilesheet));
 	itemData = malloc(sizeof(ItemComponent));
@@ -199,13 +198,14 @@ void Setup(){
 	lua_register(L, "register_item", register_item);
 	lua_register(L, "register_tilesheet", register_tilesheet);
 	lua_register(L, "register_block", register_block);
+	lua_register(L, "populate_autotile", populate_autotile);
 	
 	luaL_dofile(L, "scripts/init.lua");
 	// lua_close(L);
-
 	INV_WriteCell("set", 0, 2, *find_item("stone"));
+	MapInit();
 
-
+	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);

@@ -56,9 +56,32 @@ typedef struct{
 	WB_Tilesheet sheet;
 	int tile;
 
+	bool autoTile;
+
 	char **flags;
 	
 }BlockComponent;
+
+typedef struct{
+	ItemComponent item;
+	ItemComponent dropItem;//If null just drop item
+	int dropQty;//If null drop 1
+
+	WB_Tilesheet sheet;
+	int tile;
+
+	bool autoTile;
+
+	char **flags;
+	
+}BlockComponent_local;
+
+typedef struct{
+	char *name;
+	BlockComponent *baseBlock;
+	BlockComponent_local auto_block[46];
+	BlockComponent *subBlock;
+}AutotileComponent;
 
 typedef struct{
 	int inItem;

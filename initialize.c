@@ -85,7 +85,6 @@ bool init(){
 
 	UndefinedInit();
 	TextureInit();
-	MapInit();
 	INV_Init();
 	memset(customMap, -1, sizeof(customMap));
 	
