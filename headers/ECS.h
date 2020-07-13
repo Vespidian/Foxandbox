@@ -112,7 +112,8 @@ typedef struct{
 //Entity Components
 typedef struct{
 	int speed;
-	bool followPlayer;
+	Vector2 velocity;
+	// bool followPlayer;
 }MovementComponent;
 
 typedef struct{

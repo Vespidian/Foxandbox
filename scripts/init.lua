@@ -60,17 +60,17 @@ register_item({
 })
 
 register_block({
-	name = "block",
-	item_sheet = "image.png",
+	name = "bookshelf",
+	item_sheet = "images/furniture.png",
 	item_tile_index = 0,
-
-	block_sheet = "images/AUTOTile_grass-water.png",
-	block_tile_index = 1,
+	
+	block_sheet = "images/furniture.png",
+	block_tile_index = 0,
 	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
 
 register_block({
-	name = "bookshelf",
+	name = "flower",
 	item_sheet = "images/furniture.png",
 	item_tile_index = 1,
 
@@ -78,16 +78,6 @@ register_block({
 	block_tile_index = 1,
 	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
-register_block({
-	name = "flower",
-	item_sheet = "images/furniture.png",
-	item_tile_index = 0,
-
-	block_sheet = "images/furniture.png",
-	block_tile_index = 0,
-	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
-})
-
 register_block({
 	name = "grass",
 	item_sheet = "images/AUTOTile_grass-water.png",
