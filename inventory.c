@@ -36,12 +36,7 @@ ItemComponent undefinedItem;
 ItemComponent *itemData;
 int numItems = -1;
 
-BlockComponent undefinedBlock;
-BlockComponent *blockData;
-int numBlocks = -1;
 
-AutotileComponent *autotile;
-int numAutotiles = -1;
 
 
 
@@ -55,15 +50,6 @@ ItemComponent *find_item(char *name){
 		}
 	}
 	return &undefinedItem;
-}
-
-BlockComponent *find_block(char *name){
-	for(int i = 0; i < numBlocks; i++){
-		if(strcmp(name, blockData[i].item->name) == 0){
-			return &blockData[i];
-		}
-	}
-	return &undefinedBlock;
 }
 
 void INV_Init(){
@@ -117,157 +103,6 @@ int register_item(lua_State *L){
 	}
 
 	itemData[numItems].isBlock = false;
-	return 0;
-}
-
-int register_block(lua_State *L){
-	numBlocks++;
-	blockData = realloc(blockData, (numBlocks + 1) * sizeof(BlockComponent));
-
-	luaL_checktype(L, 1, LUA_TTABLE);
-
-	lua_getfield(L, -1, "name");
-	if(strcmp(find_item((char *)lua_tostring(L, -1))->name, "undefined") == 0){//Check if the item already exists
-		numItems++;
-		itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
-
-		if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-			strcpy(itemData[numItems].name, lua_tostring(L, -1));
-		}else{
-			strcpy(itemData[numItems].name, "undefined");
-		}
-
-		lua_getfield(L, -2, "item_sheet");
-		if(lua_tostring(L, -1) != NULL){
-			itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
-		}else{
-			itemData[numItems].sheet = undefinedSheet;
-		}
-
-		lua_getfield(L, -3, "item_tile_index");
-		if(lua_tonumber(L, -1) != NULL){
-			itemData[numItems].tile = lua_tonumber(L, -1);
-		}else{
-			itemData[numItems].tile = 0;
-		}
-
-		blockData[numBlocks].item = &itemData[numItems];
-		itemData[numItems].isBlock = true;
-	}else{//If it does, use it
-		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
-		find_item((char *)lua_tostring(L, -1))->isBlock = true;
-	}
-
-	lua_getfield(L, -4, "block_sheet");
-	if(lua_tostring(L, -1) != NULL){
-		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
-	}else{
-		blockData[numBlocks].sheet = undefinedSheet;
-	}
-
-	lua_getfield(L, -5, "block_tile_index");
-	if(lua_tonumber(L, -1) != NULL){
-		blockData[numBlocks].tile = lua_tonumber(L, -1);
-	}else{
-		blockData[numBlocks].tile = 0;
-	}
-
-
-	lua_getfield(L, -6, "dropped_item");
-	if(lua_tostring(L, -1) != NULL){
-		if(find_item((char *)lua_tostring(L, -1)) != NULL){
-			blockData[numBlocks].dropItem = find_item((char *)lua_tostring(L, -1));
-		}else{
-			blockData[numBlocks].dropItem = blockData[numBlocks].item;
-		}
-	}else{
-		blockData[numBlocks].dropItem = &undefinedItem;
-	}
-
-	lua_getfield(L, -7, "dropped_qty");
-	if(lua_tonumber(L, -1) != NULL){
-		blockData[numBlocks].dropQty = lua_tonumber(L, -1);
-	}else{
-		blockData[numBlocks].dropQty = 1;
-	}
-
-
-	blockData[numBlocks].flags = malloc(sizeof(char **));
-	lua_getfield(L, -8, "flags");
-	if(lua_istable(L, -1)){
-		size_t len = lua_rawlen(L, -1);
-		int numFlags = 0;
-		for(int i = 0; i <= len; i++){
-			lua_pushinteger(L, i + 1);
-			lua_gettable(L, -2);	
-			if(lua_tostring(L, -1) != NULL){
-				// char *temp = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
-				// strcpy(temp, lua_tostring(L, -1));
-				blockData[numBlocks].flags[numFlags] = calloc(strlen(lua_tostring(L, -1)) + 1, sizeof(char));
-				// printf("%d   ", strlen(lua_tostring(L, -1)));
-				strcpy(blockData[numBlocks].flags[numFlags], lua_tostring(L, -1));
-				// blockData[numBlocks].flags[numFlags][strlen(blockData[numBlocks].flags[numFlags])] = '\0';
-				// strcpy(blockData[numBlocks].flags[numFlags], temp);
-
-				printf("%s\n", blockData[numBlocks].flags[numFlags]);
-				numFlags++;
-			}
-			lua_pop(L, 1);
-		}
-	}
-	blockData[numBlocks].autoTile = false;
-
-	return 0;
-}	
-
-int populate_autotile(lua_State *L){
-	numAutotiles++;
-	autotile = realloc(autotile, (numAutotiles + 1) * sizeof(AutotileComponent));
-
-	luaL_checktype(L, 1, LUA_TTABLE);
-
-	//Get name
-	lua_getfield(L, -1, "name");
-	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].name = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
-		strcpy(autotile[numAutotiles].name, lua_tostring(L, -1));
-	}else{//Undefined
-		autotile[numAutotiles].name = calloc(strlen("undefined"), sizeof(char));
-		strcpy(autotile[numAutotiles].name, "undefined");
-	}
-
-
-	//Get base item
-	lua_getfield(L, -2, "base_block");
-	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].baseBlock = find_block((char *)lua_tostring(L, -1));
-	}else{//Undefined
-		autotile[numAutotiles].baseBlock = &undefinedBlock;
-	}
-
-	//Get sub item
-	lua_getfield(L, -3, "sub_block");
-	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].subBlock = find_block((char *)lua_tostring(L, -1));
-	}else{//Undefined
-		autotile[numAutotiles].subBlock = &undefinedBlock;
-	}
-
-	//For loop to loop between the base and sub
-	BlockComponent block;
-	block.item = autotile[numAutotiles].baseBlock->item;
-	block.dropItem = autotile[numAutotiles].baseBlock->dropItem;
-	block.dropQty = autotile[numAutotiles].baseBlock->dropQty;
-	block.sheet = autotile[numAutotiles].baseBlock->sheet;
-	block.autoTile = true;
-	for(int i = 1; i <= 46; i++){
-		block.tile = i;
-		autotile[numAutotiles].auto_block[i - 1] = (BlockComponent_local)block;
-		snprintf(autotile[numAutotiles].auto_block[i - 1].item.name, strlen(autotile[numAutotiles].baseBlock->item->name) + 2,\
-		"%s%d", autotile[numAutotiles].baseBlock->item->name, i);
-		printf("%s\n", autotile[numAutotiles].auto_block[i - 1].item.name);
-	}
-
 	return 0;
 }
 

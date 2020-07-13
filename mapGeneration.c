@@ -20,19 +20,28 @@ int GetSurroundCount(Vector2 tile){
 		for(int x = tile.x - 1; x <= tile.x + 1; x++){
 			if(x >= 0 && x < 32 && y >= 0 && y < 32){
 				if(x != tile.x || y != tile.y){
-					if(buildLayer_tmp[y][x].type < WATER){
+					if(buildLayer_tmp[y][x].block->tile < WATER){
 						surroundCount++;
 					}
 				}
 			}
 		}
 	}
-	// printf("%d\n", surroundCount);
+	// printf("%d\n", surr	oundCount);
 	return surroundCount;
 }
 
+void FillMap(RenderTileComponent map[][32]){
+	for(int y = 0; y < 32; y++){
+		for(int x = 0; x < 32; x++){
+			map[y][x].block = find_block("grass");
+		}
+	}
+}
+
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
-	// RandomMap(ratioPercent);
+	FillMap(buildLayer);
+	// RandomMap(buildLayer, ratioPercent);
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap();
 	}
@@ -54,15 +63,23 @@ void AutotileMap(RenderTileComponent map[][32]){
 			int cornerCaseNumber = 0;	
 			int finalCaseNumber = 0;
 			//Auto Tiling
-			bool topLeft = (map[y + 1][x - 1].type < WATER);
-			bool topRight = (map[y + 1][x + 1].type < WATER);
-			bool bottomLeft = (map[y - 1][x - 1].type < WATER);
-			bool bottomRight = (map[y - 1][x + 1].type < WATER);
-			bool top = (map[y + 1][x].type < WATER);
-			bool bottom = (map[y - 1][x].type < WATER);
-			bool right = (map[y][x + 1].type < WATER);
-			bool left = (map[y][x - 1].type < WATER);
-			if(map[y][x].type < WATER){
+
+			int yNeg = (y - 1) * (y != 0);
+			int yPos = (y + 1) * (y != 31);
+			int xNeg = (x - 1) * (x != 0);
+			int xPos = (x + 1) * (x != 31);
+			//Corner
+			bool bottomRight = (map[yNeg][xPos].block->tile < WATER);
+			bool bottomLeft = (map[yNeg][xNeg].block->tile < WATER);
+			bool topRight = (map[yPos][xPos].block->tile < WATER);
+			bool topLeft = (map[yPos][xNeg].block->tile < WATER);
+			//Adjacent
+			bool bottom = (map[yNeg][x].block->tile < WATER);
+			bool right = (map[y][xPos].block->tile < WATER);
+			bool left = (map[y][xNeg].block->tile < WATER);
+			bool top = (map[yPos][x].block->tile < WATER);
+
+			if(map[y][x].block->tile < WATER){
 				//Reduce possible options down to 47
 				if(topLeft){
 					if(!top || !left){
@@ -100,11 +117,17 @@ void AutotileMap(RenderTileComponent map[][32]){
 						break;
 					}
 				}
-				buildLayer[y][x].type = finalCaseNumber;
+				if(finalCaseNumber == GRASS){
+					buildLayer[y][x].block = autotile[0].baseBlock;
+				}else if(finalCaseNumber == WATER){
+					buildLayer[y][x].block = autotile[0].subBlock;
+				}else{
+					buildLayer[y][x].block = &autotile[0].auto_block[finalCaseNumber - 1];
+				}
 			}
-			if(buildLayer[y][x].type == WATER){
+			if(buildLayer[y][x].block->tile == WATER){
 				colMap[y][x] = 0;
-			}else if(buildLayer[y][x].type > GRASS){
+			}else if(buildLayer[y][x].block->tile > GRASS){
 				colMap[y][x] = -1;
 			}
 		}
@@ -114,10 +137,10 @@ void AutotileMap(RenderTileComponent map[][32]){
 void SmoothMap(){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
-			if(buildLayer[y][x].type < WATER){
-				buildLayer_tmp[y][x].type = GRASS;
+			if(buildLayer[y][x].block->tile < WATER){
+				buildLayer_tmp[y][x].block = find_block("grass");
 			}else{
-				buildLayer_tmp[y][x].type = WATER;
+				buildLayer_tmp[y][x].block = find_block("water");
 			}
 		}
 	}
@@ -125,16 +148,16 @@ void SmoothMap(){
 		for(int x = 0; x < 32; x++){
 			int surroundTiles = GetSurroundCount((Vector2){x, y});
 			if(surroundTiles > 4){
-				buildLayer[y][x].type = GRASS;
-				buildLayer_tmp[y][x].type = GRASS;
+				buildLayer[y][x].block = find_block("grass");
+				buildLayer_tmp[y][x].block = find_block("grass");
 			}else if(surroundTiles < 4){
-				buildLayer[y][x].type = WATER;
-				buildLayer_tmp[y][x].type = WATER;
+				buildLayer[y][x].block = find_block("water");
+				buildLayer_tmp[y][x].block = find_block("water");
 			}
 		}
 	}
 }
-void RandomMap(int ratioPercent){
+void RandomMap(RenderTileComponent map[][32], int ratioPercent){
 	if(doRandomGen){
 		time_t rawTime;
 		struct tm *timeinfo;
@@ -148,17 +171,17 @@ void RandomMap(int ratioPercent){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			if(getRnd(0, 100) <= ratioPercent){
-				buildLayer[y][x].type = GRASS;
+				map[y][x].block = find_block("grass");
 			}else{
-				buildLayer[y][x].type = WATER;
+				map[y][x].block = find_block("water");
 			}
 		}
 	}
 }
 
-void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, int tile, bool collide){
+void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent *block, bool collide){
 	
-	tileMap[pos.y][pos.x].type = tile;
+	tileMap[pos.y][pos.x].block = block;
 	
 	AutotileMap(buildLayer);
 }

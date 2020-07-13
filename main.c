@@ -198,6 +198,8 @@ void loadLua(){
 	lua_register(L, "populate_autotile", populate_autotile);
 	
 	luaL_dofile(L, "scripts/init.lua");	
+
+	lua_close(L);
 }
 
 void Setup(){
@@ -220,8 +222,8 @@ void Setup(){
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
 	
-	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
-	// NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
+	// NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
+	NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
 	pSys1.boundaryCheck = true;
 	// pSys1.fade = false;
 	pSys1.playSystem = false;
@@ -493,7 +495,6 @@ MouseStates mouse;*/
 
 void RenderScreen(){
 	clearScreen(gRenderer);
-	
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	
 	DrawLevel();
@@ -533,6 +534,9 @@ void RenderScreen(){
 		char frameCount[64];
 		snprintf(frameCount, 128, "%d RenderCopy calls", renderItemIndex);
 		RenderText_d(gRenderer, frameCount, WIDTH - 200, 0);
+
+		//Performance bar
+		AddToRenderQueue(gRenderer, debugSheet, 4, (SDL_Rect){WIDTH - 10, 10, 10, deltaTime * 20}, 255, 1000);
 	}
 
 	SDL_Rect woahR = {0, 0, 100, 100};

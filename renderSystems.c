@@ -154,12 +154,12 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 
 		if(mouseHeld){//Place and remove tiles
 			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
-				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, 0, false);
+				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, find_block("grass"), false);
+				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, find_block("grass"), false);
 				AutotileMap(buildLayer);
 			}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
-				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, 47, false);
+				TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, find_block("water"), false);
+				TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, find_block("water"), false);
 				AutotileMap(buildLayer);
 			}
 		}

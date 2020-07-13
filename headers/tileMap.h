@@ -35,7 +35,19 @@ void RenderUpdate();
 
 void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos);
 
-
 void DrawLevel();
+
+extern BlockComponent undefinedBlock;
+extern BlockComponent *blockData;
+extern int numBlocks;
+
+extern AutotileComponent *autotile;
+extern int numAutotiles;
+
+BlockComponent *find_block(char *name);
+
+//Lua functions
+int register_block(lua_State *L);
+int populate_autotile(lua_State *L);
 
 #endif

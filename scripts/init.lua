@@ -70,6 +70,25 @@ register_block({
 })
 
 register_block({
+	name = "bookshelf",
+	item_sheet = "images/furniture.png",
+	item_tile_index = 1,
+
+	block_sheet = "images/furniture.png",
+	block_tile_index = 1,
+	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+})
+register_block({
+	name = "flower",
+	item_sheet = "images/furniture.png",
+	item_tile_index = 0,
+
+	block_sheet = "images/furniture.png",
+	block_tile_index = 0,
+	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+})
+
+register_block({
 	name = "grass",
 	item_sheet = "images/AUTOTile_grass-water.png",
 	item_tile_index = 0,
@@ -88,6 +107,9 @@ register_block({
 	block_tile_index = 47,
 	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
+
+
+
 
 populate_autotile({
 	name = "grass_water",
