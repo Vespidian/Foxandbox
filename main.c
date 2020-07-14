@@ -277,7 +277,29 @@ void ParseConsoleCommand(char *command){
 	if(command[0] == '/'){
 		strcpy(command, strshft_l(command, 1));
 		if(strcmp(command, "help") == 0){
-			strcpy(consoleOutput, "you have been helped");
+			strcpy(consoleOutput, "Possible commands:\ndebug lightcycle hitbox noclip\nfullscreen");
+		}
+		if(strcmp(command, "debug") == 0){
+			showDebugInfo = !showDebugInfo;
+		}
+		if(strcmp(command, "lightcycle") == 0){
+			doDayCycle = !doDayCycle;
+		}
+		if(strcmp(command, "hitbox") == 0){
+			enableHitboxes = !enableHitboxes;
+		}
+		if(strcmp(command, "noclip") == 0){
+			character.collider.noClip = !character.collider.noClip;
+		}
+		if(strcmp(command, "fullscreen") == 0){
+			SDL_DisplayMode gMode;
+			SDL_GetDesktopDisplayMode(0, &gMode);
+			WIDTH = gMode.w;
+			HEIGHT = gMode.h;
+			SDL_SetWindowBordered(gWindow, false);
+			SDL_SetWindowPosition(gWindow, 0, 0);
+			SDL_SetWindowSize(gWindow, WIDTH, HEIGHT);
+			ResizeWindow();
 		}
 	}
 }
@@ -572,27 +594,26 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 	AddToRenderQueue(renderer, sheet, tile, rect, -1, zPos);
 }
 
+
 void RenderConsole(){
-	int stringFit = 31;
+	int stringFit = 31;//Maximum number of characters to fit in the textbox
+	int characterSpacing = 9;
 	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
 	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
-	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, console, 220, RNDRLYR_UI);
-	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, textBox, 255, RNDRLYR_UI);
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, console, 220, RNDRLYR_UI);//Console
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, textBox, 255, RNDRLYR_UI);//Text input
 
 	if(strlen(currentCollectedText) < stringFit){
-		RenderText_d(gRenderer, currentCollectedText, 0, WIDTH - 20);
-	}else{
-		RenderText_d(gRenderer, currentCollectedText, 278 - strlen(currentCollectedText) * 9, WIDTH - 20);
+		if(inputMode == 1){
+			RenderText_d(gRenderer, "_", strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);//Cursor
+		}
+		RenderText_d(gRenderer, currentCollectedText, 0, HEIGHT - 20);
+	}else{//Scroll text
+		RenderText_d(gRenderer, "_", stringFit * characterSpacing, HEIGHT - 20);//Cursor
+		RenderText_d(gRenderer, currentCollectedText, 278 - strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);
 	}
 
 	RenderText_d(gRenderer, consoleOutput, console.x, console.y + 4);
-	// for(int i = 0; i < chatLogSize; i++){
-	// 	if(chatHistory[chatLogSize - 1 - i] < stringFit){
-	// 		RenderText_d(gRenderer, chatHistory[chatLogSize - 1 - i], 0, (WIDTH - 20) - (i + 1) * 20);
-	// 	}else{
-
-	// 	}
-	// }
 }
 
 
