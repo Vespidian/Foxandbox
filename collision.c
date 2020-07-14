@@ -28,16 +28,6 @@ void CheckCollisions(SDL_Rect tileR, CollisionComponent *col){
 	SDL_Rect rectRight = (SDL_Rect){collider.x + collider.w, collider.y, 1, collider.h};
 	
 	if(!col->noClip){
-		if(SDL_HasIntersection(&tileR, &col->collisionBox)){
-			Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
-			keeping everything pixel perfect
-			if(roundSpeed.x != 0){
-				mapOffsetPos.x -= roundSpeed.x;
-			}
-			if(roundSpeed.y != 0){
-				mapOffsetPos.y -= roundSpeed.y;
-			}
-		}
 		
 		if(SDL_HasIntersection(&tileR, &rectTop)){
 			col->colUp = true;
@@ -50,6 +40,16 @@ void CheckCollisions(SDL_Rect tileR, CollisionComponent *col){
 		}
 		if(SDL_HasIntersection(&tileR, &rectRight)){
 			col->colRight = true;
+		}
+		if(SDL_HasIntersection(&tileR, &col->collisionBox)){
+			Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
+			keeping everything pixel perfect
+			if(roundSpeed.x != 0){
+				mapOffsetPos.x -= roundSpeed.x;
+			}
+			if(roundSpeed.y != 0){
+				mapOffsetPos.y -= roundSpeed.y;
+			}
 		}
 	}
 }

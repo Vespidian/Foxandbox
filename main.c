@@ -186,9 +186,17 @@ int pass_table(lua_State *L){
 	free(*temp);
 	return 1;
 }
+
 void loadLua(){
+	num_tilesheets = 0;
+	numItems = -1;
+	numBlocks = -1;
+	numAutotiles = -1;
+
 	tilesheets = malloc(sizeof(WB_Tilesheet));
 	itemData = malloc(sizeof(ItemComponent));
+	blockData = malloc(sizeof(BlockComponent));
+	autotile = malloc(sizeof(AutotileComponent));
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 	
@@ -264,6 +272,16 @@ void ResizeWindow(){
 }
 
 char currentCollectedText[128] = "";
+char consoleOutput[512] = "";
+void ParseConsoleCommand(char *command){
+	if(command[0] == '/'){
+		strcpy(command, strshft_l(command, 1));
+		if(strcmp(command, "help") == 0){
+			strcpy(consoleOutput, "you have been helped");
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 	init();
 	if(init){
@@ -338,7 +356,7 @@ int main(int argc, char **argv) {
 					printf("Character Offset Reset!");
 				}
 			}
-			
+
 			mouseClicked = false;
 			mouseHeld = false;
 			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
@@ -391,21 +409,21 @@ int main(int argc, char **argv) {
 					// if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
 					// 	loadLua();
 					// }
-					if(e.key.keysym.sym == SDLK_RETURN){
+					if(e.key.keysym.sym == SDLK_RETURN){//Chat history
 						if(inputMode == 1){
-							// printf("%s\n", currentCollectedText);
-							printf("%s\n", chatHistory[chatLogSize]);
-
+							if(currentCollectedText[0] != '\0' && currentCollectedText[0] != ' '){
+								chatHistory = realloc(chatHistory, (chatLogSize + 1) * sizeof(char **));
+								chatHistory[chatLogSize] = calloc(strlen(currentCollectedText) + 1, sizeof(char));
+								strcpy(chatHistory[chatLogSize], currentCollectedText);
+								chatLogSize++;
+								currentCollectedText[0] = '\0';
+								printf("%s\n", chatHistory[chatLogSize - 1]);
+								ParseConsoleCommand(chatHistory[chatLogSize - 1]);
+							}
 						}
 						if(inputMode < numInputModes - 1){
 							inputMode++;
 							
-							printf("wow\n");
-							chatHistory = realloc(chatHistory, (chatLogSize + 1) * sizeof(char **));
-							chatHistory[chatLogSize] = malloc(sizeof(char[strlen(currentCollectedText) + 1]));
-							strcpy(chatHistory[chatLogSize], currentCollectedText);
-							chatLogSize++;
-							currentCollectedText[0] = '\0';
 						}else{
 							inputMode = 0;
 						}
@@ -420,15 +438,11 @@ int main(int argc, char **argv) {
 						if(e.key.keysym.sym == SDLK_e){
 							showInv = !showInv;
 						}
-						if(e.key.keysym.sym == SDLK_v){
-							// SDL_StartTextInput();
-							// SDL_TextInputEvent
-						}
 						if(e.key.keysym.sym == SDLK_r){
 							// INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
 							// TextExtrapolate(colMap);
 						}
-						if(e.key.keysym.sym == SDLK_b){
+						if(e.key.keysym.sym == SDLK_b){//Fullscreen
 							SDL_DisplayMode gMode;
 							SDL_GetDesktopDisplayMode(0, &gMode);
 							WIDTH = gMode.w;
@@ -559,9 +573,26 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 }
 
 void RenderConsole(){
-	SDL_Rect console = {0, WIDTH - 200, 300, 200};
+	int stringFit = 31;
+	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
+	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
 	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, console, 220, RNDRLYR_UI);
-	RenderText_d(gRenderer, currentCollectedText, 0, WIDTH - 32);
+	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, textBox, 255, RNDRLYR_UI);
+
+	if(strlen(currentCollectedText) < stringFit){
+		RenderText_d(gRenderer, currentCollectedText, 0, WIDTH - 20);
+	}else{
+		RenderText_d(gRenderer, currentCollectedText, 278 - strlen(currentCollectedText) * 9, WIDTH - 20);
+	}
+
+	RenderText_d(gRenderer, consoleOutput, console.x, console.y + 4);
+	// for(int i = 0; i < chatLogSize; i++){
+	// 	if(chatHistory[chatLogSize - 1 - i] < stringFit){
+	// 		RenderText_d(gRenderer, chatHistory[chatLogSize - 1 - i], 0, (WIDTH - 20) - (i + 1) * 20);
+	// 	}else{
+
+	// 	}
+	// }
 }
 
 
