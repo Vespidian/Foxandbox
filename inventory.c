@@ -328,13 +328,27 @@ void INV_DrawInv(){
 				RenderText_d(gRenderer, invArray[hoveredCell].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 			}
 		}else{
-			if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-				if(mouseInv.occupied == true){
-					Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
-					DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
-					mouseInv.qty = 0;
-					mouseInv.item = undefinedItem;
-					mouseInv.occupied = false;
+			if(mouseClicked == true){
+				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
+					if(mouseInv.occupied == true){
+						Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
+						DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
+						mouseInv.qty = 0;
+						mouseInv.item = undefinedItem;
+						mouseInv.occupied = false;
+					}
+				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
+					if(mouseInv.occupied == true){
+						Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
+						DropItem(find_item(mouseInv.item.name), 1, dropLocation);
+						if(mouseInv.qty > 1){
+							mouseInv.qty--;
+						}else{
+							mouseInv.qty = 0;
+							mouseInv.item = undefinedItem;
+							mouseInv.occupied = false;
+						}
+					}
 				}
 			}
 		}
