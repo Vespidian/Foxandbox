@@ -314,6 +314,7 @@ void INV_DrawInv(){
 							}
 						}
 					}else if(invArray[hoveredCell].qty > 1){//Otherwise take half the items in that inventory cell
+						// printf("here\n");
 						mouseInv.item = invArray[hoveredCell].item;
 						mouseInv.qty = invArray[hoveredCell].qty / 2;
 						mouseInv.occupied = true;
@@ -331,6 +332,8 @@ void INV_DrawInv(){
 				if(mouseInv.occupied == true){
 					Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
 					DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
+					mouseInv.qty = 0;
+					mouseInv.item = undefinedItem;
 					mouseInv.occupied = false;
 				}
 			}
