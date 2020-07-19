@@ -24,12 +24,12 @@ int INV_InitRecipes();
 //Basic inventory functions
 void INV_Init();
 void INV_DrawInv();
-int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item);
+int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item);
 
 //Find functions
 ItemComponent *find_item(char *name);
 int INV_FindItem(ItemComponent itemNum);
-int INV_FindEmpty(ItemComponent item);
+int INV_FindEmpty(ItemComponent *item);
 //Lua functions
 int register_item(lua_State *L);
 

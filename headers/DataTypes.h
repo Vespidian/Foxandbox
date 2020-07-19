@@ -7,6 +7,11 @@ typedef struct{
 }Vector2;
 
 typedef struct{
+	double x;
+	double y;
+}fVector2;
+
+typedef struct{
 	int min;
 	int max;
 }Range;

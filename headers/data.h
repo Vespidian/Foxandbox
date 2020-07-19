@@ -40,9 +40,16 @@ void DrawCharacter(int direction, int numFrames);
 extern bool mouseClicked;
 extern bool mouseHeld;
 extern bool showDebugInfo;
+extern bool reachLimit;
+extern int reachDistance;
 
 //Lua functions
 int num_from_table(lua_State *L, char *field);
 
+
+//TMP
+extern DroppedItemComponent *droppedItems;
+void DropItem(ItemComponent *item, int qty, Vector2 pos);
+void RenderDroppedItems();
 
 #endif

@@ -36,6 +36,41 @@ typedef struct{
 }ParticleSystem;
 
 
+//Entity Components
+typedef struct{
+	int speed;
+	Vector2 velocity;
+	// bool followPlayer;
+}MovementComponent;
+
+typedef struct{
+	Vector2 tilePos;
+	Vector2 screenPos;
+	Vector2 worldPos;
+}TransformComponent;
+
+typedef struct{
+	SDL_Rect collisionBox;
+	SDL_Rect boundingBox;
+	
+	bool noClip;
+	
+	bool colUp;
+	bool colDown;
+	bool colLeft;
+	bool colRight;
+}CollisionComponent;
+
+typedef struct{
+	int health;
+	int maxHealth;
+}HealthComponent;
+
+typedef struct{
+	bool hostile;
+	int damage;
+}AttackComponent;
+
 
 //Inventory components
 typedef struct{
@@ -47,6 +82,14 @@ typedef struct{
 	bool isBlock;
 	
 }ItemComponent;
+
+typedef struct{
+	ItemComponent *item;
+	int qty;
+	TransformComponent transform;
+	int animLocation;
+	int animDir;
+}DroppedItemComponent;
 
 typedef struct{
 	ItemComponent *item;
@@ -109,39 +152,6 @@ typedef struct{
 }RenderTileComponent;
 
 
-//Entity Components
-typedef struct{
-	int speed;
-	Vector2 velocity;
-	// bool followPlayer;
-}MovementComponent;
-
-typedef struct{
-	Vector2 tilePos;
-	Vector2 screenPos;
-}TransformComponent;
-
-typedef struct{
-	SDL_Rect collisionBox;
-	SDL_Rect boundingBox;
-	
-	bool noClip;
-	
-	bool colUp;
-	bool colDown;
-	bool colLeft;
-	bool colRight;
-}CollisionComponent;
-
-typedef struct{
-	int health;
-	int maxHealth;
-}HealthComponent;
-
-typedef struct{
-	bool hostile;
-	int damage;
-}AttackComponent;
 
 
 

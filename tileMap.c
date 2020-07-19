@@ -148,7 +148,6 @@ int register_block(lua_State *L){
 		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
 		find_item((char *)lua_tostring(L, -1))->isBlock = true;
 	}
-
 	lua_getfield(L, -4, "block_sheet");
 	if(lua_tostring(L, -1) != NULL){
 		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
@@ -164,6 +163,7 @@ int register_block(lua_State *L){
 		blockData[numBlocks].tile = -1;
 	}
 
+	// printf("here\n");
 
 	lua_getfield(L, -6, "dropped_item");
 	if(lua_tostring(L, -1) != NULL){

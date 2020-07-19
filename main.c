@@ -51,6 +51,8 @@ int numInputModes = 2;
 bool isWalking = false;
 int characterFacing = 0;
 bool uiInteractMode = false;
+bool reachLimit = true;
+int reachDistance = 7;
 
 SDL_Rect windowRect;
 
@@ -207,20 +209,31 @@ void loadLua(){
 	
 	luaL_dofile(L, "scripts/init.lua");	
 
-	lua_close(L);
+	// lua_close(L);
 }
 
+
+void NewEntity();
+void RenderEntities();
 void Setup(){
 	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
 	SDL_RenderPresent(gRenderer);
 	
 	loadLua();
-	
+	NewEntity();
 	// lua_close(L);
-	INV_WriteCell("set", 0, 2, *find_item("stone"));
-	INV_WriteCell("set", 6, 99, *find_item("feather"));
-	INV_WriteCell("set", 2, 24, *find_item("wood"));
+	INV_WriteCell("set", 0, 2, find_item("stone"));
+	INV_WriteCell("set", 6, 99, find_item("feather"));
+	INV_WriteCell("set", 2, 24, find_item("wood"));
+	INV_WriteCell("set", 3, 16, find_item("grass"));
+	INV_WriteCell("set", 4, 16, find_item("water"));
 	MapInit();
+
+
+	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
+	DropItem(find_item("wood"), 1, (Vector2){100, 200});
+	DropItem(find_item("stone"), 1, (Vector2){150, 200});
+
 
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
@@ -276,8 +289,9 @@ char consoleOutput[512] = "";
 void ParseConsoleCommand(char *command){
 	if(command[0] == '/'){
 		strcpy(command, strshft_l(command, 1));
+
 		if(strcmp(command, "help") == 0){
-			strcpy(consoleOutput, "Possible commands:\ndebug lightcycle hitbox noclip\nfullscreen");
+			strcpy(consoleOutput, "Possible commands:\ndebug lightcycle hitbox noclip\nreachlimit fullscreen");
 		}
 		if(strcmp(command, "debug") == 0){
 			showDebugInfo = !showDebugInfo;
@@ -290,6 +304,9 @@ void ParseConsoleCommand(char *command){
 		}
 		if(strcmp(command, "noclip") == 0){
 			character.collider.noClip = !character.collider.noClip;
+		}
+		if(strcmp(command, "reachlimit") == 0){
+			reachLimit = !reachLimit;
 		}
 		if(strcmp(command, "fullscreen") == 0){
 			SDL_DisplayMode gMode;
@@ -527,8 +544,7 @@ int main(int argc, char **argv) {
 }MouseStates;
 
 MouseStates mouse;*/
-
-
+fVector2 entPos = {0, 0};
 void RenderScreen(){
 	clearScreen(gRenderer);
 	//Call SDL draw functions here and call RenderScreen from the main loop
@@ -542,6 +558,23 @@ void RenderScreen(){
 		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_bottom, -1, 750);
 		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_top, -1, 750);
 	}
+
+
+	// Vector2 m = {(mapOffsetPos.x - entPos.x), (mapOffsetPos.y - entPos.y)};
+	// int entSpeed = 2;
+	// SDL_Rect entRect = {entPos.x, entPos.y, 64, 64};
+	// AddToRenderQueue(gRenderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
+	// if(entPos.x > entPos.y){
+	// 	entPos.x += entSpeed * m.x / m.y;
+	// 	entPos.y += entSpeed;
+	// }else if(entPos.y > entPos.x){
+	// 	entPos.x += entSpeed;
+	// 	entPos.y += entSpeed * m.y / m.x;
+	// }else{
+	// 	entPos.x += entSpeed;
+	// 	entPos.y += entSpeed;
+	// }
+	RenderDroppedItems();
 	
 	FindCollisions();
 	
@@ -562,6 +595,8 @@ void RenderScreen(){
 	
 	RenderConsole();
 	
+	RenderEntities();
+
 	if(showDebugInfo){
 		snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", character.transform.tilePos.x, character.transform.tilePos.y);
 		snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
@@ -617,7 +652,7 @@ void RenderConsole(){
 }
 
 
-/*
+
 Entity *enemies;
 void NewEntity(){
 	enemies = (Entity *) malloc(sizeof(Entity));
@@ -625,12 +660,87 @@ void NewEntity(){
 	SDL_Rect enemyPos = {50, 50, 64, 64};
 	enemies[0].renderer.renderer = gRenderer;
 	enemies[0].renderer.tileSheet = *find_tilesheet("items");
-	enemies[0].renderer.tile = 24;
+	enemies[0].renderer.tile = 0;
 	enemies[0].renderer.transform = enemyPos;
 }
 
 void RenderEntities(){
 	for(int i = 0; sizeof(enemies) / sizeof(enemies[0]); i++){
-		RenderTextureInWorld(enemies[i].renderer.renderer, enemies[i].renderer.tileSheet, enemies[i].renderer.tile, enemies[i].renderer.transform, 0);
+		RenderTextureInWorld(enemies[i].renderer.renderer, enemies[i].renderer.tileSheet, enemies[i].renderer.tile, enemies[i].renderer.transform, 10000);
 	}
-}*/
+
+	/*
+	// printf("started here\n");
+	fVector2 m = {(characterOffset.x + mapOffsetPos.x) - entPos.x, (characterOffset.y + mapOffsetPos.y) - entPos.y};
+	int entSpeed = 2;
+	// RenderTextureInWorld(gRenderer, *find_tilesheet("items"), 4, entRect, 10000);
+	// if()
+	if(abs(m.y) > abs(m.x)){
+		entPos.x += entSpeed * ((float)m.x / (float)m.y);//Problem
+		entPos.y += entSpeed * ((m.y < 0) ? -1 : 1);
+	}else if(abs(m.x) > abs(m.y)){
+		entPos.x += entSpeed * ((m.x < 0) ? -1 : 1);
+		entPos.y += entSpeed * ((float)m.y / (float)m.x);//Problem
+	}else{
+		entPos.x += entSpeed * ((m.x < 0) ? -1 : 1);
+		entPos.y += entSpeed * ((m.y < 0) ? -1 : 1);
+		// entPos.y += entSpeed;
+		// entPos.x += entSpeed;
+	}
+	SDL_Rect entRect = {entPos.x - mapOffsetPos.x, entPos.y - mapOffsetPos.y, 64, 64};
+	AddToRenderQueue(gRenderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
+	printf("%f / %f\n", m.x, m.y);
+	// printf("%f\n", (float)m.x / (float)m.y);
+	// printf("%f / %f\n", entPos.x, entPos.y);
+	// printf("%d\n", 12 * (-10 < 0 ? -1 : 1));*/
+}
+
+DroppedItemComponent *droppedItems;
+int numDroppedItems = 0;
+
+void DropItem(ItemComponent *item, int qty, Vector2 pos){
+	if(qty > 0){
+		droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
+
+		droppedItems[numDroppedItems].item = item;
+		droppedItems[numDroppedItems].qty = qty;
+		droppedItems[numDroppedItems].transform.worldPos = (Vector2)pos;
+		droppedItems[numDroppedItems].animLocation = 0;
+		droppedItems[numDroppedItems].animDir = 0;
+
+		numDroppedItems++;
+	}
+}
+
+void RenderDroppedItems(){
+	for(int i = 0; i < numDroppedItems; i++){
+		SDL_Rect itemRect = {droppedItems[i].transform.worldPos.x - mapOffsetPos.x, 
+			droppedItems[i].transform.worldPos.y - mapOffsetPos.y + droppedItems[i].animLocation,
+			32, 32};
+		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+		SDL_Point p = {itemRect.x, itemRect.y};
+		if(SDL_PointInRect(&p, &winRect)){
+			AddToRenderQueue(gRenderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, 10000);
+			if(droppedItems[i].animDir == 1){
+				droppedItems[i].animLocation--;
+			}else if(droppedItems[i].animDir == 0){
+				droppedItems[i].animLocation++;
+			}
+			if(droppedItems[i].animLocation >= 8){
+				droppedItems[i].animDir = 1;
+			}else if(droppedItems[i].animLocation <= 0){
+				droppedItems[i].animDir = 0;
+			}
+
+			if(SDL_HasIntersection(&character.collider.boundingBox, &itemRect)){
+				INV_WriteCell("add", INV_FindEmpty(droppedItems[i].item), droppedItems[i].qty, droppedItems[i].item);
+
+				for(int j = i; j < numDroppedItems; j++){
+					droppedItems[j] = droppedItems[j + 1];
+				}
+
+				numDroppedItems--;
+			}
+		}
+	}
+}

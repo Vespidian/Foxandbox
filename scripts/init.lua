@@ -61,43 +61,40 @@ register_item({
 
 register_block({
 	name = "bookshelf",
-	item_sheet = "images/furniture.png",
+	item_sheet = "furniture",
 	item_tile_index = 0,
 	
-	block_sheet = "images/furniture.png",
+	block_sheet = "furniture",
 	block_tile_index = 0,
 	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
 
 register_block({
 	name = "flower",
-	item_sheet = "images/furniture.png",
+	item_sheet = "furniture",
 	item_tile_index = 1,
 
-	block_sheet = "images/furniture.png",
+	block_sheet = "furniture",
 	block_tile_index = 1,
-	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
 register_block({
 	name = "grass",
-	item_sheet = "images/AUTOTile_grass-water.png",
+	item_sheet = "default_ground",
 	item_tile_index = 0,
 
-	block_sheet = "images/AUTOTile_grass-water.png",
+	block_sheet = "default_ground",
 	block_tile_index = 0,
-	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+
 })
 
 register_block({
 	name = "water",
-	item_sheet = "images/AUTOTile_grass-water.png",
+	item_sheet = "default_ground",
 	item_tile_index = 47,
 
-	block_sheet = "images/AUTOTile_grass-water.png",
+	block_sheet = "default_ground",
 	block_tile_index = 47,
-	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
 })
-
 
 
 

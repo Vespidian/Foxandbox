@@ -44,7 +44,7 @@ RecipeComponent recipes[64];
 int numberOfRecipes = 0;
 
 ItemComponent *find_item(char *name){
-	for(int i = 0; i < numItems; i++){
+	for(int i = 0; i < numItems + 1; i++){
 		if(strcmp(name, itemData[i].name) == 0){
 			return &itemData[i];
 		}
@@ -283,7 +283,7 @@ void INV_DrawInv(){
 						mouseInv.qty = totalFound;
 					}else{
 						if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
-							int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
+							int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, &mouseInv.item);
 							if(mouseRemainder == 0){
 								mouseInv.occupied = false;
 								mouseInv.qty = 0;
@@ -305,10 +305,10 @@ void INV_DrawInv(){
 					if(mouseInv.qty > 0){//Check if mouse has any item
 						if(invArray[hoveredCell].occupied == false || strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
 							if(mouseInv.qty > 1){//If there are multiple items in mouseInv add one to inv cell
-								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
+								INV_WriteCell("add", hoveredCell, 1, &mouseInv.item);
 								mouseInv.qty--;
 							}else{//If there was only 1, empty mouse slot
-								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
+								INV_WriteCell("add", hoveredCell, 1, &mouseInv.item);
 								mouseInv.occupied = false;
 								mouseInv.qty = 0;
 							}
@@ -317,7 +317,7 @@ void INV_DrawInv(){
 						mouseInv.item = invArray[hoveredCell].item;
 						mouseInv.qty = invArray[hoveredCell].qty / 2;
 						mouseInv.occupied = true;
-						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell].qty / 2, invArray[hoveredCell].item);
+						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell].qty / 2, &invArray[hoveredCell].item);
 					}
 				}
 			}
@@ -325,6 +325,14 @@ void INV_DrawInv(){
 				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(invArray[hoveredCell].item.name) * 14, 28};
 				AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
 				RenderText_d(gRenderer, invArray[hoveredCell].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
+			}
+		}else{
+			if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
+				if(mouseInv.occupied == true){
+					Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
+					DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
+					mouseInv.occupied = false;
+				}
 			}
 		}
 		
@@ -361,7 +369,7 @@ void INV_DrawInv(){
 }
 
 
-int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
+int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 	if(cell > INV_HEIGHT * INV_WIDTH){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
@@ -370,7 +378,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 	if(itemQty != NULL && itemQty != 0){
 		
 		if(strcmp(mode, "set") == 0){
-			invArray[cell].item = item;
+			invArray[cell].item = *item;
 			invArray[cell].occupied = true;
 			if(itemQty < maxStack){
 				invArray[cell].qty = itemQty;
@@ -380,9 +388,9 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 				invArray[cell].occupied = true;
 			}
 		}else if(strcmp(mode, "add") == 0){
-			invArray[cell].item = item;
+			invArray[cell].item = *item;
 			invArray[cell].occupied = true;
-			if(strcmp(invArray[cell].item.name, item.name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
+			if(strcmp(invArray[cell].item.name, item->name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
 				if(invArray[cell].qty + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
 					int remainder = (itemQty - (maxStack - invArray[cell].qty));
 					invArray[cell].qty += maxStack - invArray[cell].qty;//Fill the cell
@@ -394,7 +402,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent item){
 				}
 			}
 		}else if(strcmp(mode, "sub") == 0){
-			if(strcmp(invArray[cell].item.name, item.name) == 0){
+			if(strcmp(invArray[cell].item.name, item->name) == 0){
 				if(invArray[cell].qty > 0){
 					invArray[cell].qty -= itemQty;
 					invArray[cell].occupied = true;
@@ -420,10 +428,12 @@ int INV_FindItem(ItemComponent itemNum){
 	}
 	return -1;
 }
-int INV_FindEmpty(ItemComponent item){
-	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(strcmp(invArray[i].item.name, item.name) == 0 && invArray[i].qty <= maxStack){
-			return i;
+int INV_FindEmpty(ItemComponent *item){
+	if(item->name != NULL){
+		for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
+			if(strcmp(invArray[i].item.name, item->name) == 0 && invArray[i].qty <= maxStack){
+				return i;
+			}
 		}
 	}
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
