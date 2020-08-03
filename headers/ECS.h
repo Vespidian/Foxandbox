@@ -87,25 +87,27 @@ typedef struct{
 	ItemComponent *item;
 	int qty;
 	TransformComponent transform;
-	int animLocation;
+	float animLocation;
 	int animDir;
 }DroppedItemComponent;
 
 typedef struct{
-	ItemComponent *item;
-	ItemComponent *dropItem;//If null just drop item
-	int dropQty;//If null drop 1
+	int id;
+	ItemComponent *item;//Base item
+	ItemComponent *dropItem;//Item to drop when block broken, if null just drop item
+	int dropQty;//Number of items to drop
 
-	WB_Tilesheet sheet;
-	int tile;
+	WB_Tilesheet sheet;//Block tilesheet
+	int tile;//Block tile index
 
-	bool autoTile;
+	bool autoTile;//Is this block from an autotile set?
 
 	char **flags;
 	
 }BlockComponent;
 
 typedef struct{
+	int id;
 	ItemComponent item;
 	ItemComponent dropItem;//If null just drop item
 	int dropQty;//If null drop 1
@@ -122,18 +124,17 @@ typedef struct{
 typedef struct{
 	char *name;
 	BlockComponent *baseBlock;
-	BlockComponent_local auto_block[46];
+	BlockComponent *auto_block;//Array
 	BlockComponent *subBlock;
 }AutotileComponent;
 
-typedef struct{
+typedef struct {
 	int inItem;
 	int inQty;
 	int outItem;
 	int outQty;
 	
 }RecipeComponent;
-
 
 //Render Components
 typedef struct{

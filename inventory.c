@@ -262,13 +262,13 @@ void INV_DrawInv(){
 		
 		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
 		
-		SDL_Point mousePoint = {mousePos.x, mousePos.y};
+		SDL_Point mousePoint = {mouseTransform.screenPos.x, mouseTransform.screenPos.y};
 		mousePoint.x = (mousePoint.x - invRect.x - INV_spacing / 2) / (itemRectSize + INV_spacing);
 		mousePoint.y = (mousePoint.y - invRect.y - INV_spacing / 2) / (itemRectSize + INV_spacing);
 		if(mousePoint.x + 1 <= INV_WIDTH && mousePoint.y + 1 <= INV_HEIGHT){
 			hoveredCell = mousePoint.x % INV_WIDTH + (mousePoint.y * INV_WIDTH);
 		}
-		if(SDL_PointInRect(&mousePos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
+		if(SDL_PointInRect(&mouseTransform.screenPos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 			if(mouseClicked == true){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0){//Check for double clicked
@@ -328,10 +328,10 @@ void INV_DrawInv(){
 				RenderText_d(gRenderer, invArray[hoveredCell].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 			}
 		}else{
-			if(mouseClicked == true){
+			if(mouseClicked == true && colMap[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(mouseInv.occupied == true){
-						Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
+						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
 						DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
 						mouseInv.qty = 0;
 						mouseInv.item = undefinedItem;
@@ -339,7 +339,7 @@ void INV_DrawInv(){
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.occupied == true){
-						Vector2 dropLocation = {mousePos.x + mapOffsetPos.x - 16, mousePos.y + mapOffsetPos.y - 16};
+						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
 						DropItem(find_item(mouseInv.item.name), 1, dropLocation);
 						if(mouseInv.qty > 1){
 							mouseInv.qty--;
@@ -354,12 +354,10 @@ void INV_DrawInv(){
 		}
 		
 		for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){//Inventory render loop
-			int x = (i % INV_WIDTH), y = (i / INV_HEIGHT);
+			int x = (i % INV_WIDTH), y = (i / INV_WIDTH);
 			invItemRect.x = (invRect.x + itemRectSize * x) + INV_spacing * (x + 1);
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
-			
 			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
-			
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
 				AddToRenderQueue(gRenderer, invArray[i].item.sheet, invArray[i].item.tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
@@ -373,7 +371,7 @@ void INV_DrawInv(){
 		}
 		//Drawing the mouse inventory
 		if(mouseInv.occupied == true && mouseInv.qty > 0){
-			SDL_Rect mouseItem = {mousePos.x - 16, mousePos.y - 16, itemRectSize, itemRectSize};
+			SDL_Rect mouseItem = {mouseTransform.screenPos.x - 16, mouseTransform.screenPos.y - 16, itemRectSize, itemRectSize};
 			AddToRenderQueue(gRenderer, mouseInv.item.sheet, mouseInv.item.tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];

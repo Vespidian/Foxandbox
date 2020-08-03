@@ -4,9 +4,10 @@
 int GetSurroundCount(Vector2 tile);
 
 //Basic procedural map generation functions
-void RandomMap(RenderTileComponent map[][32], int ratioPercent);
+void RandomMap(RenderTileComponent map[][32], int ratioPercent, int numTypes, ...);
 void SmoothMap();
-void AutotileMap(RenderTileComponent map[][32]);
+// void AutotileMap(RenderTileComponent map[][32]);
+void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile);
 
 //Generate a random procedural map
 void GenerateProceduralMap(int ratioPercent, int smoothSteps);

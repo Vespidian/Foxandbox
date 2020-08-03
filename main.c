@@ -41,8 +41,9 @@ Vector2 mapOffsetPos = {0, 0};//Offset of the map to simulate movement
 Vector2 playerCoord = {0, 0};//Player's coordinate on map
 Vector2 placeLocation = {0, 0};
 Vector2 characterOffset = {0, 0};//Position of character sprite relative to window 0,0
-Vector2 mousePos = {0, 0};//Position of the mouse
+// Vector2 mouseTransform.screenPos = {0, 0};//Position of the mouse
 Vector2 midScreen = {0, 0};
+TransformComponent mouseTransform;
 
 bool enableHitboxes = false;
 
@@ -198,7 +199,7 @@ void loadLua(){
 	tilesheets = malloc(sizeof(WB_Tilesheet));
 	itemData = malloc(sizeof(ItemComponent));
 	blockData = malloc(sizeof(BlockComponent));
-	autotile = malloc(sizeof(AutotileComponent));
+	autotileData = malloc(sizeof(AutotileComponent));
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 	
@@ -208,7 +209,6 @@ void loadLua(){
 	lua_register(L, "populate_autotile", populate_autotile);
 	
 	luaL_dofile(L, "scripts/init.lua");	
-
 	// lua_close(L);
 }
 
@@ -227,13 +227,13 @@ void Setup(){
 	INV_WriteCell("set", 2, 24, find_item("wood"));
 	INV_WriteCell("set", 3, 16, find_item("grass"));
 	INV_WriteCell("set", 4, 16, find_item("water"));
+	INV_WriteCell("set", 12, 17, find_item("flower"));
 	MapInit();
 
 
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
-	DropItem(find_item("wood"), 1, (Vector2){100, 200});
-	DropItem(find_item("stone"), 1, (Vector2){150, 200});
-
+	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
+	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
@@ -253,7 +253,6 @@ void Setup(){
 	// character.collider = (CollisionComponent){false, false, false, false};
 	// runScript("scripts/init.lua");
 
-	
 	// printf("%s\n", find_tilesheet("character")->name);
 	// printf("%s\n", tilesheets[2].name);
 	
@@ -402,7 +401,7 @@ int main(int argc, char **argv) {
 				mouseHeld = true;
 			}
 			while(SDL_PollEvent(&e) != 0){
-				SDL_GetMouseState(&mousePos.x, &mousePos.y);
+				SDL_GetMouseState(&mouseTransform.screenPos.x, &mouseTransform.screenPos.y);
 				
 				if(e.type == SDL_MOUSEBUTTONDOWN){
 					if(e.key.state == SDL_RELEASED){
@@ -700,15 +699,17 @@ int numDroppedItems = 0;
 
 void DropItem(ItemComponent *item, int qty, Vector2 pos){
 	if(qty > 0){
-		droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
+		if(colMap[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
+			droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
 
-		droppedItems[numDroppedItems].item = item;
-		droppedItems[numDroppedItems].qty = qty;
-		droppedItems[numDroppedItems].transform.worldPos = (Vector2)pos;
-		droppedItems[numDroppedItems].animLocation = 0;
-		droppedItems[numDroppedItems].animDir = 0;
+			droppedItems[numDroppedItems].item = item;
+			droppedItems[numDroppedItems].qty = qty;
+			droppedItems[numDroppedItems].transform.worldPos = (Vector2)pos;
+			droppedItems[numDroppedItems].animLocation = 0;
+			droppedItems[numDroppedItems].animDir = 0;
 
-		numDroppedItems++;
+			numDroppedItems++;
+		}
 	}
 }
 
@@ -722,11 +723,11 @@ void RenderDroppedItems(){
 		if(SDL_PointInRect(&p, &winRect)){
 			AddToRenderQueue(gRenderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
 			if(droppedItems[i].animDir == 1){
-				droppedItems[i].animLocation--;
+				droppedItems[i].animLocation -= 0.6;
 			}else if(droppedItems[i].animDir == 0){
-				droppedItems[i].animLocation++;
+				droppedItems[i].animLocation += 0.6;
 			}
-			if(droppedItems[i].animLocation >= 8){
+			if(droppedItems[i].animLocation >= 10){
 				droppedItems[i].animDir = 1;
 			}else if(droppedItems[i].animLocation <= 0){
 				droppedItems[i].animDir = 0;

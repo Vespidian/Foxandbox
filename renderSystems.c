@@ -106,7 +106,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 		printf("Error: RenderText called with null text field\n");
 		return 1;
 	}
-
+	SDL_Rect screenRect = {0, 0, WIDTH, HEIGHT};
 	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
 	
 	SDL_Rect charRect = {x, y, spacing, spacing};
@@ -114,8 +114,10 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 		for(int i = 0; i < strlen(text); i++){//Iterate through the characters of the string
 			int charVal = (int)text[i] - (int)' ';//Get an integer value from the character to be drawn
 			//Non character cases
-			if(charVal >= 0){//SPACE
-				AddToRenderQueue(renderer, fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
+			if(charVal >= 0){//NOT SPACE
+				if(SDL_HasIntersection(&charRect, &screenRect)){//Only render if text is on screen
+					AddToRenderQueue(renderer, fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
+				}
 				charRect.x += tracking;
 			}else if(charVal == -22){//NEWLINE (\n)
 				charRect.y += spacing;
@@ -138,32 +140,35 @@ void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
 
 void RenderCursor(){// Highlight the tile the mouse is currently on
 	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * 32, 64 * 32};
-	Vector2 mouseTile = {mousePos.x, mousePos.y};
-	mouseTile.x = ((mousePos.x + mapOffsetPos.x) / 64);
-	mouseTile.y = ((mousePos.y + mapOffsetPos.y) / 64);
-	SDL_Point cursor = {(mouseTile.x * 64) - mapOffsetPos.x, (mouseTile.y * 64) - mapOffsetPos.y};
+	// mouseTransform.tilePos = (Vector2){mouseTransform.screenPos.x, mouseTransform.screenPos.y};
+	mouseTransform.tilePos.x = ((mouseTransform.screenPos.x + mapOffsetPos.x) / 64);
+	mouseTransform.tilePos.y = ((mouseTransform.screenPos.y + mapOffsetPos.y) / 64);
+	SDL_Point cursor = {(mouseTransform.tilePos.x * 64) - mapOffsetPos.x, (mouseTransform.tilePos.y * 64) - mapOffsetPos.y};
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
-		if((abs(character.transform.tilePos.x - mouseTile.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTile.y) <= reachDistance) || !reachLimit){
+		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
 		//Determine wether or not the user can reach infinitely
 			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 1);
 			
 			//MouseText
 			if(showDebugInfo){
-				char mousePosT[256];
-				snprintf(mousePosT, 1024, "MOUSEPOS ->\nx: %d, y: %d", mouseTile.x, mouseTile.y);
-				RenderText_d(gRenderer, mousePosT, 0, 96);
+				char screenPosT[256];
+				snprintf(screenPosT, 1024, "mouseTransform.screenPos ->\nx: %d, y: %d", mouseTransform.tilePos.x, mouseTransform.tilePos.y);
+				RenderText_d(gRenderer, screenPosT, 0, 96);
 			}
 
 			if(mouseHeld){//Place and remove tiles
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-					TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, find_block("grass"), false);
-					TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, find_block("grass"), false);
-					AutotileMap(buildLayer);
+				// printf("%s, %d\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->item->name, buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->id);
+				printf("%d\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->id);
+				// printf("%s\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->item->name);
+
+				/*if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
+					TileMapEdit(buildLayer, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
 				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-					TileMapEdit(buildLayer, (Vector2){mouseTile.x, mouseTile.y}, find_block("water"), false);
-					TileMapEdit(buildLayer_tmp, (Vector2){mouseTile.x, mouseTile.y}, find_block("water"), false);
-					AutotileMap(buildLayer);
-				}
+					TileMapEdit(buildLayer, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
+					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
+				}*/
+
 			}
 		}
 	}

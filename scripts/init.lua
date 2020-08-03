@@ -66,7 +66,7 @@ register_block({
 	
 	block_sheet = "furniture",
 	block_tile_index = 0,
-	-- flags = {"bflag_default", "bflag_notfault", "cflag whoah?", "wait it works holy crap!"},
+	flags = {"feature", "collision_0"},
 })
 
 register_block({
@@ -76,6 +76,7 @@ register_block({
 
 	block_sheet = "furniture",
 	block_tile_index = 1,
+	flags = {"feature"},
 })
 register_block({
 	name = "grass",
@@ -84,7 +85,7 @@ register_block({
 
 	block_sheet = "default_ground",
 	block_tile_index = 0,
-
+	flags = {"ground"},
 })
 
 register_block({
@@ -94,6 +95,17 @@ register_block({
 
 	block_sheet = "default_ground",
 	block_tile_index = 47,
+	-- flags = {"ground", "collision_0"},
+})
+
+register_block({
+	name = "nylium",
+	item_sheet = "furniture",
+	item_tile_index = 4,
+
+	block_sheet = "furniture",
+	block_tile_index = 4,
+	-- flags = {"ground", "collision_0"},
 })
 
 

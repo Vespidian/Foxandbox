@@ -61,16 +61,13 @@ void TextureInit(){
 }
 
 void MapInit(){
-	LoadMap("maps/testMap_layer0.csv", map);
-	LoadMap("maps/testMap_layer1.csv", map1);
 	LoadMap("maps/testMap_temp.csv", furnitureMap);
 	LoadDataMap("maps/testMap_colliders.csv", colMap);
-	
 }
 
 void UndefinedInit(){
 	undefinedItem = (ItemComponent){"undefined", "", undefinedSheet, 0};
-	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0};
+	undefinedBlock = (BlockComponent){0, &undefinedItem, &undefinedItem, 1, undefinedSheet, 0};
 }
 
 bool init(){
@@ -86,7 +83,7 @@ bool init(){
 	UndefinedInit();
 	TextureInit();
 	INV_Init();
-	memset(customMap, -1, sizeof(customMap));
+	// memset(customMap, -1, sizeof(customMap));
 	
 	ReadItemData();
 	// printf("test\n");

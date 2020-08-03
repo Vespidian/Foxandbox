@@ -25,13 +25,15 @@ void clearScreen(SDL_Renderer *renderer);
 extern Vector2 mapOffsetPos;
 extern Vector2 playerCoord;
 extern Vector2 characterOffset;
-extern Vector2 mousePos;
 extern Vector2 midScreen;
+extern TransformComponent mouseTransform;
 
 	
 extern int tileSize;
 extern bool enableHitboxes;
 extern int characterFacing;
+
+extern SDL_Rect windowRect;
 
 extern bool uiInteractMode;
 

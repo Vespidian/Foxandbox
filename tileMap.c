@@ -20,10 +20,10 @@ int tileSheetWidth = 8;
 
 
 int colMap[32][32] = {};
-RenderTileComponent map[32][32] = {};
-RenderTileComponent map1[32][32] = {};
+// RenderTileComponent map[32][32] = {};
+// RenderTileComponent map1[32][32] = {};
 RenderTileComponent furnitureMap[32][32] = {};
-RenderTileComponent customMap[32][32] = {};
+// RenderTileComponent customMap[32][32] = {};
 
 RenderTileComponent buildLayer[32][32] = {};
 
@@ -32,7 +32,7 @@ BlockComponent undefinedBlock;
 BlockComponent *blockData;
 int numBlocks = -1;
 
-AutotileComponent *autotile;
+AutotileComponent *autotileData;
 int numAutotiles = -1;
 
 /*Formula
@@ -52,10 +52,10 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 }
 
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
-	// if(tileSheet.tex == NULL){
-	// 	printf("Error: Tilesheet not defined properly!\n");
-	// 	return 1;
-	// }
+	if(tileSheet.tex == NULL){
+		printf("Error: Tilesheet not defined properly!\n");
+		return 1;
+	}
 	if(alpha == -1){
 		alpha = 255;
 	}
@@ -64,7 +64,7 @@ int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNu
 		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, tileSheet, tileNum, destRect, alpha, zPos};
 		renderItemIndex++;
 		return 0;
-	}else if(strcmp(tileSheet.name, "undefined") == 0 || tileSheet.tex == NULL){
+	}else if(strcmp(tileSheet.name, "undefined") == 0 || tileSheet.tex == NULL || tileNum < 0){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
 		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, undefinedSheet, 0, destRect, 255, zPos};
 		renderItemIndex++;
@@ -148,6 +148,7 @@ int register_block(lua_State *L){
 		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
 		find_item((char *)lua_tostring(L, -1))->isBlock = true;
 	}
+	
 	lua_getfield(L, -4, "block_sheet");
 	if(lua_tostring(L, -1) != NULL){
 		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
@@ -162,8 +163,6 @@ int register_block(lua_State *L){
 		// printf("%d\n", lua_tonumber(L, -1));
 		blockData[numBlocks].tile = -1;
 	}
-
-	// printf("here\n");
 
 	lua_getfield(L, -6, "dropped_item");
 	if(lua_tostring(L, -1) != NULL){
@@ -207,56 +206,52 @@ int register_block(lua_State *L){
 			lua_pop(L, 1);
 		}
 	}
+
 	blockData[numBlocks].autoTile = false;
+	// blockData[numBlocks].id = 0;
 
 	return 0;
 }
 
 int populate_autotile(lua_State *L){
 	numAutotiles++;
-	autotile = realloc(autotile, (numAutotiles + 1) * sizeof(AutotileComponent));
+	autotileData = realloc(autotileData, (numAutotiles + 1) * sizeof(AutotileComponent));
 
 	luaL_checktype(L, 1, LUA_TTABLE);
 
 	//Get name
 	lua_getfield(L, -1, "name");
 	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].name = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
-		strcpy(autotile[numAutotiles].name, lua_tostring(L, -1));
+		autotileData[numAutotiles].name = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
+		strcpy(autotileData[numAutotiles].name, lua_tostring(L, -1));
 	}else{//Undefined
-		autotile[numAutotiles].name = calloc(strlen("undefined"), sizeof(char));
-		strcpy(autotile[numAutotiles].name, "undefined");
+		autotileData[numAutotiles].name = calloc(strlen("undefined"), sizeof(char));
+		strcpy(autotileData[numAutotiles].name, "undefined");
 	}
-
 
 	//Get base item
 	lua_getfield(L, -2, "base_block");
 	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].baseBlock = find_block((char *)lua_tostring(L, -1));
+		autotileData[numAutotiles].baseBlock = find_block((char *)lua_tostring(L, -1));
 	}else{//Undefined
-		autotile[numAutotiles].baseBlock = &undefinedBlock;
+		autotileData[numAutotiles].baseBlock = &undefinedBlock;
 	}
 
 	//Get sub item
 	lua_getfield(L, -3, "sub_block");
 	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		autotile[numAutotiles].subBlock = find_block((char *)lua_tostring(L, -1));
+		autotileData[numAutotiles].subBlock = find_block((char *)lua_tostring(L, -1));
 	}else{//Undefined
-		autotile[numAutotiles].subBlock = &undefinedBlock;
+		autotileData[numAutotiles].subBlock = &undefinedBlock;
 	}
 
 	//For loop to loop between the base and sub
-	BlockComponent block;
-	block.item = autotile[numAutotiles].baseBlock->item;
-	block.dropItem = autotile[numAutotiles].baseBlock->dropItem;
-	block.dropQty = autotile[numAutotiles].baseBlock->dropQty;
-	block.sheet = autotile[numAutotiles].baseBlock->sheet;
-	block.autoTile = true;
 	for(int i = 1; i <= 46; i++){
-		block.tile = i;
-		autotile[numAutotiles].auto_block[i - 1] = (BlockComponent_local)block;
-		snprintf(autotile[numAutotiles].auto_block[i - 1].item.name, strlen(autotile[numAutotiles].baseBlock->item->name) + 2,\
-		"%s%d", autotile[numAutotiles].baseBlock->item->name, i);
+		autotileData[numAutotiles].auto_block = realloc(autotileData[numAutotiles].auto_block, (i + 1) * sizeof(BlockComponent_local));
+		autotileData[numAutotiles].auto_block[i - 1] = *autotileData[numAutotiles].baseBlock;
+		autotileData[numAutotiles].auto_block[i - 1].autoTile = true;
+		autotileData[numAutotiles].auto_block[i - 1].tile = i;
+		autotileData[numAutotiles].auto_block[i - 1].id = i;
 	}
 
 	return 0;
@@ -337,8 +332,7 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 				Vector2 tilePos = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
 
 				SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-				// AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].type, tile, -1, zPos + mapArray[y][x].zPos);
-				AddToRenderQueue(gRenderer, tileSheet, mapArray[y][x].block->tile, tile, -1, zPos + mapArray[y][x].zPos);
+				AddToRenderQueue(gRenderer, mapArray[y][x].block->sheet, mapArray[y][x].block->tile, tile, -1, zPos + mapArray[y][x].zPos);
 				mapArray[y][x].zPos = 0;
 			}
 		}

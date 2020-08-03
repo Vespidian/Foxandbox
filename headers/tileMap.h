@@ -10,10 +10,7 @@ extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, 
 
 extern int colMap[32][32];
 
-extern RenderTileComponent map[32][32];
-extern RenderTileComponent map1[32][32];
 extern RenderTileComponent furnitureMap[32][32];
-extern RenderTileComponent customMap[32][32];
 
 extern int renderItemIndex;
 extern int tilePixelSize;
@@ -41,7 +38,7 @@ extern BlockComponent undefinedBlock;
 extern BlockComponent *blockData;
 extern int numBlocks;
 
-extern AutotileComponent *autotile;
+extern AutotileComponent *autotileData;
 extern int numAutotiles;
 
 BlockComponent *find_block(char *name);
