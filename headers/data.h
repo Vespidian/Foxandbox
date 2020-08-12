@@ -24,7 +24,7 @@ void clearScreen(SDL_Renderer *renderer);
 
 extern Vector2 mapOffsetPos;
 extern Vector2 playerCoord;
-extern Vector2 characterOffset;
+extern fVector2 characterOffset;
 extern Vector2 midScreen;
 extern TransformComponent mouseTransform;
 
@@ -44,6 +44,8 @@ extern bool mouseHeld;
 extern bool showDebugInfo;
 extern bool reachLimit;
 extern int reachDistance;
+
+float lerp(float goal, float current, float increment);
 
 //Lua functions
 int num_from_table(lua_State *L, char *field);

@@ -7,7 +7,7 @@ typedef struct item_cell{
     bool occupied;
 }itmcell_t;
 
-extern enum INV_PARAMS {INV_WIDTH = 4, INV_HEIGHT = 4};
+extern enum INV_PARAMS {INV_WIDTH = 8, INV_HEIGHT = 4};
 extern itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
 
 extern ItemComponent undefinedItem;
@@ -28,8 +28,12 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item);
 
 //Find functions
 ItemComponent *find_item(char *name);
-int INV_FindItem(ItemComponent itemNum);
-int INV_FindEmpty(ItemComponent *item);
+
+int INV_Add(int qty, ItemComponent *item);
+int INV_Subtract(int qty, ItemComponent *item);
+
+int INV_FindItem(ItemComponent *item);
+int INV_FindEmpty();
 //Lua functions
 int register_item(lua_State *L);
 

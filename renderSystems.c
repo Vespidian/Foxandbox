@@ -13,6 +13,7 @@
 #include "headers/tileMap.h"
 #include "headers/mapGeneration.h"
 #include "headers/renderSystems.h"
+#include "headers/inventory.h"
 
 const int particleCap = 10000;
 int particleCount = 0;
@@ -147,7 +148,7 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
 		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
 		//Determine wether or not the user can reach infinitely
-			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 1);
+			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
 			
 			//MouseText
 			if(showDebugInfo){
@@ -157,10 +158,16 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 			}
 
 			if(mouseHeld){//Place and remove tiles
-				// printf("%s, %d\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->item->name, buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->id);
-				printf("%d\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->id);
-				// printf("%s\n", buildLayer[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block->item->name);
-
+				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
+				//Only place the item if it is a block and the selected hotbar is occupied
+				//Only place if the indicated block is different from the selected hotbar block
+				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item.isBlock && strcmp(invArray[selectedHotbar].item.name, buildLayer[tile.y][tile.x].block->item->name) != 0){
+					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+						INV_Subtract(1, &invArray[selectedHotbar].item);
+						INV_Add(buildLayer[tile.y][tile.x].block->dropQty, buildLayer[tile.y][tile.x].block->dropItem);
+						PlaceBlock(tile, find_block(invArray[selectedHotbar].item.name));
+					}
+				}
 				/*if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
 					TileMapEdit(buildLayer, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
@@ -174,10 +181,29 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	}
 }
 
-
-
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	bool isClicked = false;
 	
+	if(SDL_PointInRect(&mouseTransform.screenPos, &rect)){
+		if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+			isClicked = true;
+		}
+	}
+	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
+	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
+	RenderText_d(renderer, text, textPos.x, textPos.y);
+	
 	return isClicked;
+}
+
+
+void RenderPauseMenu(){
+	// SDL_Rect tmp1 = {WIDTH / 2 - 32, 300, 128, 32};
+	// SDL_Rect tmp2 = {WIDTH / 2 - 32, 336, 128, 32};
+	// if(DrawButton(gRenderer, "Button 1", tmp1)){
+	// 	printf("wow 1\n");
+	// }
+	// if(DrawButton(gRenderer, "Button 2", tmp2)){
+	// 	printf("wow 2\n");
+	// }
 }

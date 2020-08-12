@@ -66,7 +66,7 @@ register_block({
 	
 	block_sheet = "furniture",
 	block_tile_index = 0,
-	flags = {"feature", "collision_0"},
+	-- flags = {"feature", "collision_0"},
 })
 
 register_block({
@@ -76,7 +76,11 @@ register_block({
 
 	block_sheet = "furniture",
 	block_tile_index = 1,
-	flags = {"feature"},
+
+	block_layer = "feature",
+	collision_type = 1,
+
+	-- flags = {"feature"},
 })
 register_block({
 	name = "grass",
@@ -85,6 +89,8 @@ register_block({
 
 	block_sheet = "default_ground",
 	block_tile_index = 0,
+
+	collision_type = -1,
 	flags = {"ground"},
 })
 
@@ -95,6 +101,10 @@ register_block({
 
 	block_sheet = "default_ground",
 	block_tile_index = 47,
+	block_layer = "terrain",
+	-- block_type = "feature",
+
+	collision_type = 0,
 	-- flags = {"ground", "collision_0"},
 })
 
@@ -105,17 +115,24 @@ register_block({
 
 	block_sheet = "furniture",
 	block_tile_index = 4,
+
+	collision_type = -1,
 	-- flags = {"ground", "collision_0"},
 })
 
 
 
-populate_autotile({
-	name = "grass_water",
-	base_block = "grass",
-	sub_block = "water",
-})
+-- populate_autotile({
+-- 	name = "grass_water",
+-- 	base_block = "grass",
+-- 	sub_block = "water",
+-- })
 
+-- populate_autotile({
+-- 	name = "nylium_water",
+-- 	base_block = "nylium",
+-- 	sub_block = "water",
+-- })
 -- register_block({
 -- 	name = "woopsy",
 -- })

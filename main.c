@@ -40,7 +40,7 @@ int tileSize = 64;
 Vector2 mapOffsetPos = {0, 0};//Offset of the map to simulate movement
 Vector2 playerCoord = {0, 0};//Player's coordinate on map
 Vector2 placeLocation = {0, 0};
-Vector2 characterOffset = {0, 0};//Position of character sprite relative to window 0,0
+fVector2 characterOffset = {0, 0};//Position of character sprite relative to window 0,0
 // Vector2 mouseTransform.screenPos = {0, 0};//Position of the mouse
 Vector2 midScreen = {0, 0};
 TransformComponent mouseTransform;
@@ -75,6 +75,18 @@ char **chatHistory;
 void clearScreen(SDL_Renderer *renderer){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
 	SDL_RenderClear(renderer);
+
+	int texSize = 512;
+	int tilesX = (WIDTH / texSize) + 1;
+	int tilesY = (HEIGHT / texSize) + 1;
+	SDL_Rect destRect = {0, 0, texSize, texSize};
+	for(int y = 0; y < tilesY + tilesY; y++){
+		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;
+		for(int x = 0; x < tilesX + tilesX; x++){
+			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;
+			SDL_RenderCopy(gRenderer, backgroundTex, NULL, &destRect);
+		}
+	}
 }
 
 void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int numFrames, int delay){
@@ -209,24 +221,29 @@ void loadLua(){
 	lua_register(L, "populate_autotile", populate_autotile);
 	
 	luaL_dofile(L, "scripts/init.lua");	
-	// lua_close(L);
+	lua_close(L);
 }
 
 
 void NewEntity();
 void RenderEntities();
 void Setup(){
-	SDL_RenderCopy(gRenderer, backgroundTex, NULL, NULL);
+	SDL_SetRenderDrawColor(gRenderer, 47, 140, 153, 255);
+	SDL_RenderClear(gRenderer);
+	int imageSize = 384;
+	SDL_Rect splashDest = {WIDTH / 2 - imageSize / 2, HEIGHT / 2 - imageSize / 2, imageSize, imageSize};
+	SDL_RenderCopy(gRenderer, loadScreenTex, NULL, &splashDest);
 	SDL_RenderPresent(gRenderer);
-	
+
 	loadLua();
 	NewEntity();
 	// lua_close(L);
-	INV_WriteCell("set", 0, 2, find_item("stone"));
+	INV_WriteCell("set", 4, 2, find_item("stone"));
 	INV_WriteCell("set", 6, 99, find_item("feather"));
 	INV_WriteCell("set", 2, 24, find_item("wood"));
+	INV_WriteCell("set", 1, 17, find_item("nylium"));
 	INV_WriteCell("set", 3, 16, find_item("grass"));
-	INV_WriteCell("set", 4, 16, find_item("water"));
+	INV_WriteCell("set", 0, 16, find_item("water"));
 	INV_WriteCell("set", 12, 17, find_item("flower"));
 	MapInit();
 
@@ -239,7 +256,9 @@ void Setup(){
 	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);
-	characterOffset = midScreen;
+	// characterOffset = (fVector2)midScreen;
+	characterOffset.x = midScreen.x;
+	characterOffset.y = midScreen.y;
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
 	
@@ -320,6 +339,8 @@ void ParseConsoleCommand(char *command){
 	}
 }
 
+fVector2 cameraSmooth = {0, 0};
+
 int main(int argc, char **argv) {
 	init();
 	if(init){
@@ -352,7 +373,7 @@ int main(int argc, char **argv) {
 				placeLocation = (Vector2){0, 1};
 			}
 			
-			float playerDeltaTime = playerSpeed * deltaTime;
+			float playerVelocity = playerSpeed * deltaTime;
 			
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 			if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
@@ -360,34 +381,41 @@ int main(int argc, char **argv) {
 			}
 			
 			isWalking = false;
+
 			if(inputMode == 0){
-				if(currentKeyStates[SDL_SCANCODE_A]){
-					if(!character.collider.colLeft){
-						mapOffsetPos.x -= playerDeltaTime;
-						isWalking = true;
+				if(!(currentKeyStates[SDL_SCANCODE_A] && currentKeyStates[SDL_SCANCODE_D])){
+					if(currentKeyStates[SDL_SCANCODE_A]){
+						if(!character.collider.colLeft){
+							mapOffsetPos.x -= playerVelocity;
+							// cameraSmooth.x -= (mapOffsetPos.x + playerVelocity) * 0.01f;
+							// mapOffsetPos.x -= cameraSmooth.x;
+							isWalking = true;
+						}
+						characterFacing = 0;
 					}
-					characterFacing = 0;
-				}
-				if(currentKeyStates[SDL_SCANCODE_D]){
-					if(!character.collider.colRight){
-						mapOffsetPos.x += playerDeltaTime;
-						isWalking = true;
-					}
-					characterFacing = 1;
-				}
-				if(currentKeyStates[SDL_SCANCODE_W]){
-					if(!character.collider.colUp){
-						mapOffsetPos.y -= playerDeltaTime;
-						isWalking = true;
+					if(currentKeyStates[SDL_SCANCODE_D]){
+						if(!character.collider.colRight){
+							mapOffsetPos.x += playerVelocity;
+							isWalking = true;
+						}
+						characterFacing = 1;
 					}
 				}
-				if(currentKeyStates[SDL_SCANCODE_S]){
-					if(!character.collider.colDown){
-						mapOffsetPos.y += playerDeltaTime;
-						isWalking = true;
+				if(!(currentKeyStates[SDL_SCANCODE_W] && currentKeyStates[SDL_SCANCODE_S])){
+					if(currentKeyStates[SDL_SCANCODE_W]){
+						if(!character.collider.colUp){
+							mapOffsetPos.y -= playerVelocity;
+							isWalking = true;
+						}
+					}
+					if(currentKeyStates[SDL_SCANCODE_S]){
+						if(!character.collider.colDown){
+							mapOffsetPos.y += playerVelocity;
+							isWalking = true;
+						}
 					}
 				}
-				
+					
 				if(currentKeyStates[SDL_SCANCODE_Q]){
 					characterOffset.x = 0;
 					characterOffset.y = 0;
@@ -549,7 +577,8 @@ void RenderScreen(){
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	
 	DrawLevel();
-	
+
+	RenderPauseMenu();
 	//Render the player's hitbox
 	if(enableHitboxes){
 		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_left, -1, 750);
@@ -557,7 +586,6 @@ void RenderScreen(){
 		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_bottom, -1, 750);
 		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_top, -1, 750);
 	}
-
 
 	// Vector2 m = {(mapOffsetPos.x - entPos.x), (mapOffsetPos.y - entPos.y)};
 	// int entSpeed = 2;
@@ -744,4 +772,18 @@ void RenderDroppedItems(){
 			}
 		}
 	}
+}
+
+
+float lerp(float goal, float current, float increment){
+	float difference = goal - current;
+
+	if(difference > increment){
+		return current + increment;
+	}
+	if(difference < -increment){
+		return current - increment;
+	}
+
+	return goal;
 }

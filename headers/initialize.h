@@ -20,8 +20,8 @@ void TextureDestroy();
 extern SDL_Texture *undefinedTex;
 extern WB_Tilesheet undefinedSheet;
 
+extern SDL_Texture *loadScreenTex;
 extern SDL_Texture *backgroundTex;
-extern WB_Tilesheet backgroundSheet;
 
 
 extern SDL_Texture *fontTex;
@@ -35,6 +35,13 @@ extern WB_Tilesheet debugSheet;
 extern SDL_Texture *particleTex;
 extern WB_Tilesheet particleSheet;
 
+
+extern SDL_Texture *autotileMaskTex;
+extern WB_Tilesheet autotileMaskSheet;
+
+
+extern SDL_Texture *InvertedAutotileMaskTex;
+extern WB_Tilesheet InvertedAutotileMaskSheet;
 
 
 extern SDL_Texture *colorModTex;

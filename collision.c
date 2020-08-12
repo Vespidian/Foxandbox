@@ -86,30 +86,32 @@ int EntityCollision(Entity *ent){
 	ent->collider.colLeft = false;
 	ent->collider.colRight = false;
 	
-	for(int y = tilePosition.y - 1; y <= tilePosition.y + 1; y++){
-		for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
-			SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
-			if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && colMap[y][x] != -1){
-				
-				if(colMap[y][x] == 0){
-					CheckCollisions(tileR, &ent->collider);
+	if(tilePosition.y >= 0 && tilePosition.y <= 31 && tilePosition.x >= 0 && tilePosition.x <= 31){
+		for(int y = tilePosition.y - 1; y <= tilePosition.y + 1; y++){
+			for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
+				SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
+				if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && colMap[y][x] != -1){
 					
-				}else if(colMap[y][x] == 1){
-					SetTileZPos((Vector2){x, y}, tileR, rectBottom);
+					if(colMap[y][x] == 0){
+						CheckCollisions(tileR, &ent->collider);
+						
+					}else if(colMap[y][x] == 1){
+						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
+						
+					}else if(colMap[y][x] == 2){
+						furnitureMap[y][x].zPos = RNDRLYR_PLAYER + 1;
+						
+					}else if(colMap[y][x] == 8){//HALF YELLOW
+						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
+						tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
+						tileR.h = tileSize / 2;
+						CheckCollisions(tileR, &ent->collider);
+						
+					}
 					
-				}else if(colMap[y][x] == 2){
-					furnitureMap[y][x].zPos = RNDRLYR_PLAYER + 1;
-					
-				}else if(colMap[y][x] == 8){//HALF YELLOW
-					SetTileZPos((Vector2){x, y}, tileR, rectBottom);
-					tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
-					tileR.h = tileSize / 2;
-					CheckCollisions(tileR, &ent->collider);
-					
-				}
-				
-				if(enableHitboxes){
-					AddToRenderQueue(gRenderer, debugSheet, colMap[y][x], tileR, -1, 1000);
+					if(enableHitboxes){
+						AddToRenderQueue(gRenderer, debugSheet, colMap[y][x], tileR, -1, 1000);
+					}
 				}
 			}
 		}

@@ -37,9 +37,6 @@ ItemComponent *itemData;
 int numItems = -1;
 
 
-
-
-
 RecipeComponent recipes[64];
 int numberOfRecipes = 0;
 
@@ -274,10 +271,10 @@ void INV_DrawInv(){
 					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0){//Check for double clicked
 						//Collect all the items of that type to the mouse pointer
 						int totalFound = 0;
-						while(INV_FindItem(mouseInv.item) != -1 && totalFound < maxStack){
-							totalFound += invArray[INV_FindItem(mouseInv.item)].qty;
-							invArray[INV_FindItem(mouseInv.item)].qty = 0;
-							invArray[INV_FindItem(mouseInv.item)].occupied = false;
+						while(INV_FindItem(&mouseInv.item) != -1 && totalFound < maxStack){
+							totalFound += invArray[INV_FindItem(&mouseInv.item)].qty;
+							invArray[INV_FindItem(&mouseInv.item)].qty = 0;
+							invArray[INV_FindItem(&mouseInv.item)].occupied = false;
 						}
 						mouseInv.occupied = true;
 						mouseInv.qty = totalFound;
@@ -434,28 +431,58 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 	return 0;
 }
 
-int INV_FindItem(ItemComponent itemNum){
+int INV_Add(int qty, ItemComponent *item){
+	if(INV_FindEmpty(item) != -1){//Make sure inventory is not full
+		if(INV_FindItem(item) != -1 && invArray[INV_FindItem(item)].qty < maxStack){//Check if item exists and can fit more items
+			if(invArray[INV_FindItem(item)].qty + qty <= maxStack){//Check if the qty can fit in the stack
+				invArray[INV_FindItem(item)].qty += qty;
+			}else{//If it cant add to the next empty slot as well
+				qty -= maxStack - invArray[INV_FindItem(item)].qty;
+				invArray[INV_FindItem(item)].qty = maxStack;
+				invArray[INV_FindEmpty()].item = *item;
+				invArray[INV_FindEmpty()].qty = qty;
+				invArray[INV_FindEmpty()].occupied = true;
+			}
+			return 0;
+		}else{//If it does not exist create it
+			invArray[INV_FindEmpty()].item = *item;
+			invArray[INV_FindEmpty()].qty = qty;
+			invArray[INV_FindEmpty()].occupied = true;
+		}
+	}
+}
+int INV_Subtract(int qty, ItemComponent *item){
+	while(INV_FindItem(item) != -1){//Loop until there are no more of specified item
+		if(invArray[INV_FindItem(item)].qty >= qty){
+			if(invArray[INV_FindItem(item)].qty == qty){
+				invArray[INV_FindItem(item)].occupied = false;
+			}else{
+				invArray[INV_FindItem(item)].qty -= qty;
+			}
+			return 0;
+		}
+		if(invArray[INV_FindItem(item)].qty < qty){
+			qty -= invArray[INV_FindItem(item)].qty;
+			invArray[INV_FindItem(item)].occupied = false;
+		}
+	}
+	return qty;
+}
+
+int INV_FindItem(ItemComponent *item){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(strcmp(invArray[i].item.name, itemNum.name) == 0 && invArray[i].occupied == true){
+		if(strcmp(invArray[i].item.name, item->name) == 0 && invArray[i].occupied == true){
 			return i;
 		}
 	}
-	return -1;
+	return -1;//Item does not exist in inventory
 }
-int INV_FindEmpty(ItemComponent *item){
-	if(item->name != NULL){
-		for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-			if(strcmp(invArray[i].item.name, item->name) == 0 && invArray[i].qty <= maxStack){
-				return i;
-			}
-		}
-	}
+int INV_FindEmpty(){
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
 		if(invArray[i].occupied == false){
 			return i;
 		}
 	}
-	printf("Inventory Full!");
-	return -1;
+	return -1;//Inventory full
 }

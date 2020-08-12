@@ -12,6 +12,7 @@
 #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/mapGeneration.h"
+#include "headers/inventory.h"
 
 RenderTileComponent buildLayer_tmp[32][32] = {};
 enum types {GRASS = 0, WATER = 47};
@@ -47,10 +48,18 @@ void GenerateProceduralMap(int ratioPercent, int smoothSteps){
 	RandomMap(buildLayer, ratioPercent, 2, find_block("grass"), find_block("water"));
 	// RandomMap(buildLayer, ratioPercent, "grass", "water", NULL);
 	for(int i = 0; i < smoothSteps; i++){
-		SmoothMap();
+		SmoothMap(find_block("grass"), find_block("water"));
 	}
 	buildLayer[6][6].block = find_block("nylium");
-	AutotileMap(buildLayer, autotileData[0]);
+	buildLayer[7][5].block = find_block("nylium");
+	buildLayer[8][5].block = find_block("nylium");
+	buildLayer[4][4].block = find_block("nylium");
+	buildLayer[6][4].block = find_block("grass");
+	// AutotileMap(buildLayer, autotileData[0]);
+	// AutotileMap(buildLayer, autotileData[1]);
+	memset(colMap, -1, sizeof(colMap));
+	DefineCollisions(furnitureMap);
+	// DefineCollisions(buildLayer);
 }
 
 void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
@@ -150,13 +159,15 @@ void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
 	}
 }
 
-void SmoothMap(){
+void SmoothMap(BlockComponent *main, BlockComponent *secondary){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
 			if(buildLayer[y][x].block->tile < WATER){
 				buildLayer_tmp[y][x].block = find_block("grass");
+				// buildLayer_tmp[y][x].block = main;
 			}else{
 				buildLayer_tmp[y][x].block = find_block("water");
+				// buildLayer_tmp[y][x].block = secondary;
 			}
 		}
 	}
@@ -166,13 +177,16 @@ void SmoothMap(){
 			if(surroundTiles > 4){
 				buildLayer[y][x].block = find_block("grass");
 				buildLayer_tmp[y][x].block = find_block("grass");
+				// buildLayer[y][x].block = main;
+				// buildLayer_tmp[y][x].block = main;
 			}else if(surroundTiles < 4){
 				buildLayer[y][x].block = find_block("water");
 				buildLayer_tmp[y][x].block = find_block("water");
+				// buildLayer[y][x].block = secondary;
+				// buildLayer_tmp[y][x].block = secondary;
 			}
 		}
 	}
-
 }
 void RandomMap(RenderTileComponent map[][32], int ratioPercent, int numTypes, ...){
 	time_t rawTime;
@@ -222,6 +236,35 @@ void RandomMap(RenderTileComponent map[][32], int ratioPercent, int numTypes, ..
 	}
 }
 
+void DefineCollisions(){
+	memset(colMap, -1, sizeof(colMap));
+	for(int y = 0; y < 31; y++){
+		for(int x = 0; x < 31; x++){
+			//Efficient (Border around non collidable blocks) (31*31)
+			if(furnitureMap[y][x].block->collisionType != -1){
+				colMap[y][x] = furnitureMap[y][x].block->collisionType;
+			}
+			if(buildLayer[y][x].block->collisionType == 0){
+				bool up = (buildLayer[y - 1][x].block->collisionType == -1);
+				bool down = (buildLayer[y + 1][x].block->collisionType == -1);
+				bool left = (buildLayer[y][x - 1].block->collisionType == -1);
+				bool right = (buildLayer[y][x + 1].block->collisionType == -1);
+
+				if(up || down || left || right){
+					colMap[y][x] = 0;
+				}
+			}
+			/*//Simpler (Every collidable block has a collider) (32*32)
+			if(furnitureMap[y][x].block->collisionType != -1){
+					colMap[y][x] = furnitureMap[y][x].block->collisionType;
+				}
+			if(buildLayer[y][x].block->collisionType != -1){
+				colMap[y][x] = buildLayer[y][x].block->collisionType;
+			}*/
+		}
+	}
+}
+
 void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent *block, bool collide){
 	
 	tileMap[pos.y][pos.x].block = block;
@@ -229,6 +272,14 @@ void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent 
 	AutotileMap(buildLayer, autotileData[0]);
 }
 
-void PlaceBlock(){
-	
+void PlaceBlock(Vector2 tile, BlockComponent *block){
+	//If the player is where the block is to be placed, only place it if its non collidable
+	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
+		if(strcmp(block->layer, "terrain") == 0){
+			buildLayer[tile.y][tile.x].block = block;
+		}else if(strcmp(block->layer, "feature") == 0){
+			furnitureMap[tile.y][tile.x].block = block;
+		}
+		DefineCollisions(buildLayer);
+	}
 }

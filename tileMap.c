@@ -52,10 +52,10 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 }
 
 int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
-	if(tileSheet.tex == NULL){
-		printf("Error: Tilesheet not defined properly!\n");
-		return 1;
-	}
+	// if(tileSheet.tex == NULL){
+	// 	printf("Error: Tilesheet not defined properly!\n");
+	// 	return 1;
+	// }
 	if(alpha == -1){
 		alpha = 255;
 	}
@@ -160,7 +160,6 @@ int register_block(lua_State *L){
 	if(lua_tonumber(L, -1) != NULL || lua_tonumber(L, -1) == 0){
 		blockData[numBlocks].tile = lua_tonumber(L, -1);
 	}else{
-		// printf("%d\n", lua_tonumber(L, -1));
 		blockData[numBlocks].tile = -1;
 	}
 
@@ -172,7 +171,7 @@ int register_block(lua_State *L){
 			blockData[numBlocks].dropItem = blockData[numBlocks].item;
 		}
 	}else{
-		blockData[numBlocks].dropItem = &undefinedItem;
+		blockData[numBlocks].dropItem = blockData[numBlocks].item;
 	}
 
 	lua_getfield(L, -7, "dropped_qty");
@@ -182,6 +181,26 @@ int register_block(lua_State *L){
 		blockData[numBlocks].dropQty = 1;
 	}
 
+	// lua_pop(L, 1);
+	lua_getfield(L, -8, "collision_type");
+	if(lua_toboolean(L, -1) != NULL){
+		blockData[numBlocks].collisionType = lua_tonumber(L, -1);
+	}else{
+		blockData[numBlocks].collisionType = -1;
+	}
+	// printf("%d\n", blockData[numBlocks].enableCollision);
+
+
+	lua_getfield(L, -9, "block_layer");
+	if(lua_tostring(L, -1) != NULL){
+		strcpy(blockData[numBlocks].layer, lua_tostring(L, -1));
+	}else{
+		strcpy(blockData[numBlocks].layer, "terrain");
+	}
+
+	if(strcmp(blockData[numBlocks].layer, "terrain") == 0 && blockData[numBlocks].collisionType > 0){
+		blockData[numBlocks].collisionType = -1;
+	}
 
 	blockData[numBlocks].flags = malloc(sizeof(char **));
 	lua_getfield(L, -8, "flags");
@@ -208,7 +227,6 @@ int register_block(lua_State *L){
 	}
 
 	blockData[numBlocks].autoTile = false;
-	// blockData[numBlocks].id = 0;
 
 	return 0;
 }
@@ -246,13 +264,52 @@ int populate_autotile(lua_State *L){
 	}
 
 	//For loop to loop between the base and sub
+	//Setup blend modes
+	SDL_SetTextureBlendMode(autotileMaskTex, SDL_BLENDMODE_ADD);
+	SDL_SetTextureBlendMode(InvertedAutotileMaskTex, SDL_BLENDMODE_ADD);
+	SDL_SetTextureBlendMode(autotileData[numAutotiles].baseBlock->sheet.tex, SDL_BLENDMODE_ADD);
+	SDL_SetTextureBlendMode(autotileData[numAutotiles].subBlock->sheet.tex, SDL_BLENDMODE_ADD);
+	SDL_Texture *tmpTex = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);//Texture with masked baseTile
+	SDL_SetTextureBlendMode(tmpTex, SDL_BLENDMODE_MOD);
 	for(int i = 1; i <= 46; i++){
 		autotileData[numAutotiles].auto_block = realloc(autotileData[numAutotiles].auto_block, (i + 1) * sizeof(BlockComponent_local));
 		autotileData[numAutotiles].auto_block[i - 1] = *autotileData[numAutotiles].baseBlock;
 		autotileData[numAutotiles].auto_block[i - 1].autoTile = true;
-		autotileData[numAutotiles].auto_block[i - 1].tile = i;
-		autotileData[numAutotiles].auto_block[i - 1].id = i;
+		autotileData[numAutotiles].auto_block[i - 1].tile = 0;
+		// autotileData[numAutotiles].auto_block[i - 1].id = i;
+
+		//Mask method
+
+		autotileData[numAutotiles].auto_block[i - 1].sheet.tex = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);
+		
+		//Create mask from baseTile texture
+		SDL_SetRenderTarget(gRenderer, tmpTex);
+		SDL_RenderClear(gRenderer);
+
+		int baseTile = autotileData[numAutotiles].baseBlock->tile;
+		SDL_Rect baseRect = {(baseTile % autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, (baseTile / autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
+		SDL_RenderCopy(gRenderer, autotileData[numAutotiles].baseBlock->sheet.tex, &baseRect, NULL);
+		
+		SDL_Rect maskRect = {(i % autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, (i / autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
+		SDL_RenderCopy(gRenderer, autotileMaskTex, &maskRect, NULL);
+
+		//Mask out subTile and render tmpTex onto autotile-id texture
+		SDL_SetRenderTarget(gRenderer, autotileData[numAutotiles].auto_block[i - 1].sheet.tex);
+		SDL_RenderClear(gRenderer);
+
+		int subTile = autotileData[numAutotiles].subBlock->tile;
+		SDL_Rect subRect = {(subTile % autotileData[numAutotiles].subBlock->sheet.w) * tilePixelSize, (subTile / autotileData[numAutotiles].subBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
+		SDL_RenderCopy(gRenderer, autotileData[numAutotiles].subBlock->sheet.tex, &subRect, NULL);
+		
+		SDL_RenderCopy(gRenderer, InvertedAutotileMaskTex, &maskRect, NULL);
+		
+		SDL_RenderCopy(gRenderer, tmpTex, NULL, NULL);//Render the final masked baseTile onto the masked subTile
 	}
+	//Reset any changes and destroy texture
+	SDL_DestroyTexture(tmpTex);
+	SDL_SetRenderTarget(gRenderer, NULL);
+	SDL_SetTextureBlendMode(autotileData[numAutotiles].baseBlock->sheet.tex, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(autotileData[numAutotiles].subBlock->sheet.tex, SDL_BLENDMODE_BLEND);
 
 	return 0;
 }
@@ -333,6 +390,7 @@ void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPo
 
 				SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 				AddToRenderQueue(gRenderer, mapArray[y][x].block->sheet, mapArray[y][x].block->tile, tile, -1, zPos + mapArray[y][x].zPos);
+				
 				mapArray[y][x].zPos = 0;
 			}
 		}

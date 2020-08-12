@@ -92,7 +92,6 @@ typedef struct{
 }DroppedItemComponent;
 
 typedef struct{
-	int id;
 	ItemComponent *item;//Base item
 	ItemComponent *dropItem;//Item to drop when block broken, if null just drop item
 	int dropQty;//Number of items to drop
@@ -101,6 +100,9 @@ typedef struct{
 	int tile;//Block tile index
 
 	bool autoTile;//Is this block from an autotile set?
+
+	int collisionType;
+	char layer[16];
 
 	char **flags;
 	
@@ -144,6 +146,7 @@ typedef struct{
 	SDL_Rect transform;
 	int alpha;
 	int zPos;
+	SDL_Color colorMod;
 }RenderComponent;
 
 typedef struct{

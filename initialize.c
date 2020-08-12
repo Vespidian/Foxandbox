@@ -16,7 +16,8 @@ SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
 
 //Initial dimensions of the window
-int WIDTH = 960;
+// int WIDTH = 1280;
+int WIDTH = 1344;
 int HEIGHT = 960;
 bool success = true;
 
@@ -24,8 +25,8 @@ bool success = true;
 SDL_Texture *undefinedTex;
 WB_Tilesheet undefinedSheet;
 
+SDL_Texture *loadScreenTex;
 SDL_Texture *backgroundTex;
-WB_Tilesheet backgroundSheet;
 
 SDL_Texture *fontTex;
 WB_Tilesheet fontSheet;
@@ -36,6 +37,11 @@ WB_Tilesheet debugSheet;
 SDL_Texture *particleTex;
 WB_Tilesheet particleSheet;
 
+SDL_Texture *autotileMaskTex;
+WB_Tilesheet autotileMaskSheet;
+
+SDL_Texture *InvertedAutotileMaskTex;
+WB_Tilesheet InvertedAutotileMaskSheet;
 
 SDL_Texture *colorModTex;
 WB_Tilesheet colorModSheet;
@@ -45,7 +51,8 @@ void TextureInit(){
 	undefinedTex = IMG_LoadTexture(gRenderer, "images/undefined.png");
 	undefinedSheet = (WB_Tilesheet){"undefined", undefinedTex, 16, 1, 1};
 
-	backgroundTex = IMG_LoadTexture(gRenderer, "images/loadScreen.png");
+	loadScreenTex = IMG_LoadTexture(gRenderer, "images/loadScreen.png");
+	backgroundTex = IMG_LoadTexture(gRenderer, "images/background.png");
 	
 	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){"font", fontTex, 16, 12, 8};
@@ -58,6 +65,12 @@ void TextureInit(){
 	
 	particleTex = IMG_LoadTexture(gRenderer, "images/particles.png");
 	particleSheet = (WB_Tilesheet){"particles", particleTex, 1, 4, 4};
+
+	autotileMaskTex = IMG_LoadTexture(gRenderer, "images/autotileMask.png");
+	autotileMaskSheet = (WB_Tilesheet){"autotileMask", autotileMaskTex, 16, 6, 8};
+
+	InvertedAutotileMaskTex = IMG_LoadTexture(gRenderer, "images/INVERTEDautotileMask.png");
+	InvertedAutotileMaskSheet = (WB_Tilesheet){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
 }
 
 void MapInit(){
@@ -67,7 +80,7 @@ void MapInit(){
 
 void UndefinedInit(){
 	undefinedItem = (ItemComponent){"undefined", "", undefinedSheet, 0};
-	undefinedBlock = (BlockComponent){0, &undefinedItem, &undefinedItem, 1, undefinedSheet, 0};
+	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, -1, "terrain"};
 }
 
 bool init(){

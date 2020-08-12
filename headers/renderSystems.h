@@ -11,5 +11,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
 void RenderCursor();
 
+void RenderPauseMenu();
+
 
 #endif
