@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -220,7 +221,7 @@ void UpdateHotbar(){
 	//Drawing the hotbar
 	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
-	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
+	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};//Rect representing each slot in the hotbar
 	for(int i = 0; i < INV_WIDTH; i++){//Iterate through the slots of the hotbar
@@ -231,15 +232,15 @@ void UpdateHotbar(){
 			tmpRect.y += slotRect.y;
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
-			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
+			AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
 		}
-		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
+		AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i].occupied == true && invArray[i].qty > 0){
-			AddToRenderQueue(gRenderer, invArray[i].item.sheet, invArray[i].item.tile, slotRect, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, invArray[i].item.sheet, invArray[i].item.tile, slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i].qty, itemqty, 10);
-			RenderText_d(gRenderer, itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
+			RenderText_d(renderer, itemqty, slotRect.x + numOffset.x, slotRect.y + numOffset.y);
 		}
 	}
 }
@@ -257,7 +258,7 @@ void INV_DrawInv(){
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
-		AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
+		AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
 		
 		SDL_Point mousePoint = {mouseTransform.screenPos.x, mouseTransform.screenPos.y};
 		mousePoint.x = (mousePoint.x - invRect.x - INV_spacing / 2) / (itemRectSize + INV_spacing);
@@ -320,12 +321,17 @@ void INV_DrawInv(){
 				}
 			}
 			if(invArray[hoveredCell].occupied == true){//If cell occupied and cursor is hovered, render item name
-				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, strlen(invArray[hoveredCell].item.name) * 14, 28};
-				AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
-				RenderText_d(gRenderer, invArray[hoveredCell].item.name, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
+				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, (strlen(invArray[hoveredCell].item.name) * 10) + 11, 28};
+				AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
+				
+				char *tempChar = calloc(strlen(invArray[hoveredCell].item.name), sizeof(char));
+				strcpy(tempChar, invArray[hoveredCell].item.name);
+				tempChar[0] = toupper(tempChar[0]);
+
+				RenderText_d(renderer, tempChar, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 			}
 		}else{
-			if(mouseClicked == true && colMap[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
+			if(mouseClicked == true && levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(mouseInv.occupied == true){
 						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
@@ -354,13 +360,13 @@ void INV_DrawInv(){
 			int x = (i % INV_WIDTH), y = (i / INV_WIDTH);
 			invItemRect.x = (invRect.x + itemRectSize * x) + INV_spacing * (x + 1);
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
-			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
+			AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(gRenderer, invArray[i].item.sheet, invArray[i].item.tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				AddToRenderQueue(renderer, invArray[i].item.sheet, invArray[i].item.tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
 				itoa(invArray[i].qty, itemqty, 10);
-				RenderText_d(gRenderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
+				RenderText_d(renderer, itemqty, invItemRect.x + numOffset.x, invItemRect.y + numOffset.y);//Item amount
 			}else{
 				invArray[i].occupied = false;
 				invArray[i].qty = 0;
@@ -369,11 +375,11 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv.occupied == true && mouseInv.qty > 0){
 			SDL_Rect mouseItem = {mouseTransform.screenPos.x - 16, mouseTransform.screenPos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(gRenderer, mouseInv.item.sheet, mouseInv.item.tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, mouseInv.item.sheet, mouseInv.item.tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv.qty, itemqty, 10);
-			RenderText_d(gRenderer, itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);//Draw item quantity for each item
+			RenderText_d(renderer, itemqty, mouseItem.x + numOffset.x, mouseItem.y + numOffset.y);//Draw item quantity for each item
 		}
 	}else{
 		uiInteractMode = false;

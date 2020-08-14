@@ -11,6 +11,12 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
 void RenderCursor();
 
+void RenderConsole();
+extern char currentCollectedText[128];
+extern char consoleOutput[512];
+extern int chatLogSize;
+extern char **chatHistory;
+
 void RenderPauseMenu();
 
 

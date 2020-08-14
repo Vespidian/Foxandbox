@@ -67,8 +67,6 @@ bool mouseHeld = false;
 bool showDebugInfo = true;
 
 ParticleSystem pSys1;
-
-void RenderConsole();
 int chatLogSize = 0;
 char **chatHistory;
 
@@ -84,7 +82,7 @@ void clearScreen(SDL_Renderer *renderer){
 		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;
 		for(int x = 0; x < tilesX + tilesX; x++){
 			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;
-			SDL_RenderCopy(gRenderer, backgroundTex, NULL, &destRect);
+			SDL_RenderCopy(renderer, backgroundTex, NULL, &destRect);
 		}
 	}
 }
@@ -93,7 +91,7 @@ void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int nu
 	int frame = 0;
 	frame = (SDL_GetTicks() / delay) % numFrames;
 	
-	AddToRenderQueue(gRenderer, tileSheet, startFrame + frame, dest, -1, RNDRLYR_PLAYER);
+	AddToRenderQueue(renderer, tileSheet, startFrame + frame, dest, -1, RNDRLYR_PLAYER);
 }
 
 WB_Tilesheet *tilesheets = NULL;
@@ -148,9 +146,9 @@ int register_tilesheet(lua_State *L){
 	
 	lua_getfield(L, -2, "path");
 	if(lua_tostring(L, -1) != NULL){
-		tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, lua_tostring(L, -1));
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
 	}else{
-		tilesheets[num_tilesheets].tex = IMG_LoadTexture(gRenderer, "undefined");
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
 	}
 
 	lua_getfield(L, -3, "tile_size");
@@ -228,12 +226,12 @@ void loadLua(){
 void NewEntity();
 void RenderEntities();
 void Setup(){
-	SDL_SetRenderDrawColor(gRenderer, 47, 140, 153, 255);
-	SDL_RenderClear(gRenderer);
+	SDL_SetRenderDrawColor(renderer, 47, 140, 153, 255);
+	SDL_RenderClear(renderer);
 	int imageSize = 384;
 	SDL_Rect splashDest = {WIDTH / 2 - imageSize / 2, HEIGHT / 2 - imageSize / 2, imageSize, imageSize};
-	SDL_RenderCopy(gRenderer, loadScreenTex, NULL, &splashDest);
-	SDL_RenderPresent(gRenderer);
+	SDL_RenderCopy(renderer, loadScreenTex, NULL, &splashDest);
+	SDL_RenderPresent(renderer);
 
 	loadLua();
 	NewEntity();
@@ -253,7 +251,7 @@ void Setup(){
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 
 	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
-	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
+	SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);
 	// characterOffset = (fVector2)midScreen;
@@ -262,8 +260,8 @@ void Setup(){
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
 	
-	// NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
-	NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
+	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
+	// NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
 	pSys1.boundaryCheck = true;
 	// pSys1.fade = false;
 	pSys1.playSystem = false;
@@ -271,7 +269,6 @@ void Setup(){
 	chatHistory = malloc(1 * sizeof(char));
 	// character.collider = (CollisionComponent){false, false, false, false};
 	// runScript("scripts/init.lua");
-
 	// printf("%s\n", find_tilesheet("character")->name);
 	// printf("%s\n", tilesheets[2].name);
 	
@@ -288,8 +285,8 @@ void ResizeWindow(){
 		mapOffsetPos.y -= roundSpeed.y;
 	}
 
-	clearScreen(gRenderer);
-	SDL_GetWindowSize(gWindow, &WIDTH, &HEIGHT);
+	clearScreen(renderer);
+	SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
 	Vector2 diff = {WIDTH - tmpSize.x, HEIGHT - tmpSize.y};
 	
 	mapOffsetPos.x -= diff.x / 2;
@@ -331,9 +328,9 @@ void ParseConsoleCommand(char *command){
 			SDL_GetDesktopDisplayMode(0, &gMode);
 			WIDTH = gMode.w;
 			HEIGHT = gMode.h;
-			SDL_SetWindowBordered(gWindow, false);
-			SDL_SetWindowPosition(gWindow, 0, 0);
-			SDL_SetWindowSize(gWindow, WIDTH, HEIGHT);
+			SDL_SetWindowBordered(window, false);
+			SDL_SetWindowPosition(window, 0, 0);
+			SDL_SetWindowSize(window, WIDTH, HEIGHT);
 			ResizeWindow();
 		}
 	}
@@ -506,16 +503,16 @@ int main(int argc, char **argv) {
 						}
 						if(e.key.keysym.sym == SDLK_r){
 							// INV_WriteCell("add", INV_FindEmpty(0), 10, 1);
-							// TextExtrapolate(colMap);
+							// TextExtrapolate(levels[0].collision);
 						}
 						if(e.key.keysym.sym == SDLK_b){//Fullscreen
 							SDL_DisplayMode gMode;
 							SDL_GetDesktopDisplayMode(0, &gMode);
 							WIDTH = gMode.w;
 							HEIGHT = gMode.h;
-							SDL_SetWindowBordered(gWindow, false);
-							SDL_SetWindowPosition(gWindow, 0, 0);
-							SDL_SetWindowSize(gWindow, WIDTH, HEIGHT);
+							SDL_SetWindowBordered(window, false);
+							SDL_SetWindowPosition(window, 0, 0);
+							SDL_SetWindowSize(window, WIDTH, HEIGHT);
 							ResizeWindow();
 						}
 					}
@@ -551,7 +548,7 @@ int main(int argc, char **argv) {
 			deltaTime = (SDL_GetTicks() - loopStartTime) / 10;
 			// char *deltaTemp;
 			// snprintf(deltaTemp, 1024, "Delta Time: %f", deltaTime);
-			// RenderText_d(gRenderer, deltaTemp, 0, 300);
+			// RenderText_d(renderer, deltaTemp, 0, 300);
 		}
 	}else{
 		printf("Failed to initialize\n");
@@ -573,7 +570,7 @@ int main(int argc, char **argv) {
 MouseStates mouse;*/
 fVector2 entPos = {0, 0};
 void RenderScreen(){
-	clearScreen(gRenderer);
+	clearScreen(renderer);
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	
 	DrawLevel();
@@ -581,16 +578,16 @@ void RenderScreen(){
 	RenderPauseMenu();
 	//Render the player's hitbox
 	if(enableHitboxes){
-		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_left, -1, 750);
-		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_right, -1, 750);
-		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_bottom, -1, 750);
-		// AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 1, charCollider_top, -1, 750);
+		// AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, charCollider_left, -1, 750);
+		// AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, charCollider_right, -1, 750);
+		// AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, charCollider_bottom, -1, 750);
+		// AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, charCollider_top, -1, 750);
 	}
 
 	// Vector2 m = {(mapOffsetPos.x - entPos.x), (mapOffsetPos.y - entPos.y)};
 	// int entSpeed = 2;
 	// SDL_Rect entRect = {entPos.x, entPos.y, 64, 64};
-	// AddToRenderQueue(gRenderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
+	// AddToRenderQueue(renderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
 	// if(entPos.x > entPos.y){
 	// 	entPos.x += entSpeed * m.x / m.y;
 	// 	entPos.y += entSpeed;
@@ -627,26 +624,26 @@ void RenderScreen(){
 	if(showDebugInfo){
 		snprintf(coordinates, 1024, "Player Coordinates ->\nx: %d, y: %d", character.transform.tilePos.x, character.transform.tilePos.y);
 		snprintf(charoff, 1024, "MapOffset ->\nx: %d, y: %d", mapOffsetPos.x, mapOffsetPos.y);
-		RenderText_d(gRenderer, coordinates, 0, 0);
-		RenderText_d(gRenderer, charoff, 0, 48);	
+		RenderText_d(renderer, coordinates, 0, 0);
+		RenderText_d(renderer, charoff, 0, 48);	
 		char frameCount[64];
 		snprintf(frameCount, 128, "%d RenderCopy calls", renderItemIndex);
-		RenderText_d(gRenderer, frameCount, WIDTH - 200, 0);
+		RenderText_d(renderer, frameCount, WIDTH - 200, 0);
 
 		//Performance bar
-		AddToRenderQueue(gRenderer, debugSheet, 4, (SDL_Rect){WIDTH - 10, 10, 10, deltaTime * 20}, 255, 1000);
+		AddToRenderQueue(renderer, debugSheet, 4, (SDL_Rect){WIDTH - 10, 10, 10, deltaTime * 20}, 255, 1000);
 	}
 
 	SDL_Rect woahR = {0, 0, 100, 100};
-	AddToRenderQueue(gRenderer, colorModSheet, 0, woahR, 0, 1000);
+	AddToRenderQueue(renderer, colorModSheet, 0, woahR, 0, 1000);
 	RenderCursor();
 	
 	
 	RenderUpdate();
 	particleCount = 0;
 	
-	SDL_RenderCopy(gRenderer, colorModTex, NULL, NULL);
-	SDL_RenderPresent(gRenderer);
+	SDL_RenderCopy(renderer, colorModTex, NULL, NULL);
+	SDL_RenderPresent(renderer);
 }
 
 
@@ -656,36 +653,12 @@ void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, 
 	AddToRenderQueue(renderer, sheet, tile, rect, -1, zPos);
 }
 
-
-void RenderConsole(){
-	int stringFit = 31;//Maximum number of characters to fit in the textbox
-	int characterSpacing = 9;
-	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
-	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
-	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, console, 220, RNDRLYR_UI);//Console
-	AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 0, textBox, 255, RNDRLYR_UI);//Text input
-
-	if(strlen(currentCollectedText) < stringFit){
-		if(inputMode == 1){
-			RenderText_d(gRenderer, "_", strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);//Cursor
-		}
-		RenderText_d(gRenderer, currentCollectedText, 0, HEIGHT - 20);
-	}else{//Scroll text
-		RenderText_d(gRenderer, "_", stringFit * characterSpacing, HEIGHT - 20);//Cursor
-		RenderText_d(gRenderer, currentCollectedText, 278 - strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);
-	}
-
-	RenderText_d(gRenderer, consoleOutput, console.x, console.y + 4);
-}
-
-
-
 Entity *enemies;
 void NewEntity(){
 	enemies = (Entity *) malloc(sizeof(Entity));
 	//Declare renderer component
 	SDL_Rect enemyPos = {50, 50, 64, 64};
-	enemies[0].renderer.renderer = gRenderer;
+	enemies[0].renderer.renderer = renderer;
 	enemies[0].renderer.tileSheet = *find_tilesheet("items");
 	enemies[0].renderer.tile = 0;
 	enemies[0].renderer.transform = enemyPos;
@@ -700,7 +673,7 @@ void RenderEntities(){
 	// printf("started here\n");
 	fVector2 m = {(characterOffset.x + mapOffsetPos.x) - entPos.x, (characterOffset.y + mapOffsetPos.y) - entPos.y};
 	int entSpeed = 2;
-	// RenderTextureInWorld(gRenderer, *find_tilesheet("items"), 4, entRect, 10000);
+	// RenderTextureInWorld(renderer, *find_tilesheet("items"), 4, entRect, 10000);
 	// if()
 	if(abs(m.y) > abs(m.x)){
 		entPos.x += entSpeed * ((float)m.x / (float)m.y);//Problem
@@ -715,7 +688,7 @@ void RenderEntities(){
 		// entPos.x += entSpeed;
 	}
 	SDL_Rect entRect = {entPos.x - mapOffsetPos.x, entPos.y - mapOffsetPos.y, 64, 64};
-	AddToRenderQueue(gRenderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
+	AddToRenderQueue(renderer, *find_tilesheet("items"), 4, entRect, 255, 10000);
 	printf("%f / %f\n", m.x, m.y);
 	// printf("%f\n", (float)m.x / (float)m.y);
 	// printf("%f / %f\n", entPos.x, entPos.y);
@@ -727,7 +700,7 @@ int numDroppedItems = 0;
 
 void DropItem(ItemComponent *item, int qty, Vector2 pos){
 	if(qty > 0){
-		if(colMap[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
+		if(levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
 			droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
 
 			droppedItems[numDroppedItems].item = item;
@@ -749,7 +722,7 @@ void RenderDroppedItems(){
 		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 		SDL_Point p = {itemRect.x, itemRect.y};
 		if(SDL_PointInRect(&p, &winRect)){
-			AddToRenderQueue(gRenderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
+			AddToRenderQueue(renderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
 			if(droppedItems[i].animDir == 1){
 				droppedItems[i].animLocation -= 0.6;
 			}else if(droppedItems[i].animDir == 0){

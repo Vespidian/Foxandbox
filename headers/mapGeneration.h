@@ -21,7 +21,7 @@ void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent 
 
 
 extern RenderTileComponent buildLayer_tmp[32][32];
-extern RenderTileComponent buildLayer[32][32];
+// extern RenderTileComponent levels[0].terrain[32][32];
 
 
 #endif

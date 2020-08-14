@@ -44,22 +44,20 @@ void FillMap(RenderTileComponent map[][32]){
 }
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
-	// FillMap(buildLayer);
-	RandomMap(buildLayer, ratioPercent, 2, find_block("grass"), find_block("water"));
-	// RandomMap(buildLayer, ratioPercent, "grass", "water", NULL);
+	// FillMap(levels[0].terrain);
+	RandomMap(levels[0].terrain, ratioPercent, 2, find_block("grass"), find_block("water"));
+	// RandomMap(levels[0].terrain, ratioPercent, "grass", "water", NULL);
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap(find_block("grass"), find_block("water"));
 	}
-	buildLayer[6][6].block = find_block("nylium");
-	buildLayer[7][5].block = find_block("nylium");
-	buildLayer[8][5].block = find_block("nylium");
-	buildLayer[4][4].block = find_block("nylium");
-	buildLayer[6][4].block = find_block("grass");
-	// AutotileMap(buildLayer, autotileData[0]);
-	// AutotileMap(buildLayer, autotileData[1]);
-	memset(colMap, -1, sizeof(colMap));
-	DefineCollisions(furnitureMap);
-	// DefineCollisions(buildLayer);
+	PlaceBlock((Vector2){6, 6}, find_block("nylium"));
+	PlaceBlock((Vector2){7, 5}, find_block("nylium"));
+	PlaceBlock((Vector2){8, 5}, find_block("nylium"));
+	PlaceBlock((Vector2){4, 4}, find_block("nylium"));
+	PlaceBlock((Vector2){6, 4}, find_block("grass"));
+	DefineCollisions();
+	// AutotileMap(levels[0].terrain, autotileData[0]);
+	// AutotileMap(levels[0].terrain, autotileData[1]);
 }
 
 void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
@@ -139,19 +137,19 @@ void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
 				// if(finalCaseNumber == GRASS){
 				// printf("%d\n", &blockData[8].id);
 				// printf("%d\n", autotile.auto_block[3]->id);
-				// 	buildLayer[y][x].block = autotileData[0].baseBlock;
+				// 	levels[0].terrain[y][x].block = autotileData[0].baseBlock;
 				// }else if(finalCaseNumber == WATER){
-				// 	buildLayer[y][x].block = autotileData[0].subBlock;
+				// 	levels[0].terrain[y][x].block = autotileData[0].subBlock;
 				// }
 				if(finalCaseNumber != 0 && finalCaseNumber != 255){
-					buildLayer[y][x].block = &autotile.auto_block[finalCaseNumber - 1];
+					levels[0].terrain[y][x].block = &autotile.auto_block[finalCaseNumber - 1];
 				}
 			}
 
-			if(buildLayer[y][x].block->tile == WATER){
-				colMap[y][x] = 0;
-			}else if(buildLayer[y][x].block->tile > GRASS){
-				colMap[y][x] = -1;
+			if(levels[0].terrain[y][x].block->tile == WATER){
+				levels[0].collision[y][x] = 0;
+			}else if(levels[0].terrain[y][x].block->tile > GRASS){
+				levels[0].collision[y][x] = -1;
 			}
 
 			}
@@ -162,7 +160,7 @@ void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
 void SmoothMap(BlockComponent *main, BlockComponent *secondary){
 	for(int y = 0; y < 32; y++){
 		for(int x = 0; x < 32; x++){
-			if(buildLayer[y][x].block->tile < WATER){
+			if(levels[0].terrain[y][x].block->tile < WATER){
 				buildLayer_tmp[y][x].block = find_block("grass");
 				// buildLayer_tmp[y][x].block = main;
 			}else{
@@ -175,14 +173,14 @@ void SmoothMap(BlockComponent *main, BlockComponent *secondary){
 		for(int x = 0; x < 32; x++){
 			int surroundTiles = GetSurroundCount((Vector2){x, y});
 			if(surroundTiles > 4){
-				buildLayer[y][x].block = find_block("grass");
+				levels[0].terrain[y][x].block = find_block("grass");
 				buildLayer_tmp[y][x].block = find_block("grass");
-				// buildLayer[y][x].block = main;
+				// levels[0].terrain[y][x].block = main;
 				// buildLayer_tmp[y][x].block = main;
 			}else if(surroundTiles < 4){
-				buildLayer[y][x].block = find_block("water");
+				levels[0].terrain[y][x].block = find_block("water");
 				buildLayer_tmp[y][x].block = find_block("water");
-				// buildLayer[y][x].block = secondary;
+				// levels[0].terrain[y][x].block = secondary;
 				// buildLayer_tmp[y][x].block = secondary;
 			}
 		}
@@ -237,29 +235,29 @@ void RandomMap(RenderTileComponent map[][32], int ratioPercent, int numTypes, ..
 }
 
 void DefineCollisions(){
-	memset(colMap, -1, sizeof(colMap));
-	for(int y = 0; y < 31; y++){
-		for(int x = 0; x < 31; x++){
+	memset(levels[0].collision, -1, sizeof(levels[0].collision));
+	for(int y = 1; y < 31; y++){
+		for(int x = 1; x < 31; x++){
 			//Efficient (Border around non collidable blocks) (31*31)
-			if(furnitureMap[y][x].block->collisionType != -1){
-				colMap[y][x] = furnitureMap[y][x].block->collisionType;
+			if(levels[0].features[y][x].block->collisionType != -1){
+				levels[0].collision[y][x] = levels[0].features[y][x].block->collisionType;
 			}
-			if(buildLayer[y][x].block->collisionType == 0){
-				bool up = (buildLayer[y - 1][x].block->collisionType == -1);
-				bool down = (buildLayer[y + 1][x].block->collisionType == -1);
-				bool left = (buildLayer[y][x - 1].block->collisionType == -1);
-				bool right = (buildLayer[y][x + 1].block->collisionType == -1);
+			if(levels[0].terrain[y][x].block->collisionType == 0){
+				bool up = (levels[0].terrain[y - 1][x].block->collisionType == -1);
+				bool down = (levels[0].terrain[y + 1][x].block->collisionType == -1);
+				bool left = (levels[0].terrain[y][x - 1].block->collisionType == -1);
+				bool right = (levels[0].terrain[y][x + 1].block->collisionType == -1);
 
 				if(up || down || left || right){
-					colMap[y][x] = 0;
+					levels[0].collision[y][x] = 0;
 				}
 			}
 			/*//Simpler (Every collidable block has a collider) (32*32)
-			if(furnitureMap[y][x].block->collisionType != -1){
-					colMap[y][x] = furnitureMap[y][x].block->collisionType;
+			if(levels[0].features[y][x].block->collisionType != -1){
+					levels[0].collision[y][x] = levels[0].features[y][x].block->collisionType;
 				}
-			if(buildLayer[y][x].block->collisionType != -1){
-				colMap[y][x] = buildLayer[y][x].block->collisionType;
+			if(levels[0].terrain[y][x].block->collisionType != -1){
+				levels[0].collision[y][x] = levels[0].terrain[y][x].block->collisionType;
 			}*/
 		}
 	}
@@ -269,17 +267,17 @@ void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent 
 	
 	tileMap[pos.y][pos.x].block = block;
 	
-	AutotileMap(buildLayer, autotileData[0]);
+	AutotileMap(levels[0].terrain, autotileData[0]);
 }
 
 void PlaceBlock(Vector2 tile, BlockComponent *block){
 	//If the player is where the block is to be placed, only place it if its non collidable
 	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
 		if(strcmp(block->layer, "terrain") == 0){
-			buildLayer[tile.y][tile.x].block = block;
+			levels[0].terrain[tile.y][tile.x].block = block;
 		}else if(strcmp(block->layer, "feature") == 0){
-			furnitureMap[tile.y][tile.x].block = block;
+			levels[0].features[tile.y][tile.x].block = block;
 		}
-		DefineCollisions(buildLayer);
+		DefineCollisions(levels[0].terrain);
 	}
 }

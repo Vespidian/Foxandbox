@@ -8,9 +8,7 @@
 
 extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
-extern int colMap[32][32];
-
-extern RenderTileComponent furnitureMap[32][32];
+extern LevelComponent levels[1];
 
 extern int renderItemIndex;
 extern int tilePixelSize;
@@ -25,12 +23,12 @@ int LoadDataMap(char *fileLoc, int mapArray[][32]);
 
 //Rendering system
 void SetupRenderFrame();
-int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
+int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
 void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, SDL_Rect rect, int zPos);
 void RenderUpdate();
 
 
-void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos);
+void RenderLevel(LevelComponent *level);
 
 void DrawLevel();
 

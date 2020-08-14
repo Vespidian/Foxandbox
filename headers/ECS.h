@@ -157,6 +157,13 @@ typedef struct{
 
 
 
+typedef struct{
+	RenderTileComponent terrain[32][32];
+	RenderTileComponent features[32][32];
+	int collision[32][32];
+	Vector2 *spawns;
+}LevelComponent;
+
 
 
 //Entity Types

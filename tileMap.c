@@ -18,14 +18,7 @@ int tilePixelSize = 16;
 const int tileStretchSize = 64;
 int tileSheetWidth = 8;
 
-
-int colMap[32][32] = {};
-// RenderTileComponent map[32][32] = {};
-// RenderTileComponent map1[32][32] = {};
-RenderTileComponent furnitureMap[32][32] = {};
-// RenderTileComponent customMap[32][32] = {};
-
-RenderTileComponent buildLayer[32][32] = {};
+LevelComponent levels[1];
 
 
 BlockComponent undefinedBlock;
@@ -51,7 +44,7 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 	renderBuffer = malloc(sizeof(RenderComponent));
 }
 
-int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
+int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
 	// if(tileSheet.tex == NULL){
 	// 	printf("Error: Tilesheet not defined properly!\n");
 	// 	return 1;
@@ -61,12 +54,12 @@ int AddToRenderQueue(SDL_Renderer *gRenderer, WB_Tilesheet tileSheet, int tileNu
 	}
 	if(tileNum <= tileSheet.w * tileSheet.h - 1){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, tileSheet, tileNum, destRect, alpha, zPos};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos};
 		renderItemIndex++;
 		return 0;
 	}else if(strcmp(tileSheet.name, "undefined") == 0 || tileSheet.tex == NULL || tileNum < 0){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){gRenderer, undefinedSheet, 0, destRect, 255, zPos};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, undefinedSheet, 0, destRect, 255, zPos};
 		renderItemIndex++;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
@@ -269,7 +262,7 @@ int populate_autotile(lua_State *L){
 	SDL_SetTextureBlendMode(InvertedAutotileMaskTex, SDL_BLENDMODE_ADD);
 	SDL_SetTextureBlendMode(autotileData[numAutotiles].baseBlock->sheet.tex, SDL_BLENDMODE_ADD);
 	SDL_SetTextureBlendMode(autotileData[numAutotiles].subBlock->sheet.tex, SDL_BLENDMODE_ADD);
-	SDL_Texture *tmpTex = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);//Texture with masked baseTile
+	SDL_Texture *tmpTex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);//Texture with masked baseTile
 	SDL_SetTextureBlendMode(tmpTex, SDL_BLENDMODE_MOD);
 	for(int i = 1; i <= 46; i++){
 		autotileData[numAutotiles].auto_block = realloc(autotileData[numAutotiles].auto_block, (i + 1) * sizeof(BlockComponent_local));
@@ -280,34 +273,34 @@ int populate_autotile(lua_State *L){
 
 		//Mask method
 
-		autotileData[numAutotiles].auto_block[i - 1].sheet.tex = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);
+		autotileData[numAutotiles].auto_block[i - 1].sheet.tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tilePixelSize, tilePixelSize);
 		
 		//Create mask from baseTile texture
-		SDL_SetRenderTarget(gRenderer, tmpTex);
-		SDL_RenderClear(gRenderer);
+		SDL_SetRenderTarget(renderer, tmpTex);
+		SDL_RenderClear(renderer);
 
 		int baseTile = autotileData[numAutotiles].baseBlock->tile;
 		SDL_Rect baseRect = {(baseTile % autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, (baseTile / autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
-		SDL_RenderCopy(gRenderer, autotileData[numAutotiles].baseBlock->sheet.tex, &baseRect, NULL);
+		SDL_RenderCopy(renderer, autotileData[numAutotiles].baseBlock->sheet.tex, &baseRect, NULL);
 		
 		SDL_Rect maskRect = {(i % autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, (i / autotileData[numAutotiles].baseBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
-		SDL_RenderCopy(gRenderer, autotileMaskTex, &maskRect, NULL);
+		SDL_RenderCopy(renderer, autotileMaskTex, &maskRect, NULL);
 
 		//Mask out subTile and render tmpTex onto autotile-id texture
-		SDL_SetRenderTarget(gRenderer, autotileData[numAutotiles].auto_block[i - 1].sheet.tex);
-		SDL_RenderClear(gRenderer);
+		SDL_SetRenderTarget(renderer, autotileData[numAutotiles].auto_block[i - 1].sheet.tex);
+		SDL_RenderClear(renderer);
 
 		int subTile = autotileData[numAutotiles].subBlock->tile;
 		SDL_Rect subRect = {(subTile % autotileData[numAutotiles].subBlock->sheet.w) * tilePixelSize, (subTile / autotileData[numAutotiles].subBlock->sheet.w) * tilePixelSize, tilePixelSize, tilePixelSize};
-		SDL_RenderCopy(gRenderer, autotileData[numAutotiles].subBlock->sheet.tex, &subRect, NULL);
+		SDL_RenderCopy(renderer, autotileData[numAutotiles].subBlock->sheet.tex, &subRect, NULL);
 		
-		SDL_RenderCopy(gRenderer, InvertedAutotileMaskTex, &maskRect, NULL);
+		SDL_RenderCopy(renderer, InvertedAutotileMaskTex, &maskRect, NULL);
 		
-		SDL_RenderCopy(gRenderer, tmpTex, NULL, NULL);//Render the final masked baseTile onto the masked subTile
+		SDL_RenderCopy(renderer, tmpTex, NULL, NULL);//Render the final masked baseTile onto the masked subTile
 	}
 	//Reset any changes and destroy texture
 	SDL_DestroyTexture(tmpTex);
-	SDL_SetRenderTarget(gRenderer, NULL);
+	SDL_SetRenderTarget(renderer, NULL);
 	SDL_SetTextureBlendMode(autotileData[numAutotiles].baseBlock->sheet.tex, SDL_BLENDMODE_BLEND);
 	SDL_SetTextureBlendMode(autotileData[numAutotiles].subBlock->sheet.tex, SDL_BLENDMODE_BLEND);
 
@@ -380,32 +373,70 @@ int LoadDataMap(char *fileLoc, int mapArray[][32]){//For non rendered maps (e.g.
 	fclose(fp);
 	return 0;
 }
+
+
+int LoadLevel(char *path){
+	/*
+	Check if path exists
+	Look for header of section (Terrain:, Features:, Collision:, etc)
+	realloc level array and read data to coresponding array
+	*/
+}
+
+int SaveLevel(LevelComponent *level, char *path){
+	/*
+	Check if path exists, if not create it
+	Load file with write permissions
+
+	loop:
+	Write header for map array type
+	Go through map arrays (Terrain:, Features:, Collision:, etc) and copy each row to a string
+	fprintf string to file and go to newline
+	goto loop for each layer type
+
+	Write additional data such as portal/door locations
+
+	free file
+	*/
+}
+
+int UnloadLevel(LevelComponent *level){
+	/*
+	memset level array to 0
+	realloc level array -1
+	*/
+}
+
+
 int mapSize = 32;
-// void DrawMap(SDL_Texture *textureSheet, int sheetWidth, int mapArray[][32]){
-void DrawMap(WB_Tilesheet tileSheet, RenderTileComponent mapArray[][32], int zPos){//Draw map from 2D array
+void RenderLevel(LevelComponent *level){//Draw map from 2D array
+	Vector2 tilePos = {0, 0};
+	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < mapSize; y++){
 		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < mapSize; x++){
-			if(mapArray[y][x].type != -1){
-				Vector2 tilePos = {(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
-
-				SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-				AddToRenderQueue(gRenderer, mapArray[y][x].block->sheet, mapArray[y][x].block->tile, tile, -1, zPos + mapArray[y][x].zPos);
-				
-				mapArray[y][x].zPos = 0;
+			// tilePos = (Vector2){(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
+			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
+			tilePos.y = (y * tileStretchSize) - mapOffsetPos.y;
+			tile.x = tilePos.x;
+			tile.y = tilePos.y;
+			if(level->terrain[y][x].type != -1){
+				AddToRenderQueue(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos + 0);
+				level->terrain[y][x].zPos = 0;
+			}
+			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){
+				AddToRenderQueue(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
+				level->features[y][x].zPos = 0;
 			}
 		}
 	}
 }
 
 void DrawLevel(){
-	// DrawMap(*find_tilesheet("default_ground"), map, 0);
-	DrawMap(*find_tilesheet("default_ground"), buildLayer, 0);
+	// DrawMap(*find_tilesheet("default_ground"), levels[0].terrain, 0);
+	// DrawMap(*find_tilesheet("furniture"), levels[0].features, 1);
 
-	// DrawMap(*find_tilesheet("default_ground"), map1, 0);
-	// DrawMap(*find_tilesheet("default_ground"), customMap, 0);
+	RenderLevel(&levels[0]);
 
-
-	DrawMap(*find_tilesheet("furniture"), furnitureMap, 1);
 	DrawCharacter(characterFacing, 6);
 }
 

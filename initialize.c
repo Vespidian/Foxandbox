@@ -11,9 +11,9 @@
 #include "headers/inventory.h"
 
 //The window we'll be rendering to
-SDL_Window *gWindow = NULL;
+SDL_Window *window = NULL;
 //The window renderer
-SDL_Renderer *gRenderer = NULL;
+SDL_Renderer *renderer = NULL;
 
 //Initial dimensions of the window
 // int WIDTH = 1280;
@@ -48,34 +48,34 @@ WB_Tilesheet colorModSheet;
 
 
 void TextureInit(){
-	undefinedTex = IMG_LoadTexture(gRenderer, "images/undefined.png");
+	undefinedTex = IMG_LoadTexture(renderer, "images/undefined.png");
 	undefinedSheet = (WB_Tilesheet){"undefined", undefinedTex, 16, 1, 1};
 
-	loadScreenTex = IMG_LoadTexture(gRenderer, "images/loadScreen.png");
-	backgroundTex = IMG_LoadTexture(gRenderer, "images/background.png");
+	loadScreenTex = IMG_LoadTexture(renderer, "images/loadScreen.png");
+	backgroundTex = IMG_LoadTexture(renderer, "images/background.png");
 	
-	fontTex = IMG_LoadTexture(gRenderer, "fonts/font.png");
+	fontTex = IMG_LoadTexture(renderer, "fonts/font.png");
 	fontSheet = (WB_Tilesheet){"font", fontTex, 16, 12, 8};
 	
-	colorModTex = IMG_LoadTexture(gRenderer, "images/singlePixel.png");
+	colorModTex = IMG_LoadTexture(renderer, "images/singlePixel.png");
 	colorModSheet = (WB_Tilesheet){"singlePixel", colorModTex, 16, 1, 1};
 	
-	debugTex = IMG_LoadTexture(gRenderer, "images/debug.png");
+	debugTex = IMG_LoadTexture(renderer, "images/debug.png");
 	debugSheet = (WB_Tilesheet){"debug", debugTex, 16, 8, 8};
 	
-	particleTex = IMG_LoadTexture(gRenderer, "images/particles.png");
+	particleTex = IMG_LoadTexture(renderer, "images/particles.png");
 	particleSheet = (WB_Tilesheet){"particles", particleTex, 1, 4, 4};
 
-	autotileMaskTex = IMG_LoadTexture(gRenderer, "images/autotileMask.png");
+	autotileMaskTex = IMG_LoadTexture(renderer, "images/autotileMask.png");
 	autotileMaskSheet = (WB_Tilesheet){"autotileMask", autotileMaskTex, 16, 6, 8};
 
-	InvertedAutotileMaskTex = IMG_LoadTexture(gRenderer, "images/INVERTEDautotileMask.png");
+	InvertedAutotileMaskTex = IMG_LoadTexture(renderer, "images/INVERTEDautotileMask.png");
 	InvertedAutotileMaskSheet = (WB_Tilesheet){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
 }
 
 void MapInit(){
-	LoadMap("maps/testMap_temp.csv", furnitureMap);
-	LoadDataMap("maps/testMap_colliders.csv", colMap);
+	LoadMap("maps/testMap_temp.csv", levels[0].features);
+	LoadDataMap("maps/testMap_colliders.csv", levels[0].collision);
 }
 
 void UndefinedInit(){
@@ -87,19 +87,19 @@ bool init(){
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
 	
-	gWindow = SDL_CreateWindow("Explorable World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+	window = SDL_CreateWindow("Explorable World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");
-	SDL_SetWindowIcon(gWindow, gIcon);
+	SDL_SetWindowIcon(window, gIcon);
 
 	UndefinedInit();
 	TextureInit();
 	INV_Init();
-	// memset(customMap, -1, sizeof(customMap));
 	
 	ReadItemData();
-	// printf("test\n");
+	printf("%d\n", sizeof(LevelComponent));
+	memset(levels[0], 0, sizeof(LevelComponent));
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);		
@@ -108,10 +108,10 @@ bool init(){
 }
 
 void Quit() {
-	SDL_DestroyRenderer(gRenderer);
-	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
-	gRenderer = NULL;
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	window = NULL;
+	renderer = NULL;
 	
 	IMG_Quit();
 	SDL_Quit();

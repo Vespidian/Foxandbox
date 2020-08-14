@@ -44,6 +44,7 @@ extern bool mouseHeld;
 extern bool showDebugInfo;
 extern bool reachLimit;
 extern int reachDistance;
+extern int inputMode;
 
 float lerp(float goal, float current, float increment);
 

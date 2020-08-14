@@ -2,8 +2,8 @@
 #define INITIALIZE_H_
 
 //Define the window and renderer
-extern SDL_Window* gWindow;
-extern SDL_Renderer* gRenderer;
+extern SDL_Window* window;
+extern SDL_Renderer* renderer;
 
 bool init();
 void Quit();

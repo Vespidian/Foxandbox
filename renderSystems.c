@@ -82,9 +82,9 @@ void RenderParticleSystem(ParticleSystem system){
 					}
 					if(particle.active){
 						if(system.fade){
-							AddToRenderQueue(gRenderer, system.pSheet, system.pType, particle.pos, (particle.duration * 255) / particle.initDuration, RNDRLYR_UI - 5);
+							AddToRenderQueue(renderer, system.pSheet, system.pType, particle.pos, (particle.duration * 255) / particle.initDuration, RNDRLYR_UI - 5);
 						}else{
-							AddToRenderQueue(gRenderer, system.pSheet, system.pType, particle.pos, 255, RNDRLYR_UI - 5);
+							AddToRenderQueue(renderer, system.pSheet, system.pType, particle.pos, 255, RNDRLYR_UI - 5);
 						}
 					}
 					system.particles[i] = (ParticleComponent)particle;
@@ -148,37 +148,58 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
 		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
 		//Determine wether or not the user can reach infinitely
-			AddToRenderQueue(gRenderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
+			AddToRenderQueue(renderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
 			
 			//MouseText
 			if(showDebugInfo){
 				char screenPosT[256];
 				snprintf(screenPosT, 1024, "mouseTransform.screenPos ->\nx: %d, y: %d", mouseTransform.tilePos.x, mouseTransform.tilePos.y);
-				RenderText_d(gRenderer, screenPosT, 0, 96);
+				RenderText_d(renderer, screenPosT, 0, 96);
 			}
 
 			if(mouseHeld){//Place and remove tiles
 				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
 				//Only place the item if it is a block and the selected hotbar is occupied
 				//Only place if the indicated block is different from the selected hotbar block
-				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item.isBlock && strcmp(invArray[selectedHotbar].item.name, buildLayer[tile.y][tile.x].block->item->name) != 0){
+				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item.isBlock && strcmp(invArray[selectedHotbar].item.name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 						INV_Subtract(1, &invArray[selectedHotbar].item);
-						INV_Add(buildLayer[tile.y][tile.x].block->dropQty, buildLayer[tile.y][tile.x].block->dropItem);
+						INV_Add(levels[0].terrain[tile.y][tile.x].block->dropQty, levels[0].terrain[tile.y][tile.x].block->dropItem);
 						PlaceBlock(tile, find_block(invArray[selectedHotbar].item.name));
 					}
 				}
 				/*if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
-					TileMapEdit(buildLayer, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
+					TileMapEdit(levels[0].terrain, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
 				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-					TileMapEdit(buildLayer, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
+					TileMapEdit(levels[0].terrain, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
 					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
 				}*/
 
 			}
 		}
 	}
+}
+
+void RenderConsole(){
+	int stringFit = 31;//Maximum number of characters to fit in the textbox
+	int characterSpacing = 9;
+	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
+	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
+	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, console, 170, RNDRLYR_UI);//Console
+	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, textBox, 190, RNDRLYR_UI);//Text input
+
+	if(strlen(currentCollectedText) < stringFit){
+		if(inputMode == 1){
+			RenderText_d(renderer, "_", strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);//Cursor
+		}
+		RenderText_d(renderer, currentCollectedText, 0, HEIGHT - 20);
+	}else{//Scroll text
+		RenderText_d(renderer, "_", stringFit * characterSpacing, HEIGHT - 20);//Cursor
+		RenderText_d(renderer, currentCollectedText, 278 - strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);
+	}
+
+	RenderText_d(renderer, consoleOutput, console.x, console.y + 4);
 }
 
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
@@ -200,10 +221,10 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 void RenderPauseMenu(){
 	// SDL_Rect tmp1 = {WIDTH / 2 - 32, 300, 128, 32};
 	// SDL_Rect tmp2 = {WIDTH / 2 - 32, 336, 128, 32};
-	// if(DrawButton(gRenderer, "Button 1", tmp1)){
+	// if(DrawButton(renderer, "Button 1", tmp1)){
 	// 	printf("wow 1\n");
 	// }
-	// if(DrawButton(gRenderer, "Button 2", tmp2)){
+	// if(DrawButton(renderer, "Button 2", tmp2)){
 	// 	printf("wow 2\n");
 	// }
 }

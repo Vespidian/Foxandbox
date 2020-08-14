@@ -56,9 +56,9 @@ void CheckCollisions(SDL_Rect tileR, CollisionComponent *col){
 
 void SetTileZPos(Vector2 tile, SDL_Rect tileR, SDL_Rect colRectBottom){
 	if(tileR.y + tileSize < colRectBottom.y){
-		furnitureMap[tile.y][tile.x].zPos = 1;
+		levels[0].features[tile.y][tile.x].zPos = 1;
 	}else{
-		furnitureMap[tile.y][tile.x].zPos = RNDRLYR_PLAYER + 1;
+		levels[0].features[tile.y][tile.x].zPos = RNDRLYR_PLAYER + 1;
 	}
 }
 
@@ -72,13 +72,13 @@ int EntityCollision(Entity *ent){
 	SDL_Rect rectRight = (SDL_Rect){collider.x + collider.w, collider.y, 1, collider.h};
 	
 	if(enableHitboxes){
-		AddToRenderQueue(gRenderer, debugSheet, 4, rectTop, -1, 1001);
-		AddToRenderQueue(gRenderer, debugSheet, 4, rectBottom, -1, 1001);
-		AddToRenderQueue(gRenderer, debugSheet, 4, rectLeft, -1, 1001);
-		AddToRenderQueue(gRenderer, debugSheet, 4, rectRight, -1, 1001);
+		AddToRenderQueue(renderer, debugSheet, 4, rectTop, -1, 1001);
+		AddToRenderQueue(renderer, debugSheet, 4, rectBottom, -1, 1001);
+		AddToRenderQueue(renderer, debugSheet, 4, rectLeft, -1, 1001);
+		AddToRenderQueue(renderer, debugSheet, 4, rectRight, -1, 1001);
 		
-		AddToRenderQueue(gRenderer, debugSheet, 5, collider, -1, 1000);
-		AddToRenderQueue(gRenderer, debugSheet, 3, ent->collider.boundingBox, -1, 1000);
+		AddToRenderQueue(renderer, debugSheet, 5, collider, -1, 1000);
+		AddToRenderQueue(renderer, debugSheet, 3, ent->collider.boundingBox, -1, 1000);
 	}
 	
 	ent->collider.colUp = false;
@@ -90,18 +90,18 @@ int EntityCollision(Entity *ent){
 		for(int y = tilePosition.y - 1; y <= tilePosition.y + 1; y++){
 			for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
 				SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
-				if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && colMap[y][x] != -1){
+				if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && levels[0].collision[y][x] != -1){
 					
-					if(colMap[y][x] == 0){
+					if(levels[0].collision[y][x] == 0){
 						CheckCollisions(tileR, &ent->collider);
 						
-					}else if(colMap[y][x] == 1){
+					}else if(levels[0].collision[y][x] == 1){
 						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
 						
-					}else if(colMap[y][x] == 2){
-						furnitureMap[y][x].zPos = RNDRLYR_PLAYER + 1;
+					}else if(levels[0].collision[y][x] == 2){
+						levels[0].features[y][x].zPos = RNDRLYR_PLAYER + 1;
 						
-					}else if(colMap[y][x] == 8){//HALF YELLOW
+					}else if(levels[0].collision[y][x] == 8){//HALF YELLOW
 						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
 						tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
 						tileR.h = tileSize / 2;
@@ -110,7 +110,7 @@ int EntityCollision(Entity *ent){
 					}
 					
 					if(enableHitboxes){
-						AddToRenderQueue(gRenderer, debugSheet, colMap[y][x], tileR, -1, 1000);
+						AddToRenderQueue(renderer, debugSheet, levels[0].collision[y][x], tileR, -1, 1000);
 					}
 				}
 			}
