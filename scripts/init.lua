@@ -59,6 +59,8 @@ register_item({
 	tile_index = 4,
 })
 
+register_block({name = "null"})
+
 register_block({
 	name = "bookshelf",
 	item_sheet = "furniture",
@@ -66,9 +68,23 @@ register_block({
 	
 	block_sheet = "furniture",
 	block_tile_index = 0,
+	
+	block_layer = "feature",
+	collision_type = 0,
 	-- flags = {"feature", "collision_0"},
 })
 
+register_block({
+	name = "air",
+	item_sheet = "furniture",
+	item_tile_index = 7,
+
+	block_sheet = "furniture",
+	block_tile_index = 7,
+
+	block_layer = "feature",
+	collision_type = -1,
+})
 register_block({
 	name = "flower",
 	item_sheet = "furniture",
@@ -82,6 +98,8 @@ register_block({
 
 	-- flags = {"feature"},
 })
+
+
 register_block({
 	name = "grass",
 	item_sheet = "default_ground",

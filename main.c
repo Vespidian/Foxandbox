@@ -6,10 +6,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+// extern "C"{
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 #include <luaconf.h>
+// }
 
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
@@ -74,15 +76,15 @@ void clearScreen(SDL_Renderer *renderer){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
 	SDL_RenderClear(renderer);
 
-	int texSize = 512;
-	int tilesX = (WIDTH / texSize) + 1;
-	int tilesY = (HEIGHT / texSize) + 1;
-	SDL_Rect destRect = {0, 0, texSize, texSize};
-	for(int y = 0; y < tilesY + tilesY; y++){
-		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;
-		for(int x = 0; x < tilesX + tilesX; x++){
-			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;
-			SDL_RenderCopy(renderer, backgroundTex, NULL, &destRect);
+	int texSize = 512;//Size of one background texture-tile
+	int tilesX = (WIDTH / texSize) + 1;//Number of tiles that fit on the x axis
+	int tilesY = (HEIGHT / texSize) + 1;//Number of tile that fit on the y axis
+	SDL_Rect destRect = {0, 0, texSize, texSize};//Template rect to paste each of the textures to screen
+	for(int y = 0; y < tilesY + 2; y++){//Nested loop to iterate through tiles (the plus one is there as to make sure to not leave gaps)
+		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;//set y offset
+		for(int x = 0; x < tilesX + 2; x++){
+			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;//Set x offset
+			SDL_RenderCopy(renderer, backgroundTex, NULL, &destRect);//Draw the texture
 		}
 	}
 }
@@ -121,6 +123,7 @@ int runScript(char *fileName){
 	luaL_openlibs(L);
 	luaL_dofile(L, fileName);
 	lua_close(L);
+	return 0;
 }
 
 int num_from_table(lua_State *L, char *field){
@@ -138,29 +141,31 @@ int register_tilesheet(lua_State *L){
 	
 	luaL_checktype(L, 1, LUA_TTABLE);
 	lua_getfield(L, -1, "name");
-	if(lua_tostring(L, -1) != NULL){
-		strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
-	}else{
-		strcpy(tilesheets[num_tilesheets].name, "undefined");
-	}
-	
-	lua_getfield(L, -2, "path");
-	if(lua_tostring(L, -1) != NULL){
-		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
-	}else{
-		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
-	}
+	// if(strcmp(*find_tilesheet(lua_tostring(L, -1))->name, "undefined") == 0){
+		if(lua_tostring(L, -1) != NULL){
+			strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
+		}else{
+			strcpy(tilesheets[num_tilesheets].name, "undefined");
+		}
+		
+		lua_getfield(L, -2, "path");
+		if(lua_tostring(L, -1) != NULL){
+			tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
+		}else{
+			tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
+		}
 
-	lua_getfield(L, -3, "tile_size");
-	if(lua_tonumber(L, -1) != NULL){
-		tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
-		//Identify the width and height of the tilesheet based on tile size
-		SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
-		tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
-		tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
-	}
+		lua_getfield(L, -3, "tile_size");
+		if(lua_tonumber(L, -1)){
+			tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
+			//Identify the width and height of the tilesheet based on tile size
+			SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
+			tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
+			tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
+		}
 
-	num_tilesheets++;
+		num_tilesheets++;
+	// }
 	return 0;
 }
 
@@ -233,6 +238,8 @@ void Setup(){
 	SDL_RenderCopy(renderer, loadScreenTex, NULL, &splashDest);
 	SDL_RenderPresent(renderer);
 
+	levels = malloc(sizeof(LevelComponent));//TEMP
+
 	loadLua();
 	NewEntity();
 	// lua_close(L);
@@ -243,14 +250,14 @@ void Setup(){
 	INV_WriteCell("set", 3, 16, find_item("grass"));
 	INV_WriteCell("set", 0, 16, find_item("water"));
 	INV_WriteCell("set", 12, 17, find_item("flower"));
-	MapInit();
+	// MapInit();
 
-
+	LoadLevel("maps/map1.dat");
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 
-	SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+	// SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);
@@ -259,6 +266,7 @@ void Setup(){
 	characterOffset.y = midScreen.y;
 	SetupRenderFrame();
 	GenerateProceduralMap(50, 5);
+	
 	
 	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
 	// NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
@@ -276,8 +284,8 @@ void Setup(){
 
 Vector2 tmpSize;	
 void ResizeWindow(){
-	Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
-	keeping everything pixel perfect
+	Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};/*Make sure the character position is always a multiple of 4
+	keeping everything pixel perfect*/
 	if(roundSpeed.x != 0){
 		mapOffsetPos.x -= roundSpeed.x;
 	}
@@ -445,11 +453,15 @@ int main(int argc, char **argv) {
 						strcat(currentCollectedText, e.text.text);
 					}
 				}
-				if(e.type == SDL_KEYDOWN){
+
+				if(e.type == SDL_KEYDOWN){//KEY DOWN
 					if(inputMode == 0){
 						if(e.key.keysym.sym == SDLK_y){
 							characterOffset.x = midScreen.x;
 							characterOffset.y = midScreen.y;
+						}
+						if(e.key.keysym.sym >= 49 && e.key.keysym.sym <= 57 && e.key.keysym.sym - 49 < INV_WIDTH){//Hotbar slot selection via number keys
+							selectedHotbar = e.key.keysym.sym - 49;
 						}
 					}else if(inputMode == 1){
 						if(e.key.keysym.sym == SDLK_BACKSPACE){
@@ -457,7 +469,8 @@ int main(int argc, char **argv) {
 						}
 					}
 				}
-				if(e.type == SDL_KEYUP){
+
+				if(e.type == SDL_KEYUP){//KEY UP
 					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};//Make sure the character position is always a multiple of 4\
 					keeping everything pixel perfect
 					if(roundSpeed.x != 0){
@@ -517,7 +530,8 @@ int main(int argc, char **argv) {
 						}
 					}
 				}
-				if(e.type == SDL_MOUSEWHEEL){
+
+				if(e.type == SDL_MOUSEWHEEL){//SCROLL
 					if(e.wheel.y > 0){
 						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 0){
 							selectedHotbar--;
@@ -532,7 +546,8 @@ int main(int argc, char **argv) {
 						}
 					}
 				}
-				if(e.type == SDL_WINDOWEVENT){
+
+				if(e.type == SDL_WINDOWEVENT){//WINDOW RESIZE / MINIMIZE
 					if(e.window.event == SDL_WINDOWEVENT_RESIZED){
 						ResizeWindow();
 					}
@@ -546,9 +561,6 @@ int main(int argc, char **argv) {
 			RenderScreen();
 			SDL_Delay(1000 / targetFramerate);//Game FrameRate
 			deltaTime = (SDL_GetTicks() - loopStartTime) / 10;
-			// char *deltaTemp;
-			// snprintf(deltaTemp, 1024, "Delta Time: %f", deltaTime);
-			// RenderText_d(renderer, deltaTemp, 0, 300);
 		}
 	}else{
 		printf("Failed to initialize\n");
@@ -557,17 +569,9 @@ int main(int argc, char **argv) {
 	if(quit){
 		Quit();
 	}
+	return 0;
 }
 
-/*typedef struct{
-	bool mouseDown;
-	bool mouseUp;
-	
-	bool prevMouseState;
-	bool mouseClicked
-}MouseStates;
-
-MouseStates mouse;*/
 fVector2 entPos = {0, 0};
 void RenderScreen(){
 	clearScreen(renderer);

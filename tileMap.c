@@ -14,12 +14,16 @@
 #include "headers/inventory.h"
 
 
+// enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
+
+LevelComponent *activeLevel;
+
 int tilePixelSize = 16;
 const int tileStretchSize = 64;
 int tileSheetWidth = 8;
 
-LevelComponent levels[1];
-
+LevelComponent *levels;
+int numLevels = -1;
 
 BlockComponent undefinedBlock;
 BlockComponent *blockData;
@@ -38,7 +42,6 @@ int renderItemIndex = 0;
 RenderComponent *renderBuffer;
 
 void SetupRenderFrame(){//Clear and allocate render buffer + reset render counter
-	// printf("%d\n", renderItemIndex);
 	free(renderBuffer);
 	renderItemIndex = 0;
 	renderBuffer = malloc(sizeof(RenderComponent));
@@ -129,7 +132,7 @@ int register_block(lua_State *L){
 		}
 
 		lua_getfield(L, -3, "item_tile_index");
-		if(lua_tonumber(L, -1) != NULL){
+		if(lua_tonumber(L, -1)){
 			itemData[numItems].tile = lua_tonumber(L, -1);
 		}else{
 			itemData[numItems].tile = 0;
@@ -150,7 +153,7 @@ int register_block(lua_State *L){
 	}
 
 	lua_getfield(L, -5, "block_tile_index");
-	if(lua_tonumber(L, -1) != NULL || lua_tonumber(L, -1) == 0){
+	if(lua_tonumber(L, -1) || lua_tonumber(L, -1) == 0){
 		blockData[numBlocks].tile = lua_tonumber(L, -1);
 	}else{
 		blockData[numBlocks].tile = -1;
@@ -168,7 +171,7 @@ int register_block(lua_State *L){
 	}
 
 	lua_getfield(L, -7, "dropped_qty");
-	if(lua_tonumber(L, -1) != NULL){
+	if(lua_tonumber(L, -1)){
 		blockData[numBlocks].dropQty = lua_tonumber(L, -1);
 	}else{
 		blockData[numBlocks].dropQty = 1;
@@ -195,29 +198,29 @@ int register_block(lua_State *L){
 		blockData[numBlocks].collisionType = -1;
 	}
 
-	blockData[numBlocks].flags = malloc(sizeof(char **));
-	lua_getfield(L, -8, "flags");
-	if(lua_istable(L, -1)){
-		size_t len = lua_rawlen(L, -1);
-		int numFlags = 0;
-		for(int i = 0; i <= len; i++){
-			lua_pushinteger(L, i + 1);
-			lua_gettable(L, -2);	
-			if(lua_tostring(L, -1) != NULL){
-				// char *temp = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
-				// strcpy(temp, lua_tostring(L, -1));
-				blockData[numBlocks].flags[numFlags] = calloc(strlen(lua_tostring(L, -1)) + 1, sizeof(char));
-				// printf("%d   ", strlen(lua_tostring(L, -1)));
-				strcpy(blockData[numBlocks].flags[numFlags], lua_tostring(L, -1));
-				// blockData[numBlocks].flags[numFlags][strlen(blockData[numBlocks].flags[numFlags])] = '\0';
-				// strcpy(blockData[numBlocks].flags[numFlags], temp);
+	// blockData[numBlocks].flags = malloc(sizeof(char **));
+	// lua_getfield(L, -8, "flags");
+	// if(lua_istable(L, -1)){
+	// 	size_t len = lua_rawlen(L, -1);
+	// 	int numFlags = 0;
+	// 	for(int i = 0; i <= len; i++){
+	// 		lua_pushinteger(L, i + 1);
+	// 		lua_gettable(L, -2);	
+	// 		if(lua_tostring(L, -1) != NULL){
+	// 			// char *temp = calloc(strlen(lua_tostring(L, -1)), sizeof(char));
+	// 			// strcpy(temp, lua_tostring(L, -1));
+	// 			blockData[numBlocks].flags[numFlags] = calloc(strlen(lua_tostring(L, -1)) + 1, sizeof(char));
+	// 			// printf("%d   ", strlen(lua_tostring(L, -1)));
+	// 			strcpy(blockData[numBlocks].flags[numFlags], lua_tostring(L, -1));
+	// 			// blockData[numBlocks].flags[numFlags][strlen(blockData[numBlocks].flags[numFlags])] = '\0';
+	// 			// strcpy(blockData[numBlocks].flags[numFlags], temp);
 
-				printf("%s\n", blockData[numBlocks].flags[numFlags]);
-				numFlags++;
-			}
-			lua_pop(L, 1);
-		}
-	}
+	// 			printf("%s\n", blockData[numBlocks].flags[numFlags]);
+	// 			numFlags++;
+	// 		}
+	// 		lua_pop(L, 1);
+	// 	}
+	// }
 
 	blockData[numBlocks].autoTile = false;
 
@@ -374,13 +377,110 @@ int LoadDataMap(char *fileLoc, int mapArray[][32]){//For non rendered maps (e.g.
 	return 0;
 }
 
+int GetLineLength(FILE *file){
+	int lineLength = 0;
+	while(fgetc(file) != '\n'){
+		lineLength++;
+	}
+	fseek(file, -lineLength - 2, SEEK_CUR);
+	return lineLength * 8;
+}
+
+// LevelComponent_t *levels_tmp;
 
 int LoadLevel(char *path){
 	/*
 	Check if path exists
+	Realloc level array
 	Look for header of section (Terrain:, Features:, Collision:, etc)
-	realloc level array and read data to coresponding array
+	Read data to coresponding array
 	*/
+
+	FILE *level = fopen(path, "r");
+	if(level != NULL){//Check if path exists
+		numLevels++;
+		levels = realloc(levels, (numLevels + 1) * sizeof(LevelComponent));
+		char header[64];
+		char *lineBuffer;
+		int lineLength = GetLineLength(level);
+		int line = 0;
+		int y = 0;
+		Vector2 mapSize = {0, 0};
+		lineBuffer = malloc(lineLength);
+		while(fgets(lineBuffer, lineLength, level)){
+			if(line == 0){//Get level size parameters
+				mapSize.x = strtol(strtok(lineBuffer, "x"), NULL, 10);
+				mapSize.y = strtol(strtok(NULL, "\n"), NULL, 10);
+				levels[numLevels].map_size = mapSize;
+				levels[numLevels].terrain = calloc(mapSize.y, sizeof(RenderTileComponent));
+				levels[numLevels].features = calloc(mapSize.y, sizeof(RenderTileComponent));
+				levels[numLevels].collision = calloc(mapSize.y, sizeof(uint64_t));
+			}
+
+			if(strchr(lineBuffer, '\n') != NULL){
+				*strchr(lineBuffer, '\n') = '\0';
+			}
+
+			printf("%s\n", lineBuffer);
+
+			if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){//Detect headers
+				strcpy(header, strshft_l(lineBuffer, 2));
+				y = 0;
+			}else if(y < mapSize.y){
+				if(strcmp(header, "terrain") == 0){
+					levels[numLevels].terrain[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
+					char token[128];
+					strcpy(token, strtok(lineBuffer, ","));
+					for(int x = 0; x < mapSize.x; x++){
+						levels[numLevels].terrain[y][x].block = find_block(token);
+
+						// printf("%s\n", token);
+						char *tmp = strtok(NULL, ",");
+						if(tmp != NULL){
+							strcpy(token, tmp);
+						}else{
+							strcpy(token, "undefined");
+						}
+					}
+					y++;
+
+				}else if(strcmp(header, "features") == 0){
+					levels[numLevels].features[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
+					char token[128];
+					strcpy(token, strtok(lineBuffer, ","));
+					for(int x = 0; x < mapSize.x; x++){
+						levels[numLevels].features[y][x].block = find_block(token);
+
+						// printf("%s\n", token);
+						char *tmp = strtok(NULL, ",");
+						if(tmp != NULL){
+							strcpy(token, tmp);
+						}else{
+							strcpy(token, "undefined");
+						}
+					}
+					y++;
+					
+				}else if(strcmp(header, "collision") == 0){
+					levels[numLevels].collision[y] = calloc(mapSize.x, sizeof(int));
+					int colliderType;
+					colliderType = strtol(strtok(lineBuffer, ","), NULL, 10);
+					for(int x = 0; x < mapSize.x; x++){
+						levels[numLevels].collision[y][x] = colliderType;
+
+						// printf("%d\n", colliderType);
+						colliderType = strtol(strtok(NULL, ","), NULL, 10);
+					}
+					y++;
+
+				}
+			}
+			lineLength = GetLineLength(level);
+			lineBuffer = malloc(lineLength);
+			line++;
+		}
+	}
+	fclose(level);
 }
 
 int SaveLevel(LevelComponent *level, char *path){
@@ -409,12 +509,11 @@ int UnloadLevel(LevelComponent *level){
 
 
 int mapSize = 32;
-void RenderLevel(LevelComponent *level){//Draw map from 2D array
+/*void RenderLevel(LevelComponent *level){//Draw map from 2D array
 	Vector2 tilePos = {0, 0};
 	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < mapSize; y++){
 		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < mapSize; x++){
-			// tilePos = (Vector2){(x * tileStretchSize) - mapOffsetPos.x, (y * tileStretchSize) - mapOffsetPos.y};
 			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
 			tilePos.y = (y * tileStretchSize) - mapOffsetPos.y;
 			tile.x = tilePos.x;
@@ -429,15 +528,37 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			}
 		}
 	}
+}*/
+
+void RenderLevel(LevelComponent *level){//Draw map from 2D array
+	Vector2 tilePos = {0, 0};
+	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
+	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < level->map_size.y; y++){
+		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < level->map_size.x; x++){
+			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
+			tilePos.y = (y * tileStretchSize) - mapOffsetPos.y;
+			tile.x = tilePos.x;
+			tile.y = tilePos.y;
+			if(level->terrain[y][x].type != -1){//Render Terrain
+				AddToRenderQueue(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
+				level->terrain[y][x].zPos = 0;
+			}
+			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
+				AddToRenderQueue(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
+				level->features[y][x].zPos = 0;
+			}
+		}
+	}
 }
 
 void DrawLevel(){
 	// DrawMap(*find_tilesheet("default_ground"), levels[0].terrain, 0);
 	// DrawMap(*find_tilesheet("furniture"), levels[0].features, 1);
 
+	// RenderLevel(&levels[0]);
 	RenderLevel(&levels[0]);
+
+	// RenderLevel(&levels[1]);
 
 	DrawCharacter(characterFacing, 6);
 }
-
-/* void TILE_SetTile(int mapArray[][32], int ) */

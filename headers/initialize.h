@@ -5,6 +5,9 @@
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 
+extern SDL_Window *consoleWindow;
+extern SDL_Renderer *consoleRenderer;
+
 bool init();
 void Quit();
 

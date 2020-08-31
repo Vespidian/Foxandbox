@@ -18,20 +18,29 @@ RenderTileComponent buildLayer_tmp[32][32] = {};
 enum types {GRASS = 0, WATER = 47};
 bool doRandomGen = true;
 
-int GetSurroundCount(Vector2 tile){
+void CreateTempLayerMap(RenderTileComponent **layer, Vector2 size){
+	layer = calloc(size.y, sizeof(RenderTileComponent));
+	for(int y = 0; y < size.y; y++){
+		layer[y] = calloc(size.x, sizeof(RenderTileComponent));
+		memset(layer[y], 0, sizeof(layer) * size.x);
+	}
+	// printf("%d\n", sizeof(layer));
+}
+
+int GetSurroundCount(RenderTileComponent *layer, Vector2 tile){
 	int surroundCount = 0;
 	for(int y = tile.y - 1; y <= tile.y + 1; y++){
 		for(int x = tile.x - 1; x <= tile.x + 1; x++){
-			if(x >= 0 && x < 32 && y >= 0 && y < 32){
+			if(x >= 0 && x < level->map_size.x && y >= 0 && y < level->map_size.y){
 				if(x != tile.x || y != tile.y){
-					if(buildLayer_tmp[y][x].block->tile < WATER){
+					if(layer[y][x].block->tile < WATER){
 						surroundCount++;
 					}
 				}
 			}
 		}
 	}
-	// printf("%d\n", surr	oundCount);
+	// printf("%d\n", surroundCount);
 	return surroundCount;
 }
 
@@ -45,17 +54,17 @@ void FillMap(RenderTileComponent map[][32]){
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
 	// FillMap(levels[0].terrain);
-	RandomMap(levels[0].terrain, ratioPercent, 2, find_block("grass"), find_block("water"));
+	// RandomMap(levels[0].terrain, ratioPercent, 2, find_block("grass"), find_block("water"));
 	// RandomMap(levels[0].terrain, ratioPercent, "grass", "water", NULL);
-	for(int i = 0; i < smoothSteps; i++){
-		SmoothMap(find_block("grass"), find_block("water"));
-	}
-	PlaceBlock((Vector2){6, 6}, find_block("nylium"));
-	PlaceBlock((Vector2){7, 5}, find_block("nylium"));
-	PlaceBlock((Vector2){8, 5}, find_block("nylium"));
-	PlaceBlock((Vector2){4, 4}, find_block("nylium"));
-	PlaceBlock((Vector2){6, 4}, find_block("grass"));
-	DefineCollisions();
+	// for(int i = 0; i < smoothSteps; i++){
+		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
+	// }
+	// PlaceBlock((Vector2){6, 6}, find_block("nylium"));
+	// PlaceBlock((Vector2){7, 5}, find_block("nylium"));
+	// PlaceBlock((Vector2){8, 5}, find_block("nylium"));
+	// PlaceBlock((Vector2){4, 4}, find_block("nylium"));
+	// PlaceBlock((Vector2){6, 4}, find_block("grass"));
+	// DefineCollisions();
 	// AutotileMap(levels[0].terrain, autotileData[0]);
 	// AutotileMap(levels[0].terrain, autotileData[1]);
 }
@@ -157,34 +166,46 @@ void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
 	}
 }
 
-void SmoothMap(BlockComponent *main, BlockComponent *secondary){
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			if(levels[0].terrain[y][x].block->tile < WATER){
-				buildLayer_tmp[y][x].block = find_block("grass");
-				// buildLayer_tmp[y][x].block = main;
+void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *secondary){
+	RenderTileComponent **tempLayer = {0};
+	CreateTempLayerMap(tempLayer, (Vector2){level->map_size.x, level->map_size.y});
+	// LevelComponent tempLevel;
+	// CreateLevel(tempLevel, (Vector2){level->map_size.x, level->map_size.y});
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			if(level->terrain[y][x].block->tile < WATER){
+				// buildLayer_tmp[y][x].block = find_block("grass");
+				// tempLayer[y][x].block = find_block("grass");
+				buildLayer_tmp[y][x].block = main;
 			}else{
-				buildLayer_tmp[y][x].block = find_block("water");
-				// buildLayer_tmp[y][x].block = secondary;
+				// buildLayer_tmp[y][x].block = find_block("water");
+				// tempLayer[y][x].block = find_block("water");
+				buildLayer_tmp[y][x].block = secondary;
 			}
 		}
 	}
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			int surroundTiles = GetSurroundCount((Vector2){x, y});
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			int surroundTiles = GetSurroundCount(level, (Vector2){x, y});
+	printf ("here\n");
 			if(surroundTiles > 4){
-				levels[0].terrain[y][x].block = find_block("grass");
-				buildLayer_tmp[y][x].block = find_block("grass");
-				// levels[0].terrain[y][x].block = main;
+				level->terrain[y][x].block = main;
+				// buildLayer_tmp[y][x].block = find_block("grass");
+				// tempLayer[y][x].block = find_block("grass");
+				tempLayer[y][x].block = main;
+				// level->terrain[y][x].block = main;
 				// buildLayer_tmp[y][x].block = main;
 			}else if(surroundTiles < 4){
-				levels[0].terrain[y][x].block = find_block("water");
-				buildLayer_tmp[y][x].block = find_block("water");
-				// levels[0].terrain[y][x].block = secondary;
+				level->terrain[y][x].block = secondary;
+				// buildLayer_tmp[y][x].block = find_block("water");
+				// tempLayer[y][x].block = find_block("water");
+				tempLayer[y][x].block = secondary;
+				// level->terrain[y][x].block = secondary;
 				// buildLayer_tmp[y][x].block = secondary;
 			}
 		}
 	}
+	free(tempLayer);
 }
 void RandomMap(RenderTileComponent map[][32], int ratioPercent, int numTypes, ...){
 	time_t rawTime;

@@ -157,13 +157,23 @@ typedef struct{
 
 
 
+// typedef struct{
+// 	char name[128];
+// 	Vector2 size;
+// 	RenderTileComponent terrain[32][32];
+// 	RenderTileComponent features[32][32];
+// 	int collision[32][32];
+// 	Vector2 *spawns;
+// }LevelComponent_old;
+
 typedef struct{
-	RenderTileComponent terrain[32][32];
-	RenderTileComponent features[32][32];
-	int collision[32][32];
+	char name[128];
+	Vector2 map_size;
+	RenderTileComponent **terrain;
+	RenderTileComponent **features;
+	int **collision;
 	Vector2 *spawns;
 }LevelComponent;
-
 
 
 //Entity Types

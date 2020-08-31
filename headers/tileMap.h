@@ -8,7 +8,10 @@
 
 extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
-extern LevelComponent levels[1];
+extern LevelComponent *activeLevel;
+
+extern LevelComponent *levels;
+extern int numLevels;
 
 extern int renderItemIndex;
 extern int tilePixelSize;
@@ -40,6 +43,9 @@ extern AutotileComponent *autotileData;
 extern int numAutotiles;
 
 BlockComponent *find_block(char *name);
+
+// extern LevelComponent_t *levels_tmp;
+int LoadLevel(char *path);
 
 //Lua functions
 int register_block(lua_State *L);

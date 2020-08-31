@@ -8,10 +8,10 @@ echo.
 echo.
 
 if "%buildType%"=="debug" (
-	make debug
+	mingw32-make debug
 ) else if "%buildType%"=="build" (
 	REM Production Compile (Exclude command prompt)
-	make build
+	mingw32-make build
 )
 
 echo.
