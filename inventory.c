@@ -94,7 +94,7 @@ int register_item(lua_State *L){
 	}
 
 	lua_getfield(L, -3, "tile_index");
-	if(lua_tonumber(L, -1) != NULL){
+	if(lua_tonumber(L, -1)){
 		itemData[numItems].tile = lua_tonumber(L, -1);
 	}else{
 		itemData[numItems].tile = -1;

@@ -92,21 +92,24 @@ int EntityCollision(Entity *ent){
 				SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
 				if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && levels[0].collision[y][x] != -1){
 					
-					if(levels[0].collision[y][x] == 0){
-						CheckCollisions(tileR, &ent->collider);
-						
-					}else if(levels[0].collision[y][x] == 1){
-						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
-						
-					}else if(levels[0].collision[y][x] == 2){
-						levels[0].features[y][x].zPos = RNDRLYR_PLAYER + 1;
-						
-					}else if(levels[0].collision[y][x] == 8){//HALF YELLOW
-						SetTileZPos((Vector2){x, y}, tileR, rectBottom);
-						tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
-						tileR.h = tileSize / 2;
-						CheckCollisions(tileR, &ent->collider);
-						
+					switch(levels[0].collision[y][x]){
+						case 0:
+							CheckCollisions(tileR, &ent->collider);
+							break;
+						case 1:
+							SetTileZPos((Vector2){x, y}, tileR, rectBottom);
+							break;
+						case 2:
+							levels[0].features[y][x].zPos = RNDRLYR_PLAYER + 1;
+							break;
+						case 8:
+							SetTileZPos((Vector2){x, y}, tileR, rectBottom);
+							tileR.y = (y * tileSize) - mapOffsetPos.y + tileSize / 2;
+							tileR.h = tileSize / 2;
+							CheckCollisions(tileR, &ent->collider);							
+							break;
+						default:
+							break;
 					}
 					
 					if(enableHitboxes){

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <stdlib.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
@@ -73,11 +75,6 @@ void TextureInit(){
 	InvertedAutotileMaskSheet = (WB_Tilesheet){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
 }
 
-void MapInit(){
-	LoadMap("maps/testMap_temp.csv", levels[0].features);
-	LoadDataMap("maps/testMap_colliders.csv", levels[0].collision);
-}
-
 void UndefinedInit(){
 	undefinedItem = (ItemComponent){"undefined", "", undefinedSheet, 0};
 	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, -1, "terrain"};
@@ -98,12 +95,10 @@ bool init(){
 	INV_Init();
 	
 	ReadItemData();
-	printf("%d\n", sizeof(LevelComponent));
-	memset(levels[0], 0, sizeof(LevelComponent));
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);		
-	
+
 	return success;
 }
 

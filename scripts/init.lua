@@ -1,20 +1,12 @@
--- register_tile("base:null", {
-	-- "huh", 
-	-- "no", 
-	-- "oh god why"
--- }, {})
+--[=[
 
--- register_tile("base:grass", {
-	-- "heyo",
-	-- "ndso",
-	-- "bflag"
--- }, {
-	-- tile = 567
--- })
+Pimy: 2020
+Basic testing of the lua implementation to interact with game
 
+]=]
 register_tilesheet({
-	name = "default_ground",
-	path = "images/AUTOTILE_grass-water.png",
+	name = "blocks",
+	path = "images/blocks.png",
 	tile_size = 16,
 })
 
@@ -59,6 +51,8 @@ register_item({
 	tile_index = 4,
 })
 
+register_block({name = "null"})
+
 register_block({
 	name = "bookshelf",
 	item_sheet = "furniture",
@@ -66,9 +60,22 @@ register_block({
 	
 	block_sheet = "furniture",
 	block_tile_index = 0,
-	-- flags = {"feature", "collision_0"},
+	
+	block_layer = "feature",
+	collision_type = 0,
 })
 
+register_block({
+	name = "air",
+	item_sheet = "blocks",
+	item_tile_index = 0,
+
+	block_sheet = "blocks",
+	block_tile_index = 0,
+
+	-- block_layer = "feature",
+	collision_type = -1,
+})
 register_block({
 	name = "flower",
 	item_sheet = "furniture",
@@ -79,16 +86,16 @@ register_block({
 
 	block_layer = "feature",
 	collision_type = 1,
-
-	-- flags = {"feature"},
 })
+
+
 register_block({
 	name = "grass",
-	item_sheet = "default_ground",
-	item_tile_index = 0,
+	item_sheet = "blocks",
+	item_tile_index = 1,
 
-	block_sheet = "default_ground",
-	block_tile_index = 0,
+	block_sheet = "blocks",
+	block_tile_index = 1,
 
 	collision_type = -1,
 	flags = {"ground"},
@@ -96,28 +103,25 @@ register_block({
 
 register_block({
 	name = "water",
-	item_sheet = "default_ground",
-	item_tile_index = 47,
+	item_sheet = "blocks",
+	item_tile_index = 2,
 
-	block_sheet = "default_ground",
-	block_tile_index = 47,
+	block_sheet = "blocks",
+	block_tile_index = 2,
 	block_layer = "terrain",
-	-- block_type = "feature",
 
 	collision_type = 0,
-	-- flags = {"ground", "collision_0"},
 })
 
 register_block({
 	name = "nylium",
-	item_sheet = "furniture",
-	item_tile_index = 4,
+	item_sheet = "blocks",
+	item_tile_index = 3,
 
-	block_sheet = "furniture",
-	block_tile_index = 4,
+	block_sheet = "blocks",
+	block_tile_index = 3,
 
 	collision_type = -1,
-	-- flags = {"ground", "collision_0"},
 })
 
 
