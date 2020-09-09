@@ -54,6 +54,17 @@ register_item({
 register_block({name = "null"})
 
 register_block({
+	name = "air",
+	item_sheet = "blocks",
+	item_tile_index = 0,
+
+	block_sheet = "blocks",
+	block_tile_index = 0,
+
+	block_layer = "feature",
+	collision_type = -1,
+})
+register_block({
 	name = "bookshelf",
 	item_sheet = "furniture",
 	item_tile_index = 0,
@@ -66,24 +77,13 @@ register_block({
 })
 
 register_block({
-	name = "air",
-	item_sheet = "blocks",
-	item_tile_index = 0,
-
-	block_sheet = "blocks",
-	block_tile_index = 0,
-
-	-- block_layer = "feature",
-	collision_type = -1,
-})
-register_block({
 	name = "flower",
 	item_sheet = "furniture",
 	item_tile_index = 1,
-
+	
 	block_sheet = "furniture",
 	block_tile_index = 1,
-
+	
 	block_layer = "feature",
 	collision_type = 1,
 })

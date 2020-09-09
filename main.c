@@ -238,7 +238,7 @@ void Setup(){
 	SDL_RenderCopy(renderer, loadScreenTex, NULL, &splashDest);
 	SDL_RenderPresent(renderer);
 
-	levels = malloc(sizeof(LevelComponent));//TEMP
+	levels = calloc(1, sizeof(LevelComponent));//TEMP
 
 	loadLua();
 	NewEntity();
@@ -251,11 +251,16 @@ void Setup(){
 	INV_WriteCell("set", 0, 16, find_item("water"));
 	INV_WriteCell("set", 12, 17, find_item("flower"));
 
-	// LoadLevel("maps/map1.dat");
-	LoadLevel("data/maps/testmap.dat");
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
+	// LoadLevel("maps/map1.dat");
+	InitializeBlankLevel(&levels[0], (Vector2){64, 64});
 	GenerateProceduralMap(50, 5);
-	SaveLevel(&levels[0], "data/maps/testMap.dat");
+	activeLevel = &levels[0];
+	// LoadLevel("data/maps/testmap.dat");
+	// SaveLevel(&levels[0], "data/maps/testMap.dat");
+	SaveLevel(activeLevel, "data/maps/testMap.dat");
+
+
 	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 

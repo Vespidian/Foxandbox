@@ -140,7 +140,7 @@ void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
 }
 
 void RenderCursor(){// Highlight the tile the mouse is currently on
-	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * 32, 64 * 32};
+	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * activeLevel->map_size.x, 64 * activeLevel->map_size.y};
 	// mouseTransform.tilePos = (Vector2){mouseTransform.screenPos.x, mouseTransform.screenPos.y};
 	mouseTransform.tilePos.x = ((mouseTransform.screenPos.x + mapOffsetPos.x) / 64);
 	mouseTransform.tilePos.y = ((mouseTransform.screenPos.y + mapOffsetPos.y) / 64);

@@ -86,7 +86,7 @@ int EntityCollision(Entity *ent){
 	ent->collider.colLeft = false;
 	ent->collider.colRight = false;
 	
-	if(tilePosition.y >= 0 && tilePosition.y <= 31 && tilePosition.x >= 0 && tilePosition.x <= 31){
+	if(tilePosition.y >= 0 && tilePosition.y <= activeLevel->map_size.y && tilePosition.x >= 0 && tilePosition.x <= activeLevel->map_size.x){
 		for(int y = tilePosition.y - 1; y <= tilePosition.y + 1; y++){
 			for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
 				SDL_Rect tileR = {(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
