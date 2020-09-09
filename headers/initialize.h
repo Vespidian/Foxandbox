@@ -15,7 +15,6 @@ extern int WIDTH;
 extern int HEIGHT;
 
 
-void MapInit();
 void TextureInit();
 void TextureDestroy();
 

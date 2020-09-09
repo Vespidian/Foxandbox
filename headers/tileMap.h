@@ -46,6 +46,7 @@ BlockComponent *find_block(char *name);
 
 // extern LevelComponent_t *levels_tmp;
 int LoadLevel(char *path);
+int SaveLevel(LevelComponent *level, char *path);
 
 //Lua functions
 int register_block(lua_State *L);

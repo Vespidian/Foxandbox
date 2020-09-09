@@ -75,11 +75,6 @@ void TextureInit(){
 	InvertedAutotileMaskSheet = (WB_Tilesheet){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
 }
 
-void MapInit(){
-	LoadMap("maps/testMap_temp.csv", levels[0].features);
-	LoadDataMap("maps/testMap_colliders.csv", levels[0].collision);
-}
-
 void UndefinedInit(){
 	undefinedItem = (ItemComponent){"undefined", "", undefinedSheet, 0};
 	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, -1, "terrain"};
@@ -103,28 +98,6 @@ bool init(){
 	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);		
-	
-	// int d = 0;
-	// printf("%d\n", d = 5 != NULL);
-	// int **wow = 0;
-
-	// wow = realloc(wow, sizeof(int*) * 5);
-	// for(int i = 0; i <= 5; i++){
-	// 	wow[i] = malloc(sizeof(int) * 5);
-	// 	memset(wow[i], 0, 5 * sizeof(int));	
-	// }
-	// wow[2][3] = 1;
-	// for(int y = 0; y < 5; y++){
-	// 	for(int x = 0; x < 5; x++){
-	// 		printf("%d ", wow[x][y]);
-	// 	}
-	// 	puts("");
-	// }
-
-
-	// printf("%d\n", EOF);
-
-	// printf("%d\n", levels_tmp[0].terrain[0][1]);
 
 	return success;
 }

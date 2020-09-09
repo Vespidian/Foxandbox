@@ -250,10 +250,12 @@ void Setup(){
 	INV_WriteCell("set", 3, 16, find_item("grass"));
 	INV_WriteCell("set", 0, 16, find_item("water"));
 	INV_WriteCell("set", 12, 17, find_item("flower"));
-	// MapInit();
 
-	LoadLevel("maps/map1.dat");
+	// LoadLevel("maps/map1.dat");
+	LoadLevel("data/maps/testmap.dat");
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
+	GenerateProceduralMap(50, 5);
+	SaveLevel(&levels[0], "data/maps/testMap.dat");
 	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 
@@ -265,7 +267,6 @@ void Setup(){
 	characterOffset.x = midScreen.x;
 	characterOffset.y = midScreen.y;
 	SetupRenderFrame();
-	GenerateProceduralMap(50, 5);
 	
 	
 	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
@@ -275,6 +276,8 @@ void Setup(){
 	pSys1.playSystem = false;
 	
 	chatHistory = malloc(1 * sizeof(char));
+
+
 	// character.collider = (CollisionComponent){false, false, false, false};
 	// runScript("scripts/init.lua");
 	// printf("%s\n", find_tilesheet("character")->name);

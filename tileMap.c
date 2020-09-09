@@ -386,11 +386,11 @@ int GetLineLength(FILE *file){
 	return lineLength * 8;
 }
 
-// LevelComponent_t *levels_tmp;
 
 int LoadLevel(char *path){
 	/*
 	Check if path exists
+	Load file with read permissions
 	Realloc level array
 	Look for header of section (Terrain:, Features:, Collision:, etc)
 	Read data to coresponding array
@@ -414,7 +414,6 @@ int LoadLevel(char *path){
 				levels[numLevels].map_size = mapSize;
 				levels[numLevels].terrain = calloc(mapSize.y, sizeof(RenderTileComponent));
 				levels[numLevels].features = calloc(mapSize.y, sizeof(RenderTileComponent));
-				levels[numLevels].collision = calloc(mapSize.y, sizeof(uint64_t));
 			}
 
 			if(strchr(lineBuffer, '\n') != NULL){
@@ -443,7 +442,6 @@ int LoadLevel(char *path){
 						}
 					}
 					y++;
-
 				}else if(strcmp(header, "features") == 0){
 					levels[numLevels].features[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
 					char token[128];
@@ -460,24 +458,16 @@ int LoadLevel(char *path){
 						}
 					}
 					y++;
-					
-				}else if(strcmp(header, "collision") == 0){
-					levels[numLevels].collision[y] = calloc(mapSize.x, sizeof(int));
-					int colliderType;
-					colliderType = strtol(strtok(lineBuffer, ","), NULL, 10);
-					for(int x = 0; x < mapSize.x; x++){
-						levels[numLevels].collision[y][x] = colliderType;
-
-						// printf("%d\n", colliderType);
-						colliderType = strtol(strtok(NULL, ","), NULL, 10);
-					}
-					y++;
-
 				}
 			}
 			lineLength = GetLineLength(level);
 			lineBuffer = malloc(lineLength);
 			line++;
+		}
+		levels[numLevels].collision = calloc(mapSize.y, sizeof(uint64_t));
+		for(int y = 0; y < mapSize.y; y++){
+			levels[numLevels].collision[y] = calloc(mapSize.x, sizeof(int));
+			memset(levels[numLevels].collision[y], -1, mapSize.x * sizeof(int));
 		}
 	}
 	fclose(level);
@@ -498,6 +488,37 @@ int SaveLevel(LevelComponent *level, char *path){
 
 	free file
 	*/
+
+	FILE *file = fopen(path, "w");
+
+	fprintf(file, "%dx%d\n", level->map_size.x, level->map_size.y);
+	fprintf(file, "::terrain\n");
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			fprintf(file, "%s,", level->terrain[y][x].block->item->name);
+		}
+		fprintf(file, "\n");
+	}
+
+	fprintf(file, "::features\n");
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			fprintf(file, "%s,", level->features[y][x].block->item->name);
+		}
+		fprintf(file, "\n");
+	}
+
+	// fprintf(file, "::collision\n");
+	// for(int y = 0; y < level->map_size.y; y++){
+	// 	for(int x = 0; x < level->map_size.x; x++){
+	// 		fprintf(file, "%d,", level->collision[y][x]);
+	// 	}
+	// 	fprintf(file, "\n");
+	// }
+
+	fprintf(file, "\n\n");
+	fclose(file);
+
 }
 
 int UnloadLevel(LevelComponent *level){
