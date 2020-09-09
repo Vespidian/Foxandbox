@@ -74,7 +74,7 @@ void INV_Init(){
 
 int register_item(lua_State *L){
 	numItems++;
-	itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
+	itemData = realloc(itemData, (numItems + 10) * sizeof(ItemComponent));
 
 	luaL_checktype(L, 1, LUA_TTABLE);
 

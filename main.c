@@ -253,7 +253,8 @@ void Setup(){
 
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 	// LoadLevel("maps/map1.dat");
-	InitializeBlankLevel(&levels[0], (Vector2){64, 64});
+	InitializeBlankLevel(&levels[0], (Vector2){512, 512});
+	// InitializeBlankLevel(&levels[0], (Vector2){100, 100});
 	GenerateProceduralMap(50, 5);
 	activeLevel = &levels[0];
 	// LoadLevel("data/maps/testmap.dat");

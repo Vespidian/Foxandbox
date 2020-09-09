@@ -18,20 +18,41 @@ RenderTileComponent buildLayer_tmp[32][32] = {};
 enum types {GRASS = 0, WATER = 47};
 bool doRandomGen = true;
 
+void FillMap(LevelComponent *level, char *layer, BlockComponent *block){
+	RenderTileComponent **specifiedLayer;
+	if(strcmp(layer, "terrain") == 0){
+		specifiedLayer = level->terrain;
+	}else if(strcmp(layer, "features") == 0){
+		specifiedLayer = level->features;
+	}
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			specifiedLayer[y][x].block = block;
+		}
+	}
+}
 void InitializeBlankLevel(LevelComponent *level, Vector2 size){
+	if(size.x > MAXLEVELSIZE){
+		size.x = MAXLEVELSIZE;
+	}
+	if(size.y > MAXLEVELSIZE){
+		size.y = MAXLEVELSIZE;
+	}
 	level->map_size = (Vector2)size;
 
-	level->terrain = calloc(size.y, sizeof(RenderTileComponent));
-	level->features = calloc(size.y, sizeof(RenderTileComponent));
-	level->collision = calloc(size.y, sizeof(uint64_t));
+	level->terrain = malloc((size.y + 1) * sizeof(RenderTileComponent));
+	level->features = malloc((size.y + 1) * sizeof(RenderTileComponent));
+	level->collision = malloc(size.y * sizeof(uint64_t));
 	for(int y = 0; y < size.y; y++){
-		level->terrain[y] = calloc(size.x, sizeof(RenderTileComponent));
-		level->features[y] = calloc(size.x, sizeof(RenderTileComponent));
+		level->terrain[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
+		level->features[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
 
 		for(int x = 0; x < size.x; x++){
 			level->terrain[y][x].block = find_block("air");
 			level->features[y][x].block = find_block("air");
 		}
+		// FillMap(&levels[0], "terrain", find_block("air"));
+		// FillMap(&levels[0], "features", find_block("air"));
 
 		level->collision[y] = malloc(size.x * sizeof(int));
 		memset(level->collision[y], -1, size.x * sizeof(int));
@@ -54,28 +75,17 @@ int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 	return surroundCount;
 }
 
-void FillMap(LevelComponent *level, char *layer, BlockComponent *block){
-	RenderTileComponent **specifiedLayer;
-	if(strcmp(layer, "terrain") == 0){
-		specifiedLayer = level->terrain;
-	}else if(strcmp(layer, "features") == 0){
-		specifiedLayer = level->features;
-	}
-	for(int y = 0; y < level->map_size.y; y++){
-		for(int x = 0; x < level->map_size.x; x++){
-			specifiedLayer[y][x].block = block;
-		}
-	}
-}
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
+	// printf("%s\n", find_block("air")->item->name);
+	printf("%s\n", levels[0].features[1][1].block->item->name);
+	// FillMap(&levels[0], "features", find_block("air"));
 	RandomMap(&levels[0], "terrain", 50, find_block("grass"), find_block("water"));
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
 	}
 	DefineCollisions(&levels[0]);
 
-	FillMap(&levels[0], "features", find_block("air"));
 }
 
 void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
@@ -216,7 +226,7 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 }
 
 void DefineCollisions(LevelComponent *level){
-	memset(level->collision, -1, sizeof(level->collision));//Wipe the whole collision array
+	memset(level->collision, -1, sizeof(int));//Wipe the whole collision array
 	for(int y = 1; y < level->map_size.y - 1; y++){
 		for(int x = 1; x < level->map_size.x - 1; x++){
 			//Efficient (Border around non collidable blocks) (31*31)

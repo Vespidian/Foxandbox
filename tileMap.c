@@ -16,6 +16,8 @@
 
 // enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
+const int MAXLEVELSIZE = 512;
+
 LevelComponent *activeLevel;
 
 int tilePixelSize = 16;
@@ -109,7 +111,7 @@ BlockComponent *find_block(char *name){
 
 int register_block(lua_State *L){
 	numBlocks++;
-	blockData = realloc(blockData, (numBlocks + 1) * sizeof(BlockComponent));
+	blockData = realloc(blockData, (numBlocks + 10) * sizeof(BlockComponent));
 
 	luaL_checktype(L, 1, LUA_TTABLE);
 
@@ -410,6 +412,12 @@ int LoadLevel(char *path){
 			if(line == 0){//Get level size parameters
 				mapSize.x = strtol(strtok(lineBuffer, "x"), NULL, 10);
 				mapSize.y = strtol(strtok(NULL, "\n"), NULL, 10);
+				if(mapSize.x > MAXLEVELSIZE){
+					mapSize.x = MAXLEVELSIZE;
+				}
+				if(mapSize.y > MAXLEVELSIZE){
+					mapSize.y = MAXLEVELSIZE;
+				}
 				levels[numLevels].map_size = mapSize;
 				levels[numLevels].terrain = calloc(mapSize.y, sizeof(RenderTileComponent));
 				levels[numLevels].features = calloc(mapSize.y, sizeof(RenderTileComponent));

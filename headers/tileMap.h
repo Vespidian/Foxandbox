@@ -8,6 +8,8 @@
 
 extern enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
 
+extern const int MAXLEVELSIZE;
+
 extern LevelComponent *activeLevel;
 
 extern LevelComponent *levels;

@@ -1,7 +1,6 @@
 #ifndef MAPGENERATION_H_
 #define MAPGENERATION_H_
 
-
 void InitializeBlankLevel(LevelComponent *level, Vector2 size);
 
 int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type);
