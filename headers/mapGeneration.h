@@ -1,12 +1,14 @@
 #ifndef MAPGENERATION_H_
 #define MAPGENERATION_H_
 
-// int GetSurroundCount(LevelComponent *level, Vector2 tile);
+
+void InitializeBlankLevel(LevelComponent *level, Vector2 size);
+
 int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type);
 
 //Basic procedural map generation functions
 void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockComponent *base, BlockComponent *secondary);
-// void SmoothMap();
+
 void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *secondary);
 void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile);
 

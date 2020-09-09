@@ -386,7 +386,6 @@ int GetLineLength(FILE *file){
 	return lineLength * 8;
 }
 
-
 int LoadLevel(char *path){
 	/*
 	Check if path exists
@@ -425,7 +424,7 @@ int LoadLevel(char *path){
 			if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){//Detect headers
 				strcpy(header, strshft_l(lineBuffer, 2));
 				y = 0;
-			}else if(y < mapSize.y){
+			}else if(y < mapSize.y){	
 				if(strcmp(header, "terrain") == 0){
 					levels[numLevels].terrain[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
 					char token[128];
@@ -464,9 +463,9 @@ int LoadLevel(char *path){
 			lineBuffer = malloc(lineLength);
 			line++;
 		}
-		levels[numLevels].collision = calloc(mapSize.y, sizeof(uint64_t));
+		levels[numLevels].collision = malloc(mapSize.y * sizeof(uint64_t));
 		for(int y = 0; y < mapSize.y; y++){
-			levels[numLevels].collision[y] = calloc(mapSize.x, sizeof(int));
+			levels[numLevels].collision[y] = malloc(mapSize.x * sizeof(int));
 			memset(levels[numLevels].collision[y], -1, mapSize.x * sizeof(int));
 		}
 	}
@@ -529,8 +528,8 @@ int UnloadLevel(LevelComponent *level){
 }
 
 
-int mapSize = 32;
-/*void RenderLevel(LevelComponent *level){//Draw map from 2D array
+/*int mapSize = 32;
+void RenderLevel(LevelComponent *level){//Draw map from 2D array
 	Vector2 tilePos = {0, 0};
 	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
 	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < mapSize; y++){
@@ -577,7 +576,8 @@ void DrawLevel(){
 	// DrawMap(*find_tilesheet("furniture"), levels[0].features, 1);
 
 	// RenderLevel(&levels[0]);
-	RenderLevel(&levels[0]);
+	// RenderLevel(&levels[0]);
+	RenderLevel(activeLevel);
 
 	// RenderLevel(&levels[1]);
 

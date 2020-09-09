@@ -18,6 +18,26 @@ RenderTileComponent buildLayer_tmp[32][32] = {};
 enum types {GRASS = 0, WATER = 47};
 bool doRandomGen = true;
 
+void InitializeBlankLevel(LevelComponent *level, Vector2 size){
+	level->map_size = (Vector2)size;
+
+	level->terrain = calloc(size.y, sizeof(RenderTileComponent));
+	level->features = calloc(size.y, sizeof(RenderTileComponent));
+	level->collision = calloc(size.y, sizeof(uint64_t));
+	for(int y = 0; y < size.y; y++){
+		level->terrain[y] = calloc(size.x, sizeof(RenderTileComponent));
+		level->features[y] = calloc(size.x, sizeof(RenderTileComponent));
+
+		for(int x = 0; x < size.x; x++){
+			level->terrain[y][x].block = find_block("air");
+			level->features[y][x].block = find_block("air");
+		}
+
+		level->collision[y] = malloc(size.x * sizeof(int));
+		memset(level->collision[y], -1, size.x * sizeof(int));
+	}
+}
+
 int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 	int surroundCount = 0;
 	for(int y = tile.y - 1; y <= tile.y + 1; y++){
@@ -34,10 +54,16 @@ int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 	return surroundCount;
 }
 
-void FillMap(RenderTileComponent map[][32]){
-	for(int y = 0; y < 32; y++){
-		for(int x = 0; x < 32; x++){
-			map[y][x].block = find_block("grass");
+void FillMap(LevelComponent *level, char *layer, BlockComponent *block){
+	RenderTileComponent **specifiedLayer;
+	if(strcmp(layer, "terrain") == 0){
+		specifiedLayer = level->terrain;
+	}else if(strcmp(layer, "features") == 0){
+		specifiedLayer = level->features;
+	}
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			specifiedLayer[y][x].block = block;
 		}
 	}
 }
@@ -48,6 +74,8 @@ void GenerateProceduralMap(int ratioPercent, int smoothSteps){
 		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
 	}
 	DefineCollisions(&levels[0]);
+
+	FillMap(&levels[0], "features", find_block("air"));
 }
 
 void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile){
