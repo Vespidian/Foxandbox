@@ -2,7 +2,7 @@
 #define INVENTORY_H_
 
 typedef struct item_cell{
-	ItemComponent item;
+	ItemComponent *item;
 	int qty;
     bool occupied;
 }itmcell_t;

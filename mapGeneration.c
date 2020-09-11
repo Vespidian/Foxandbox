@@ -51,8 +51,6 @@ void InitializeBlankLevel(LevelComponent *level, Vector2 size){
 			level->terrain[y][x].block = find_block("air");
 			level->features[y][x].block = find_block("air");
 		}
-		// FillMap(&levels[0], "terrain", find_block("air"));
-		// FillMap(&levels[0], "features", find_block("air"));
 
 		level->collision[y] = malloc(size.x * sizeof(int));
 		memset(level->collision[y], -1, size.x * sizeof(int));
@@ -77,12 +75,11 @@ int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
-	// printf("%s\n", find_block("air")->item->name);
-	printf("%s\n", levels[0].features[1][1].block->item->name);
 	// FillMap(&levels[0], "features", find_block("air"));
-	RandomMap(&levels[0], "terrain", 50, find_block("grass"), find_block("water"));
+	RandomMap(&levels[0], "terrain", 53, find_block("grass"), find_block("water"));
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
+		// SmoothMap(&levels[0], find_block("grass"), find_block("water"));
 	}
 	DefineCollisions(&levels[0]);
 
@@ -216,7 +213,7 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 
 	for(int y = 0; y < level->map_size.y; y++){
 		for(int x = 0; x < level->map_size.x; x++){
-			if(getRnd(0, 100) <= ratioPercent){
+			if(getRnd(0, 102) <= ratioPercent){
 				specifiedLayer[y][x].block = base;
 			}else{
 				specifiedLayer[y][x].block = secondary;
@@ -266,9 +263,9 @@ void PlaceBlock(Vector2 tile, BlockComponent *block){
 	//If the player is where the block is to be placed, only place it if its non collidable
 	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
 		if(strcmp(block->layer, "terrain") == 0){
-			levels[0].terrain[tile.y][tile.x].block = block;
+			activeLevel->terrain[tile.y][tile.x].block = block;
 		}else if(strcmp(block->layer, "feature") == 0){
-			levels[0].features[tile.y][tile.x].block = block;
+			activeLevel->features[tile.y][tile.x].block = block;
 		}
 		DefineCollisions(&levels[0]);
 	}

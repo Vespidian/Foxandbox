@@ -74,9 +74,8 @@ typedef struct{
 
 //Inventory components
 typedef struct{
-	// char *name;
-	char name[64];
-	char description[128];
+	char *name;
+	// char name[64];
 	WB_Tilesheet sheet;
 	int tile;
 	bool isBlock;

@@ -252,13 +252,12 @@ void Setup(){
 	INV_WriteCell("set", 12, 17, find_item("flower"));
 
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
-	// LoadLevel("maps/map1.dat");
-	InitializeBlankLevel(&levels[0], (Vector2){512, 512});
-	// InitializeBlankLevel(&levels[0], (Vector2){100, 100});
-	GenerateProceduralMap(50, 5);
+
+
+	InitializeBlankLevel(&levels[0], (Vector2){256, 256});
+	GenerateProceduralMap(50, 10);
 	activeLevel = &levels[0];
 	// LoadLevel("data/maps/testmap.dat");
-	// SaveLevel(&levels[0], "data/maps/testMap.dat");
 	SaveLevel(activeLevel, "data/maps/testMap.dat");
 
 
@@ -528,10 +527,10 @@ int main(int argc, char **argv) {
 							// TextExtrapolate(levels[0].collision);
 						}
 						if(e.key.keysym.sym == SDLK_b){//Fullscreen
-							SDL_DisplayMode gMode;
-							SDL_GetDesktopDisplayMode(0, &gMode);
-							WIDTH = gMode.w;
-							HEIGHT = gMode.h;
+							SDL_DisplayMode dMode;
+							SDL_GetDesktopDisplayMode(0, &dMode);
+							WIDTH = dMode.w;
+							HEIGHT = dMode.h;
 							SDL_SetWindowBordered(window, false);
 							SDL_SetWindowPosition(window, 0, 0);
 							SDL_SetWindowSize(window, WIDTH, HEIGHT);
@@ -651,12 +650,12 @@ void RenderScreen(){
 	AddToRenderQueue(renderer, colorModSheet, 0, woahR, 0, 1000);
 	RenderCursor();
 	
-	
 	RenderUpdate();
 	particleCount = 0;
 	
 	SDL_RenderCopy(renderer, colorModTex, NULL, NULL);
 	SDL_RenderPresent(renderer);
+
 }
 
 

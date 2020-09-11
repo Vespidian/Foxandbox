@@ -12,6 +12,7 @@
 #include "headers/data.h"
 #include "headers/tileMap.h"
 #include "headers/inventory.h"
+#include "headers/mapGeneration.h"
 
 
 // enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
@@ -121,8 +122,10 @@ int register_block(lua_State *L){
 		itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
 
 		if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
+			itemData[numItems].name = malloc(sizeof(char) * (strlen(lua_tostring(L, -1)) + 1));
 			strcpy(itemData[numItems].name, lua_tostring(L, -1));
 		}else{
+			itemData[numItems].name = malloc(sizeof(char) * (strlen("undefined") + 1));
 			strcpy(itemData[numItems].name, "undefined");
 		}
 
@@ -427,7 +430,7 @@ int LoadLevel(char *path){
 				*strchr(lineBuffer, '\n') = '\0';
 			}
 
-			printf("%s\n", lineBuffer);
+			// printf("%s\n", lineBuffer);
 
 			if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){//Detect headers
 				strcpy(header, strshft_l(lineBuffer, 2));
@@ -478,6 +481,7 @@ int LoadLevel(char *path){
 		}
 	}
 	fclose(level);
+	DefineCollisions(&levels[numLevels]);
 }
 
 int SaveLevel(LevelComponent *level, char *path){

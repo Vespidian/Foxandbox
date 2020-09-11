@@ -80,9 +80,10 @@ int register_item(lua_State *L){
 
 	lua_getfield(L, -1, "name");
 	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		// itemData[numItems].name = malloc(sizeof(char *) * strlen(lua_tostring(L, -1)));
+		itemData[numItems].name = malloc(sizeof(char) * (strlen(lua_tostring(L, -1)) + 1));
 		strcpy(itemData[numItems].name, lua_tostring(L, -1));
 	}else{
+		itemData[numItems].name = malloc(sizeof(char) * (strlen("undefined") + 1));
 		strcpy(itemData[numItems].name, "undefined");
 	}
 
@@ -236,7 +237,7 @@ void UpdateHotbar(){
 		}
 		AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i].occupied == true && invArray[i].qty > 0){
-			AddToRenderQueue(renderer, invArray[i].item.sheet, invArray[i].item.tile, slotRect, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i].qty, itemqty, 10);
@@ -269,19 +270,19 @@ void INV_DrawInv(){
 		if(SDL_PointInRect(&mouseTransform.screenPos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 			if(mouseClicked == true){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0){//Check for double clicked
+					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && &invArray[hoveredCell].item->name == &mouseInv.item->name){//Check for double clicked
 						//Collect all the items of that type to the mouse pointer
 						int totalFound = 0;
-						while(INV_FindItem(&mouseInv.item) != -1 && totalFound < maxStack){
-							totalFound += invArray[INV_FindItem(&mouseInv.item)].qty;
-							invArray[INV_FindItem(&mouseInv.item)].qty = 0;
-							invArray[INV_FindItem(&mouseInv.item)].occupied = false;
+						while(INV_FindItem(mouseInv.item) != -1 && totalFound < maxStack){
+							totalFound += invArray[INV_FindItem(mouseInv.item)].qty;
+							invArray[INV_FindItem(mouseInv.item)].qty = 0;
+							invArray[INV_FindItem(mouseInv.item)].occupied = false;
 						}
 						mouseInv.occupied = true;
 						mouseInv.qty = totalFound;
-					}else{
-						if(strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && mouseInv.occupied == true){
-							int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, &mouseInv.item);
+					}else{//Not a double click
+						if(&invArray[hoveredCell].item->name == &mouseInv.item->name && mouseInv.occupied == true){//Check if the slot has the same item as the mouseInv
+							int mouseRemainder = INV_WriteCell("add", hoveredCell, mouseInv.qty, mouseInv.item);
 							if(mouseRemainder == 0){
 								mouseInv.occupied = false;
 								mouseInv.qty = 0;
@@ -301,12 +302,12 @@ void INV_DrawInv(){
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.qty > 0){//Check if mouse has any item
-						if(invArray[hoveredCell].occupied == false || strcmp(invArray[hoveredCell].item.name, mouseInv.item.name) == 0 && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
+						if(invArray[hoveredCell].occupied == false || &invArray[hoveredCell].item->name == &mouseInv.item->name && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
 							if(mouseInv.qty > 1){//If there are multiple items in mouseInv add one to inv cell
-								INV_WriteCell("add", hoveredCell, 1, &mouseInv.item);
+								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
 								mouseInv.qty--;
 							}else{//If there was only 1, empty mouse slot
-								INV_WriteCell("add", hoveredCell, 1, &mouseInv.item);
+								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
 								mouseInv.occupied = false;
 								mouseInv.qty = 0;
 							}
@@ -316,16 +317,16 @@ void INV_DrawInv(){
 						mouseInv.item = invArray[hoveredCell].item;
 						mouseInv.qty = invArray[hoveredCell].qty / 2;
 						mouseInv.occupied = true;
-						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell].qty / 2, &invArray[hoveredCell].item);
+						INV_WriteCell("sub", hoveredCell, invArray[hoveredCell].qty / 2, invArray[hoveredCell].item);
 					}
 				}
 			}
 			if(invArray[hoveredCell].occupied == true){//If cell occupied and cursor is hovered, render item name
-				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, (strlen(invArray[hoveredCell].item.name) * 10) + 11, 28};
+				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, (strlen(invArray[hoveredCell].item->name) * 10) + 11, 28};
 				AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
 				
-				char *tempChar = calloc(strlen(invArray[hoveredCell].item.name), sizeof(char));
-				strcpy(tempChar, invArray[hoveredCell].item.name);
+				char *tempChar = calloc(strlen(invArray[hoveredCell].item->name), sizeof(char));
+				strcpy(tempChar, invArray[hoveredCell].item->name);
 				tempChar[0] = toupper(tempChar[0]);
 
 				RenderText_d(renderer, tempChar, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
@@ -335,20 +336,20 @@ void INV_DrawInv(){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(mouseInv.occupied == true){
 						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
-						DropItem(find_item(mouseInv.item.name), mouseInv.qty, dropLocation);
+						DropItem(find_item(mouseInv.item->name), mouseInv.qty, dropLocation);
 						mouseInv.qty = 0;
-						mouseInv.item = undefinedItem;
+						mouseInv.item = &undefinedItem;
 						mouseInv.occupied = false;
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.occupied == true){
 						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
-						DropItem(find_item(mouseInv.item.name), 1, dropLocation);
+						DropItem(find_item(mouseInv.item->name), 1, dropLocation);
 						if(mouseInv.qty > 1){
 							mouseInv.qty--;
 						}else{
 							mouseInv.qty = 0;
-							mouseInv.item = undefinedItem;
+							mouseInv.item = &undefinedItem;
 							mouseInv.occupied = false;
 						}
 					}
@@ -362,7 +363,7 @@ void INV_DrawInv(){
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
 			AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(renderer, invArray[i].item.sheet, invArray[i].item.tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
 				itoa(invArray[i].qty, itemqty, 10);
@@ -375,7 +376,7 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv.occupied == true && mouseInv.qty > 0){
 			SDL_Rect mouseItem = {mouseTransform.screenPos.x - 16, mouseTransform.screenPos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(renderer, mouseInv.item.sheet, mouseInv.item.tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, mouseInv.item->sheet, mouseInv.item->tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv.qty, itemqty, 10);
@@ -396,7 +397,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 	if(itemQty != NULL && itemQty != 0){
 		
 		if(strcmp(mode, "set") == 0){
-			invArray[cell].item = *item;
+			invArray[cell].item = item;
 			invArray[cell].occupied = true;
 			if(itemQty < maxStack){
 				invArray[cell].qty = itemQty;
@@ -406,9 +407,9 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 				invArray[cell].occupied = true;
 			}
 		}else if(strcmp(mode, "add") == 0){
-			invArray[cell].item = *item;
+			invArray[cell].item = item;
 			invArray[cell].occupied = true;
-			if(strcmp(invArray[cell].item.name, item->name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
+			if(strcmp(invArray[cell].item->name, item->name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
 				if(invArray[cell].qty + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
 					int remainder = (itemQty - (maxStack - invArray[cell].qty));
 					invArray[cell].qty += maxStack - invArray[cell].qty;//Fill the cell
@@ -420,7 +421,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 				}
 			}
 		}else if(strcmp(mode, "sub") == 0){
-			if(strcmp(invArray[cell].item.name, item->name) == 0){
+			if(strcmp(invArray[cell].item->name, item->name) == 0){
 				if(invArray[cell].qty > 0){
 					invArray[cell].qty -= itemQty;
 					invArray[cell].occupied = true;
@@ -445,13 +446,13 @@ int INV_Add(int qty, ItemComponent *item){
 			}else{//If it cant add to the next empty slot as well
 				qty -= maxStack - invArray[INV_FindItem(item)].qty;
 				invArray[INV_FindItem(item)].qty = maxStack;
-				invArray[INV_FindEmpty()].item = *item;
+				invArray[INV_FindEmpty()].item = item;
 				invArray[INV_FindEmpty()].qty = qty;
 				invArray[INV_FindEmpty()].occupied = true;
 			}
 			return 0;
 		}else{//If it does not exist create it
-			invArray[INV_FindEmpty()].item = *item;
+			invArray[INV_FindEmpty()].item = item;
 			invArray[INV_FindEmpty()].qty = qty;
 			invArray[INV_FindEmpty()].occupied = true;
 		}
@@ -478,7 +479,7 @@ int INV_Subtract(int qty, ItemComponent *item){
 int INV_FindItem(ItemComponent *item){
 	int itemQtyFound = 0;
 	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(strcmp(invArray[i].item.name, item->name) == 0 && invArray[i].occupied == true){
+		if(&invArray[i].item->name == &item->name && invArray[i].occupied == true){
 			return i;
 		}
 	}

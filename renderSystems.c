@@ -161,11 +161,11 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
 				//Only place the item if it is a block and the selected hotbar is occupied
 				//Only place if the indicated block is different from the selected hotbar block
-				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item.isBlock && strcmp(invArray[selectedHotbar].item.name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
+				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock && strcmp(invArray[selectedHotbar].item->name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-						INV_Subtract(1, &invArray[selectedHotbar].item);
-						INV_Add(levels[0].terrain[tile.y][tile.x].block->dropQty, levels[0].terrain[tile.y][tile.x].block->dropItem);
-						PlaceBlock(tile, find_block(invArray[selectedHotbar].item.name));
+						INV_Subtract(1, invArray[selectedHotbar].item);
+						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, activeLevel->terrain[tile.y][tile.x].block->dropItem);
+						PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
 					}
 				}
 				/*if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
