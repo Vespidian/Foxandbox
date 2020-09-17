@@ -474,7 +474,7 @@ int LoadLevel(char *path){
 			lineBuffer = malloc(lineLength);
 			line++;
 		}
-		levels[numLevels].collision = malloc(mapSize.y * sizeof(uint64_t));
+		levels[numLevels].collision = malloc(mapSize.y * sizeof(int));
 		for(int y = 0; y < mapSize.y; y++){
 			levels[numLevels].collision[y] = malloc(mapSize.x * sizeof(int));
 			memset(levels[numLevels].collision[y], -1, mapSize.x * sizeof(int));

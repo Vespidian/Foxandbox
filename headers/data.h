@@ -33,7 +33,7 @@ extern int tileSize;
 extern bool enableHitboxes;
 extern int characterFacing;
 
-extern SDL_Rect windowRect;
+extern SDL_Rect mapRect;
 
 extern bool uiInteractMode;
 

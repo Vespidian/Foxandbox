@@ -57,7 +57,7 @@ bool uiInteractMode = false;
 bool reachLimit = true;
 int reachDistance = 7;
 
-SDL_Rect windowRect;
+SDL_Rect mapRect = {0, 0, 0, 0};
 
 int darknessMod = 0;
 bool isDay = true;
@@ -254,17 +254,15 @@ void Setup(){
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 
 
-	InitializeBlankLevel(&levels[0], (Vector2){256, 256});
-	GenerateProceduralMap(50, 10);
 	activeLevel = &levels[0];
+	InitializeBlankLevel(&levels[0], (Vector2){128, 128});
+	GenerateProceduralMap(50, 10);
 	// LoadLevel("data/maps/testmap.dat");
 	SaveLevel(activeLevel, "data/maps/testMap.dat");
-
 
 	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
 
-	// SDL_Rect windowRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 	SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
 	midScreen.x = (WIDTH / 2 - tileSize / 2);
 	midScreen.y = (HEIGHT / 2 - tileSize / 2);
@@ -312,7 +310,6 @@ void ResizeWindow(){
 	characterOffset.y = HEIGHT / 2 - tileSize / 2;
 	
 	tmpSize = (Vector2){WIDTH, HEIGHT};
-	windowRect = (SDL_Rect){-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 }
 
 char currentCollectedText[128] = "";
@@ -359,7 +356,8 @@ int main(int argc, char **argv) {
 	if(init){
 		Setup();
 		tmpSize = (Vector2){WIDTH, HEIGHT};
-		while(!quit){	
+		while(!quit){
+			mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
 			loopStartTime = SDL_GetTicks();
 			if((doDayCycle && SDL_GetTicks() / 10) % 20 == 1){
 				if(darknessMod == 0){
@@ -584,7 +582,6 @@ fVector2 entPos = {0, 0};
 void RenderScreen(){
 	clearScreen(renderer);
 	//Call SDL draw functions here and call RenderScreen from the main loop
-	
 	DrawLevel();
 
 	RenderPauseMenu();

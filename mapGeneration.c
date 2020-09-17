@@ -42,7 +42,7 @@ void InitializeBlankLevel(LevelComponent *level, Vector2 size){
 
 	level->terrain = malloc((size.y + 1) * sizeof(RenderTileComponent));
 	level->features = malloc((size.y + 1) * sizeof(RenderTileComponent));
-	level->collision = malloc(size.y * sizeof(uint64_t));
+	level->collision = malloc((size.y + 1) * sizeof(uint64_t));
 	for(int y = 0; y < size.y; y++){
 		level->terrain[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
 		level->features[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
@@ -52,7 +52,7 @@ void InitializeBlankLevel(LevelComponent *level, Vector2 size){
 			level->features[y][x].block = find_block("air");
 		}
 
-		level->collision[y] = malloc(size.x * sizeof(int));
+		level->collision[y] = malloc((size.x + 1) * sizeof(int));
 		memset(level->collision[y], -1, size.x * sizeof(int));
 	}
 }
@@ -73,14 +73,30 @@ int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 	return surroundCount;
 }
 
+void GenerateFlowers(LevelComponent *level, int ratio){
+	for(int y = 0; y < level->map_size.y; y++){
+		for(int x = 0; x < level->map_size.x; x++){
+			if(getRnd(0, 100) <= ratio && level->terrain[y][x].block->collisionType != 0){
+				level->features[y][x].block = find_block("flower");
+				// printf("flower\n");
+			}
+		}
+	}
+}
 
 void GenerateProceduralMap(int ratioPercent, int smoothSteps){
 	// FillMap(&levels[0], "features", find_block("air"));
 	RandomMap(&levels[0], "terrain", 53, find_block("grass"), find_block("water"));
+
+
 	for(int i = 0; i < smoothSteps; i++){
 		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
 		// SmoothMap(&levels[0], find_block("grass"), find_block("water"));
 	}
+
+	GenerateFlowers(&levels[0], 10);
+
+
 	DefineCollisions(&levels[0]);
 
 }
@@ -223,31 +239,15 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 }
 
 void DefineCollisions(LevelComponent *level){
-	memset(level->collision, -1, sizeof(int));//Wipe the whole collision array
-	for(int y = 1; y < level->map_size.y - 1; y++){
-		for(int x = 1; x < level->map_size.x - 1; x++){
-			//Efficient (Border around non collidable blocks) (31*31)
+	for(int y = 0; y < level->map_size.y; y++){
+		memset(level->collision[y], -1, level->map_size.x * sizeof(int));//Wipe the current line
+		for(int x = 0; x < level->map_size.x; x++){
 			if(level->features[y][x].block->collisionType != -1){
 				level->collision[y][x] = level->features[y][x].block->collisionType;
 			}
-			if(level->terrain[y][x].block->collisionType == 0){
-				bool up = (level->terrain[y - 1][x].block->collisionType == -1);
-				bool down = (level->terrain[y + 1][x].block->collisionType == -1);
-				bool left = (level->terrain[y][x - 1].block->collisionType == -1);
-				bool right = (level->terrain[y][x + 1].block->collisionType == -1);
-
-				if(up || down || left || right){
-					level->collision[y][x] = 0;
-				}
-			}
-
-			/*//Simpler (Every collidable block has a collider) (32*32)
-			if(level->features[y][x].block->collisionType != -1){
-					level->collision[y][x] = level->features[y][x].block->collisionType;
-				}
 			if(level->terrain[y][x].block->collisionType != -1){
 				level->collision[y][x] = level->terrain[y][x].block->collisionType;
-			}*/
+			}
 		}
 	}
 }
@@ -267,6 +267,6 @@ void PlaceBlock(Vector2 tile, BlockComponent *block){
 		}else if(strcmp(block->layer, "feature") == 0){
 			activeLevel->features[tile.y][tile.x].block = block;
 		}
-		DefineCollisions(&levels[0]);
+		activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
 	}
 }
