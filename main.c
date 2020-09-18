@@ -89,7 +89,7 @@ void clearScreen(SDL_Renderer *renderer){
 	}
 }
 
-void DrawAnimation(SDL_Rect dest, WB_Tilesheet tileSheet, int startFrame, int numFrames, int delay){
+void DrawAnimation(SDL_Rect dest, WB_Tilesheet *tileSheet, int startFrame, int numFrames, int delay){
 	int frame = 0;
 	frame = (SDL_GetTicks() / delay) % numFrames;
 	
@@ -111,9 +111,9 @@ void DrawCharacter(int direction, int numFrames){
 	SDL_Rect charPos = {characterOffset.x, characterOffset.y, tileSize, tileSize};
 	
 	if(isWalking){
-		DrawAnimation(charPos, *find_tilesheet("character"), (direction) * 6, numFrames, 100);
+		DrawAnimation(charPos, find_tilesheet("character"), (direction) * 6, numFrames, 100);
 	}else{
-		DrawAnimation(charPos, *find_tilesheet("character"), (direction + 2) * 6, numFrames, 100);
+		DrawAnimation(charPos, find_tilesheet("character"), (direction + 2) * 6, numFrames, 100);
 	}
 }
 
@@ -233,8 +233,8 @@ void RenderEntities();
 void Setup(){
 	SDL_SetRenderDrawColor(renderer, 47, 140, 153, 255);
 	SDL_RenderClear(renderer);
-	int imageSize = 384;
-	SDL_Rect splashDest = {WIDTH / 2 - imageSize / 2, HEIGHT / 2 - imageSize / 2, imageSize, imageSize};
+	int splashTextSize = 384;
+	SDL_Rect splashDest = {WIDTH / 2 - splashTextSize / 2, HEIGHT / 2 - splashTextSize / 2, splashTextSize, splashTextSize};
 	SDL_RenderCopy(renderer, loadScreenTex, NULL, &splashDest);
 	SDL_RenderPresent(renderer);
 
@@ -242,7 +242,6 @@ void Setup(){
 
 	loadLua();
 	NewEntity();
-	// lua_close(L);
 	INV_WriteCell("set", 4, 2, find_item("stone"));
 	INV_WriteCell("set", 6, 99, find_item("feather"));
 	INV_WriteCell("set", 2, 24, find_item("wood"));
@@ -255,10 +254,11 @@ void Setup(){
 
 
 	activeLevel = &levels[0];
-	InitializeBlankLevel(&levels[0], (Vector2){128, 128});
-	GenerateProceduralMap(50, 10);
-	// LoadLevel("data/maps/testmap.dat");
-	SaveLevel(activeLevel, "data/maps/testMap.dat");
+	// InitializeBlankLevel(activeLevel, (Vector2){128, 128});
+	// GenerateProceduralMap(50, 10);
+	LoadLevel("data/maps/testmap.dat");
+	// UnloadLevel(activeLevel);
+	// SaveLevel(activeLevel, "data/maps/testMap.dat");
 
 	// DropItem(find_item("wood"), 1, (Vector2){100, 200});
 	// DropItem(find_item("stone"), 1, (Vector2){150, 200});
@@ -583,7 +583,6 @@ void RenderScreen(){
 	clearScreen(renderer);
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawLevel();
-
 	RenderPauseMenu();
 	//Render the player's hitbox
 	if(enableHitboxes){
@@ -607,6 +606,9 @@ void RenderScreen(){
 	// 	entPos.x += entSpeed;
 	// 	entPos.y += entSpeed;
 	// }
+	// SDL_Rect tmpR = {10, 10, 128, 128};
+	// AddToRenderQueueEx(renderer, find_tilesheet("blocks"), 4, tmpR, 255, 1000, 1);
+
 	RenderDroppedItems();
 	
 	FindCollisions();
@@ -640,11 +642,11 @@ void RenderScreen(){
 		RenderText_d(renderer, frameCount, WIDTH - 200, 0);
 
 		//Performance bar
-		AddToRenderQueue(renderer, debugSheet, 4, (SDL_Rect){WIDTH - 10, 10, 10, deltaTime * 20}, 255, 1000);
+		AddToRenderQueue(renderer, &debugSheet, 4, (SDL_Rect){WIDTH - 10, 10, 10, deltaTime * 20}, 255, 1000);
 	}
 
 	SDL_Rect woahR = {0, 0, 100, 100};
-	AddToRenderQueue(renderer, colorModSheet, 0, woahR, 0, 1000);
+	AddToRenderQueue(renderer, &colorModSheet, 0, woahR, 0, 1000);
 	RenderCursor();
 	
 	RenderUpdate();
@@ -656,7 +658,7 @@ void RenderScreen(){
 }
 
 
-void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, SDL_Rect rect, int zPos){
+void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet *sheet, int tile, SDL_Rect rect, int zPos){
 	rect.x -= mapOffsetPos.x;
 	rect.y -= mapOffsetPos.y;
 	AddToRenderQueue(renderer, sheet, tile, rect, -1, zPos);
@@ -668,7 +670,7 @@ void NewEntity(){
 	//Declare renderer component
 	SDL_Rect enemyPos = {50, 50, 64, 64};
 	enemies[0].renderer.renderer = renderer;
-	enemies[0].renderer.tileSheet = *find_tilesheet("items");
+	enemies[0].renderer.tileSheet = find_tilesheet("items");
 	enemies[0].renderer.tile = 0;
 	enemies[0].renderer.transform = enemyPos;
 }
@@ -731,7 +733,7 @@ void RenderDroppedItems(){
 		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 		SDL_Point p = {itemRect.x, itemRect.y};
 		if(SDL_PointInRect(&p, &winRect)){
-			AddToRenderQueue(renderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
+			AddToRenderQueue(renderer, &droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
 			if(droppedItems[i].animDir == 1){
 				droppedItems[i].animLocation -= 0.6;
 			}else if(droppedItems[i].animDir == 0){

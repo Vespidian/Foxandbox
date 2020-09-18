@@ -216,9 +216,12 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 	time(&rawTime);
 	timeinfo = localtime(&rawTime);
 	int worldSeed = timeinfo->tm_sec;
-	// SeedLehmer(worldSeed, 0, 0);//Seed based on current second
-	// SeedLehmer(SDL_GetTicks() * worldSeed, 0, 0);//Seed based on time since sdl was initialized * current second
-	SeedLehmer(28, 0, 0);//Static seed
+	unsigned long seed;
+	seed = 28;
+	// seed = worldSeed;
+	// seed = SDL_GetTicks() * worldSeed;
+	SeedLehmer(seed, 0, 0);
+	level->seed = seed;
 
 	RenderTileComponent **specifiedLayer;
 	if(strcmp(layer, "terrain") == 0){

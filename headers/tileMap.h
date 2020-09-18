@@ -28,14 +28,17 @@ int LoadDataMap(char *fileLoc, int mapArray[][32]);
 
 //Rendering system
 void SetupRenderFrame();
-int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
-void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet sheet, int tile, SDL_Rect rect, int zPos);
+int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
+int AddToRenderQueueEx(SDL_Renderer *renderer, WB_Tilesheet *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation);
+
+void RenderTextureInWorld(SDL_Renderer *renderer, WB_Tilesheet *sheet, int tile, SDL_Rect rect, int zPos);
 void RenderUpdate();
 
 
 void RenderLevel(LevelComponent *level);
 
 void DrawLevel();
+int UnloadLevel(LevelComponent *level);
 
 extern BlockComponent undefinedBlock;
 extern BlockComponent *blockData;

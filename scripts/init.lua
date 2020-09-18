@@ -51,8 +51,6 @@ register_item({
 	tile_index = 4,
 })
 
-register_block({name = "null"})
-
 register_block({
 	name = "air",
 	item_sheet = "blocks",

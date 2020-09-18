@@ -46,7 +46,7 @@ void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int pa
 	pSystem->yR = yR;
 	pSystem->duration = duration;
 	pSystem->boundaryCheck = false;//Dont delete when outside boundary by default
-	pSystem->pSheet = particleSheet;//Use the particles sheet by default
+	pSystem->pSheet = &particleSheet;//Use the particles sheet by default
 	
 	pSystem->particles = malloc(sizeof(ParticleComponent));//Allocate the size of the particle array
 	
@@ -117,7 +117,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 			//Non character cases
 			if(charVal >= 0){//NOT SPACE
 				if(SDL_HasIntersection(&charRect, &screenRect)){//Only render if text is on screen
-					AddToRenderQueue(renderer, fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
+					AddToRenderQueue(renderer, &fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
 				}
 				charRect.x += tracking;
 			}else if(charVal == -22){//NEWLINE (\n)
@@ -148,7 +148,7 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
 		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
 		//Determine wether or not the user can reach infinitely
-			AddToRenderQueue(renderer, *find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
+			AddToRenderQueue(renderer, find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
 			
 			//MouseText
 			if(showDebugInfo){
@@ -186,8 +186,8 @@ void RenderConsole(){
 	int characterSpacing = 9;
 	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
 	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
-	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, console, 170, RNDRLYR_UI);//Console
-	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, textBox, 190, RNDRLYR_UI);//Text input
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, console, 170, RNDRLYR_UI);//Console
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, textBox, 190, RNDRLYR_UI);//Text input
 
 	if(strlen(currentCollectedText) < stringFit){
 		if(inputMode == 1){
@@ -210,7 +210,7 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 			isClicked = true;
 		}
 	}
-	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
 	RenderText_d(renderer, text, textPos.x, textPos.y);
 	

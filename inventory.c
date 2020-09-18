@@ -222,7 +222,7 @@ void UpdateHotbar(){
 	//Drawing the hotbar
 	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
-	AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
 	
 	SDL_Rect slotRect = {0, HEIGHT - INV_spacing - 32, 32, 32};//Rect representing each slot in the hotbar
 	for(int i = 0; i < INV_WIDTH; i++){//Iterate through the slots of the hotbar
@@ -233,11 +233,11 @@ void UpdateHotbar(){
 			tmpRect.y += slotRect.y;
 			tmpRect.w += slotRect.w;
 			tmpRect.h += slotRect.h;
-			AddToRenderQueue(renderer, *find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
+			AddToRenderQueue(renderer, find_tilesheet("ui"), 1, tmpRect, -1, RNDRLYR_UI - 1);
 		}
-		AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
+		AddToRenderQueue(renderer, find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i].occupied == true && invArray[i].qty > 0){
-			AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, slotRect, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, &invArray[i].item->sheet, invArray[i].item->tile, slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i].qty, itemqty, 10);
@@ -259,7 +259,7 @@ void INV_DrawInv(){
 		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
-		AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
+		AddToRenderQueue(renderer, find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
 		
 		SDL_Point mousePoint = {mouseTransform.screenPos.x, mouseTransform.screenPos.y};
 		mousePoint.x = (mousePoint.x - invRect.x - INV_spacing / 2) / (itemRectSize + INV_spacing);
@@ -323,7 +323,7 @@ void INV_DrawInv(){
 			}
 			if(invArray[hoveredCell].occupied == true){//If cell occupied and cursor is hovered, render item name
 				SDL_Rect itemNameDisp = {invRect.x, invRect.y - itemRectSize, (strlen(invArray[hoveredCell].item->name) * 10) + 11, 28};
-				AddToRenderQueue(renderer, *find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
+				AddToRenderQueue(renderer, find_tilesheet("ui"), 0, itemNameDisp, -1, RNDRLYR_UI - 1);//Background of item name dialogue
 				
 				char *tempChar = calloc(strlen(invArray[hoveredCell].item->name), sizeof(char));
 				strcpy(tempChar, invArray[hoveredCell].item->name);
@@ -361,9 +361,9 @@ void INV_DrawInv(){
 			int x = (i % INV_WIDTH), y = (i / INV_WIDTH);
 			invItemRect.x = (invRect.x + itemRectSize * x) + INV_spacing * (x + 1);
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
-			AddToRenderQueue(renderer, *find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
+			AddToRenderQueue(renderer, find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				AddToRenderQueue(renderer, &invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
 				itoa(invArray[i].qty, itemqty, 10);
@@ -376,7 +376,7 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv.occupied == true && mouseInv.qty > 0){
 			SDL_Rect mouseItem = {mouseTransform.screenPos.x - 16, mouseTransform.screenPos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(renderer, mouseInv.item->sheet, mouseInv.item->tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, &mouseInv.item->sheet, mouseInv.item->tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv.qty, itemqty, 10);

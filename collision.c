@@ -72,13 +72,13 @@ int EntityCollision(Entity *ent){
 	SDL_Rect rectRight = (SDL_Rect){collider.x + collider.w, collider.y, 1, collider.h};
 	
 	if(enableHitboxes){
-		AddToRenderQueue(renderer, debugSheet, 4, rectTop, -1, 1001);
-		AddToRenderQueue(renderer, debugSheet, 4, rectBottom, -1, 1001);
-		AddToRenderQueue(renderer, debugSheet, 4, rectLeft, -1, 1001);
-		AddToRenderQueue(renderer, debugSheet, 4, rectRight, -1, 1001);
+		AddToRenderQueue(renderer, &debugSheet, 4, rectTop, -1, 1001);
+		AddToRenderQueue(renderer, &debugSheet, 4, rectBottom, -1, 1001);
+		AddToRenderQueue(renderer, &debugSheet, 4, rectLeft, -1, 1001);
+		AddToRenderQueue(renderer, &debugSheet, 4, rectRight, -1, 1001);
 		
-		AddToRenderQueue(renderer, debugSheet, 5, collider, -1, 1000);
-		AddToRenderQueue(renderer, debugSheet, 3, ent->collider.boundingBox, -1, 1000);
+		AddToRenderQueue(renderer, &debugSheet, 5, collider, -1, 1000);
+		AddToRenderQueue(renderer, &debugSheet, 3, ent->collider.boundingBox, -1, 1000);
 	}
 	
 	ent->collider.colUp = false;
@@ -114,7 +114,7 @@ int EntityCollision(Entity *ent){
 					}
 					
 					if(enableHitboxes){
-						AddToRenderQueue(renderer, debugSheet, activeLevel->collision[y][x], tileR, -1, 1000);
+						AddToRenderQueue(renderer, &debugSheet, activeLevel->collision[y][x], tileR, -1, 1000);
 					}
 				}
 			}

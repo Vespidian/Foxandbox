@@ -50,22 +50,26 @@ void SetupRenderFrame(){//Clear and allocate render buffer + reset render counte
 	renderBuffer = malloc(sizeof(RenderComponent));
 }
 
-int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
-	// if(tileSheet.tex == NULL){
+int AddToRenderQueue(SDL_Renderer *renderer, WB_Tilesheet *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
+	return AddToRenderQueueEx(renderer, tileSheet, tileNum, destRect, alpha, zPos, 0);
+}
+
+int AddToRenderQueueEx(SDL_Renderer *renderer, WB_Tilesheet *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation){
+	// if(tileSheet->tex == NULL){
 	// 	printf("Error: Tilesheet not defined properly!\n");
 	// 	return 1;
 	// }
 	if(alpha == -1){
 		alpha = 255;
 	}
-	if(tileNum <= tileSheet.w * tileSheet.h - 1){
+	if(tileNum <= tileSheet->w * tileSheet->h - 1){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos, rotation};
 		renderItemIndex++;
 		return 0;
-	}else if(strcmp(tileSheet.name, "undefined") == 0 || tileSheet.tex == NULL || tileNum < 0){
+	}else if(strcmp(tileSheet->name, "undefined") == 0 || tileSheet->tex == NULL || tileNum < 0){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){renderer, undefinedSheet, 0, destRect, 255, zPos};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, &undefinedSheet, 0, destRect, 255, zPos, 0};
 		renderItemIndex++;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
@@ -90,12 +94,12 @@ void RenderUpdate(){
 	
 	Vector2 tileInSheet;
 	for(int i = 0; i < renderItemIndex; i++){
-		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tile_size;
-		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet.w) * renderBuffer[i].tileSheet.tile_size;
+		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet->w) * renderBuffer[i].tileSheet->tile_size;
+		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet->w) * renderBuffer[i].tileSheet->tile_size;
 		
-		SDL_SetTextureAlphaMod(renderBuffer[i].tileSheet.tex, renderBuffer[i].alpha);
-		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet.tile_size, renderBuffer[i].tileSheet.tile_size};
-		SDL_RenderCopy(renderBuffer[i].renderer, renderBuffer[i].tileSheet.tex, &sourceRect, &renderBuffer[i].transform);	
+		SDL_SetTextureAlphaMod(renderBuffer[i].tileSheet->tex, renderBuffer[i].alpha);
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet->tile_size, renderBuffer[i].tileSheet->tile_size};
+		SDL_RenderCopyEx(renderBuffer[i].renderer, renderBuffer[i].tileSheet->tex, &sourceRect, &renderBuffer[i].transform, renderBuffer[i].rotation * 90, NULL, SDL_FLIP_NONE);	
 	}
 	SetupRenderFrame();
 }
@@ -395,7 +399,7 @@ int LoadLevel(char *path){
 	/*
 	Check if path exists
 	Load file with read permissions
-	Realloc level array
+	Read level dimensions and allocate level array
 	Look for header of section (Terrain:, Features:, Collision:, etc)
 	Read data to coresponding array
 	*/
@@ -412,18 +416,26 @@ int LoadLevel(char *path){
 		Vector2 mapSize = {0, 0};
 		lineBuffer = malloc(lineLength);
 		while(fgets(lineBuffer, lineLength, level)){
-			if(line == 0){//Get level size parameters
-				mapSize.x = strtol(strtok(lineBuffer, "x"), NULL, 10);
-				mapSize.y = strtol(strtok(NULL, "\n"), NULL, 10);
-				if(mapSize.x > MAXLEVELSIZE){
-					mapSize.x = MAXLEVELSIZE;
+			if(strcmp(header, "config") == 0 && lineBuffer[0] != ':' && lineBuffer[1] != ':'){
+				char *token;
+				char *data;
+				token = strtok(lineBuffer, ":");
+				data = strtok(NULL, "\n");
+				if(strcmp(token, "size") == 0){
+					mapSize.x = strtol(strtok(data, "x"), NULL, 10);
+					mapSize.y = strtol(strtok(NULL, "\n"), NULL, 10);
+					if(mapSize.x > MAXLEVELSIZE){
+						mapSize.x = MAXLEVELSIZE;
+					}
+					if(mapSize.y > MAXLEVELSIZE){
+						mapSize.y = MAXLEVELSIZE;
+					}
+					levels[numLevels].map_size = mapSize;
+					InitializeBlankLevel(&levels[numLevels], levels[numLevels].map_size);
+					
+				}else if(strcmp(token, "seed") == 0){
+					levels[numLevels].seed = strtol(data, NULL, 10);
 				}
-				if(mapSize.y > MAXLEVELSIZE){
-					mapSize.y = MAXLEVELSIZE;
-				}
-				levels[numLevels].map_size = mapSize;
-				levels[numLevels].terrain = calloc(mapSize.y, sizeof(RenderTileComponent));
-				levels[numLevels].features = calloc(mapSize.y, sizeof(RenderTileComponent));
 			}
 
 			if(strchr(lineBuffer, '\n') != NULL){
@@ -437,7 +449,6 @@ int LoadLevel(char *path){
 				y = 0;
 			}else if(y < mapSize.y){	
 				if(strcmp(header, "terrain") == 0){
-					levels[numLevels].terrain[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
 					char token[128];
 					strcpy(token, strtok(lineBuffer, ","));
 					for(int x = 0; x < mapSize.x; x++){
@@ -453,7 +464,6 @@ int LoadLevel(char *path){
 					}
 					y++;
 				}else if(strcmp(header, "features") == 0){
-					levels[numLevels].features[y] = calloc(mapSize.x, sizeof(RenderTileComponent));
 					char token[128];
 					strcpy(token, strtok(lineBuffer, ","));
 					for(int x = 0; x < mapSize.x; x++){
@@ -473,11 +483,6 @@ int LoadLevel(char *path){
 			lineLength = GetLineLength(level);
 			lineBuffer = malloc(lineLength);
 			line++;
-		}
-		levels[numLevels].collision = malloc(mapSize.y * sizeof(int));
-		for(int y = 0; y < mapSize.y; y++){
-			levels[numLevels].collision[y] = malloc(mapSize.x * sizeof(int));
-			memset(levels[numLevels].collision[y], -1, mapSize.x * sizeof(int));
 		}
 	}
 	fclose(level);
@@ -499,10 +504,11 @@ int SaveLevel(LevelComponent *level, char *path){
 
 	free file
 	*/
-
 	FILE *file = fopen(path, "w");
 
-	fprintf(file, "%dx%d\n", level->map_size.x, level->map_size.y);
+	fprintf(file, "::config\n");
+	fprintf(file, "size:%dx%d\n", level->map_size.x, level->map_size.y);
+	fprintf(file, "seed:%u\n", level->seed);
 	fprintf(file, "::terrain\n");
 	for(int y = 0; y < level->map_size.y; y++){
 		for(int x = 0; x < level->map_size.x; x++){
@@ -519,14 +525,6 @@ int SaveLevel(LevelComponent *level, char *path){
 		fprintf(file, "\n");
 	}
 
-	// fprintf(file, "::collision\n");
-	// for(int y = 0; y < level->map_size.y; y++){
-	// 	for(int x = 0; x < level->map_size.x; x++){
-	// 		fprintf(file, "%d,", level->collision[y][x]);
-	// 	}
-	// 	fprintf(file, "\n");
-	// }
-
 	fprintf(file, "\n\n");
 	fclose(file);
 
@@ -534,33 +532,28 @@ int SaveLevel(LevelComponent *level, char *path){
 
 int UnloadLevel(LevelComponent *level){
 	/*
-	memset level array to 0
-	realloc level array -1
+	Make sure the specified level is not the current active level
+	Free both dimensions of layer arrays
+	Free entire level
+	Decrement numLevels counter
 	*/
-}
-
-
-/*int mapSize = 32;
-void RenderLevel(LevelComponent *level){//Draw map from 2D array
-	Vector2 tilePos = {0, 0};
-	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < mapSize; y++){
-		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < mapSize; x++){
-			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
-			tilePos.y = (y * tileStretchSize) - mapOffsetPos.y;
-			tile.x = tilePos.x;
-			tile.y = tilePos.y;
-			if(level->terrain[y][x].type != -1){
-				AddToRenderQueue(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos + 0);
-				level->terrain[y][x].zPos = 0;
-			}
-			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){
-				AddToRenderQueue(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
-				level->features[y][x].zPos = 0;
-			}
+	if(&level != &activeLevel){
+		for(int y = 0; y < level->map_size.y; y++){
+			// memset(level->collision, -1, level->map_size.x * sizeof(int));
+			free(level->collision[y]);
+			free(level->features[y]);
+			free(level->terrain[y]);
 		}
+		level->map_size.x = 0;
+		level->map_size.y = 0;
+
+		free(level->collision);
+		free(level->features);
+		free(level->terrain);
+		free(level);
+		numLevels--;
 	}
-}*/
+}
 
 void RenderLevel(LevelComponent *level){//Draw map from 2D array
 	Vector2 tilePos = {0, 0};
@@ -572,11 +565,11 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			tile.x = tilePos.x;
 			tile.y = tilePos.y;
 			if(level->terrain[y][x].type != -1){//Render Terrain
-				AddToRenderQueue(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
+				AddToRenderQueue(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
 				level->terrain[y][x].zPos = 0;
 			}
 			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
-				AddToRenderQueue(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
+				AddToRenderQueue(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
 				level->features[y][x].zPos = 0;
 			}
 		}

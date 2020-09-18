@@ -30,7 +30,7 @@ typedef struct{
 	Range xR;
 	Range yR;
 	
-	WB_Tilesheet pSheet;
+	WB_Tilesheet *pSheet;
 	SDL_Rect destRect;
 	
 }ParticleSystem;
@@ -108,7 +108,6 @@ typedef struct{
 }BlockComponent;
 
 typedef struct{
-	int id;
 	ItemComponent item;
 	ItemComponent dropItem;//If null just drop item
 	int dropQty;//If null drop 1
@@ -116,6 +115,7 @@ typedef struct{
 	WB_Tilesheet sheet;
 	int tile;
 
+	bool rotate;
 	bool autoTile;
 
 	char **flags;
@@ -140,17 +140,19 @@ typedef struct {
 //Render Components
 typedef struct{
 	SDL_Renderer *renderer;
-	WB_Tilesheet tileSheet;
+	WB_Tilesheet *tileSheet;
 	int tile;
 	SDL_Rect transform;
 	int alpha;
 	int zPos;
+	int rotation;
 	SDL_Color colorMod;
 }RenderComponent;
 
 typedef struct{
 	int type;
 	int zPos;
+	int rotation;
 	BlockComponent *block;
 }RenderTileComponent;
 
@@ -166,7 +168,8 @@ typedef struct{
 // }LevelComponent_old;
 
 typedef struct{
-	char name[128];
+	char *name;
+	unsigned long seed;
 	Vector2 map_size;
 	RenderTileComponent **terrain;
 	RenderTileComponent **features;
