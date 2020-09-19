@@ -50,6 +50,8 @@ void InitializeBlankLevel(LevelComponent *level, Vector2 size){
 		for(int x = 0; x < size.x; x++){
 			level->terrain[y][x].block = find_block("air");
 			level->features[y][x].block = find_block("air");
+			level->terrain[y][x].rotation = 0;
+			level->features[y][x].rotation = 0;
 		}
 
 		level->collision[y] = malloc((size.x + 1) * sizeof(int));

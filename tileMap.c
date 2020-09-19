@@ -207,6 +207,13 @@ int register_block(lua_State *L){
 		blockData[numBlocks].collisionType = -1;
 	}
 
+	lua_getfield(L, -10, "enable_rotation");
+	if(lua_toboolean(L, -1) != NULL){
+		blockData[numBlocks].allowRotation = lua_toboolean(L, -1);
+	}else{
+		blockData[numBlocks].allowRotation = false;
+	}
+
 	// blockData[numBlocks].flags = malloc(sizeof(char **));
 	// lua_getfield(L, -8, "flags");
 	// if(lua_istable(L, -1)){
@@ -432,7 +439,7 @@ int LoadLevel(char *path){
 					}
 					levels[numLevels].map_size = mapSize;
 					InitializeBlankLevel(&levels[numLevels], levels[numLevels].map_size);
-					
+
 				}else if(strcmp(token, "seed") == 0){
 					levels[numLevels].seed = strtol(data, NULL, 10);
 				}
@@ -443,7 +450,12 @@ int LoadLevel(char *path){
 			}
 
 			// printf("%s\n", lineBuffer);
-
+			/*
+			Check for block rotation specifier using strchr to find ~
+			If ~ exists strtok once more to seperate block name and rotation specifier
+			strtol rotation specifier
+			check if block supports rotation, if so assign it to block.rotation
+			*/
 			if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){//Detect headers
 				strcpy(header, strshft_l(lineBuffer, 2));
 				y = 0;
@@ -452,6 +464,13 @@ int LoadLevel(char *path){
 					char token[128];
 					strcpy(token, strtok(lineBuffer, ","));
 					for(int x = 0; x < mapSize.x; x++){
+						if(strchr(token, '~') != NULL){
+							int rotVal = strtol(strchr(token, '~') + 1, NULL, 10);
+							*(strchr(token, '~')) = '\0';
+							if(find_block(token)->allowRotation){
+								levels[numLevels].terrain[y][x].rotation = rotVal;
+							}
+						}
 						levels[numLevels].terrain[y][x].block = find_block(token);
 
 						// printf("%s\n", token);
@@ -467,6 +486,13 @@ int LoadLevel(char *path){
 					char token[128];
 					strcpy(token, strtok(lineBuffer, ","));
 					for(int x = 0; x < mapSize.x; x++){
+						if(strchr(token, '~') != NULL){
+							int rotVal = strtol(strchr(token, '~') + 1, NULL, 10);
+							*(strchr(token, '~')) = '\0';
+							if(find_block(token)->allowRotation){
+								levels[numLevels].terrain[y][x].rotation = rotVal;
+							}
+						}
 						levels[numLevels].features[y][x].block = find_block(token);
 
 						// printf("%s\n", token);
@@ -512,7 +538,12 @@ int SaveLevel(LevelComponent *level, char *path){
 	fprintf(file, "::terrain\n");
 	for(int y = 0; y < level->map_size.y; y++){
 		for(int x = 0; x < level->map_size.x; x++){
-			fprintf(file, "%s,", level->terrain[y][x].block->item->name);
+			fprintf(file, "%s", level->terrain[y][x].block->item->name);
+			if(level->terrain[y][x].block->allowRotation){
+				fprintf(file, "~%d", level->terrain[y][x].rotation);
+			}
+
+			fprintf(file, ",");
 		}
 		fprintf(file, "\n");
 	}
@@ -520,7 +551,12 @@ int SaveLevel(LevelComponent *level, char *path){
 	fprintf(file, "::features\n");
 	for(int y = 0; y < level->map_size.y; y++){
 		for(int x = 0; x < level->map_size.x; x++){
-			fprintf(file, "%s,", level->features[y][x].block->item->name);
+			fprintf(file, "%s", level->features[y][x].block->item->name);
+			if(level->terrain[y][x].block->allowRotation){
+				fprintf(file, "~%d", level->terrain[y][x].rotation);
+			}
+
+			fprintf(file, ",");
 		}
 		fprintf(file, "\n");
 	}
@@ -565,11 +601,13 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			tile.x = tilePos.x;
 			tile.y = tilePos.y;
 			if(level->terrain[y][x].type != -1){//Render Terrain
-				AddToRenderQueue(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
+				// AddToRenderQueue(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
+				AddToRenderQueueEx(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
 				level->terrain[y][x].zPos = 0;
 			}
 			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
-				AddToRenderQueue(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
+				// AddToRenderQueue(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
+				AddToRenderQueueEx(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1, level->features[y][x].rotation);
 				level->features[y][x].zPos = 0;
 			}
 		}

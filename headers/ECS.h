@@ -99,6 +99,7 @@ typedef struct{
 	int tile;//Block tile index
 
 	bool autoTile;//Is this block from an autotile set?
+	bool allowRotation;
 
 	int collisionType;
 	char layer[16];

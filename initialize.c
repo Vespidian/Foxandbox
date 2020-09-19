@@ -77,7 +77,7 @@ void TextureInit(){
 
 void UndefinedInit(){
 	undefinedItem = (ItemComponent){"undefined", undefinedSheet, 0};
-	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, -1, "terrain"};
+	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, false, -1, "terrain"};
 }
 
 bool init(){
