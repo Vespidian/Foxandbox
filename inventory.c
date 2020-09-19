@@ -116,6 +116,7 @@ int inventory_add(lua_State *L){
 		qty = lua_tonumber(L, 2);
 	}
 	INV_Add(qty, find_item(name));
+	free(name);
 	return 0;
 }
 

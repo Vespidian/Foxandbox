@@ -139,6 +139,8 @@ register_block({
 
 inventory_add("not_gate", 99)
 inventory_add("not_gate", 99)
+inventory_add("not_gate", 99)
+
 inventory_add("nylium", 32)
 -- populate_autotile({
 -- 	name = "grass_water",
