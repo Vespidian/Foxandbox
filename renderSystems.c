@@ -161,10 +161,16 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
 				//Only place the item if it is a block and the selected hotbar is occupied
 				//Only place if the indicated block is different from the selected hotbar block
-				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock && strcmp(invArray[selectedHotbar].item->name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
+				// if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock && strcmp(invArray[selectedHotbar].item->name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
+				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
 					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 						INV_Subtract(1, invArray[selectedHotbar].item);
-						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, activeLevel->terrain[tile.y][tile.x].block->dropItem);
+						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0 && &invArray[selectedHotbar].item != &activeLevel->terrain[tile.y][tile.x].block->item){
+							INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, activeLevel->terrain[tile.y][tile.x].block->dropItem);
+						}
+						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "feature") == 0 && &invArray[selectedHotbar].item != &activeLevel->features[tile.y][tile.x].block->item){
+							INV_Add(activeLevel->features[tile.y][tile.x].block->dropQty, activeLevel->features[tile.y][tile.x].block->dropItem);
+						}
 						PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
 					}
 				}

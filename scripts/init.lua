@@ -122,8 +122,24 @@ register_block({
 	collision_type = -1,
 })
 
+register_block({
+	name = "not_gate",
+	item_sheet = "blocks",
+	item_tile_index = 8,
+
+	block_sheet = "blocks",
+	block_tile_index = 8,
+
+	block_layer = "feature",
+	enable_rotation = true,
+
+	collision_type = -1,
+})
 
 
+inventory_add("not_gate", 99)
+inventory_add("not_gate", 99)
+inventory_add("nylium", 32)
 -- populate_autotile({
 -- 	name = "grass_water",
 -- 	base_block = "grass",

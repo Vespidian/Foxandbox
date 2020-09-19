@@ -18,7 +18,7 @@ extern bool showInv;
 extern int selectedHotbar;//Number representation of currently selected hotbar slot
 
 //Initializing item arrays
-int ReadItemData();
+int inventory_add(lua_State *L);
 int INV_InitRecipes();
 
 //Basic inventory functions

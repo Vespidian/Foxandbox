@@ -94,8 +94,6 @@ bool init(){
 	TextureInit();
 	INV_Init();
 	
-	ReadItemData();
-	
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);		
 

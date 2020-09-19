@@ -105,75 +105,18 @@ int register_item(lua_State *L){
 	return 0;
 }
 
-int ReadItemData(){
-	// FILE *file = fopen("data/items.dat", "r");
-	// if(file == NULL){
-	// 	return 1;
-	// }
-	// char buffer[512];
-	// char declarationType[64];
-	
-	
-	
-	
-	// int itemCounter = 0;
-	// while(fgets(buffer, sizeof(buffer), file)){
-	// 	if(buffer[0] != '\n'){
-	// 		if(buffer[0] == '\t' && buffer[1] != '\n'){
-	// 			strcpy(buffer, strshft_l(buffer, 1));
-				
-				// printf("%s	-> %d\n", declarationType, itemCounter);
-				/*if(strcmp(declarationType, "CRAFTING_INGREDIENTS") == 0){
-					itemData = realloc(itemData, (itemCounter + 1) * sizeof(ItemComponent *));
-					strcpy(itemData[itemCounter].name, strtok(buffer, ":"));
-					strcpy(itemData[itemCounter].description, strtok(NULL, "|"));
-					
-					printf("%s\n", itemData[itemCounter].name);
-				}else if(strcmp(declarationType, "BLOCKS") == 0){//Check if iterating through blocks
-					
-					char tileNum[16];
-					int flagCount = 1;
-					// char **flags = malloc(flagCount * sizeof(char *));
-					blockData[itemCounter].flags[flagCount] = malloc(flagCount * sizeof(char *));
-					char flag[64];
-					
-					
-					strcpy(blockData[itemCounter].item.name, strtok(buffer, ":"));
-					strcpy(tileNum, strshft_l(strtok(NULL, "|"), 3));
-					
-					printf("%s:\n", blockData[itemCounter].item.name);
-					strcpy(flag, strtok(NULL, "|"));
-					while(strcmp(flag, "\n") != 0){
-						
-						// *flags = realloc(*flags, (flagCount + 1) * sizeof(char*));
-						// flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
-						blockData[itemCounter].flags[flagCount] = malloc(sizeof(char[strlen(flag)]));
-						strcpy(blockData[itemCounter].flags[flagCount], flag);
-						
-						printf("+   %s\n", blockData[flagCount].flags[flagCount]);
-						strcpy(flag, strtok(NULL, "|"));
-						flagCount++;
-					}
-				}*/
-		// 		itemCounter++;
-		// 		// printf("Current declarationType: %s\n", declarationType);
-		// 	}else if(buffer[0] == ':' && buffer[1] == ':'){
-		// 		strcpy(buffer, strshft_l(buffer, 2));
-		// 		// strshft_l(buffer, 2);
-		// 		itemCounter = 0;
-		// 		buffer[strlen(buffer) - 1] = '\0';
-		// 		strcpy(declarationType, buffer);
-		// 	}/*else  if(buffer[0] == '/' && buffer[1] == '/'){
-				
-		// 	} */
-		// }
-		// printf("%s >> %s\n", itemData[itemCounter].name, itemData[itemCounter].description);
-		// printf("%s >> %s\n", itemData[0].name, itemData[0].description);
-	// }
-	// printf("%s\n", itemData[0].name);
-	// INV_InitRecipes();
-	// fclose(file);
-	// return 0;
+int inventory_add(lua_State *L){
+	char *name;
+	int qty = 0;
+	if(lua_tostring(L, 1) != NULL){
+		name = malloc(sizeof(char) * strlen(lua_tostring(L, 1)));
+		strcpy(name, lua_tostring(L, 1));
+	}
+	if(lua_tonumber(L, 2) != NULL){
+		qty = lua_tonumber(L, 2);
+	}
+	INV_Add(qty, find_item(name));
+	return 0;
 }
 
 int INV_InitRecipes(){
@@ -439,7 +382,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 }
 
 int INV_Add(int qty, ItemComponent *item){
-	if(INV_FindEmpty(item) != -1){//Make sure inventory is not full
+	if(INV_FindEmpty(item) != -1 && item != find_item("air")){//Make sure inventory is not full and item is not air
 		if(INV_FindItem(item) != -1 && invArray[INV_FindItem(item)].qty < maxStack){//Check if item exists and can fit more items
 			if(invArray[INV_FindItem(item)].qty + qty <= maxStack){//Check if the qty can fit in the stack
 				invArray[INV_FindItem(item)].qty += qty;

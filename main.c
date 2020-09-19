@@ -222,6 +222,7 @@ void loadLua(){
 	lua_register(L, "register_tilesheet", register_tilesheet);
 	lua_register(L, "register_block", register_block);
 	lua_register(L, "populate_autotile", populate_autotile);
+	lua_register(L, "inventory_add", inventory_add);
 	
 	luaL_dofile(L, "scripts/init.lua");	
 	lua_close(L);
@@ -242,13 +243,14 @@ void Setup(){
 
 	loadLua();
 	NewEntity();
-	INV_WriteCell("set", 4, 2, find_item("stone"));
-	INV_WriteCell("set", 6, 99, find_item("feather"));
-	INV_WriteCell("set", 2, 24, find_item("wood"));
-	INV_WriteCell("set", 1, 17, find_item("nylium"));
-	INV_WriteCell("set", 3, 16, find_item("grass"));
-	INV_WriteCell("set", 0, 16, find_item("water"));
-	INV_WriteCell("set", 12, 17, find_item("flower"));
+
+	// INV_WriteCell("set", 4, 2, find_item("stone"));
+	// INV_WriteCell("set", 6, 99, find_item("feather"));
+	// INV_WriteCell("set", 2, 24, find_item("wood"));
+	// INV_WriteCell("set", 1, 17, find_item("nylium"));
+	// INV_WriteCell("set", 3, 16, find_item("grass"));
+	// INV_WriteCell("set", 0, 16, find_item("water"));
+	// INV_WriteCell("set", 12, 17, find_item("flower"));
 
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 
@@ -488,9 +490,9 @@ int main(int argc, char **argv) {
 					if(e.key.keysym.sym == SDLK_F3){
 						showDebugInfo = !showDebugInfo;
 					}
-					// if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
-					// 	loadLua();
-					// }
+					if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
+						loadLua();
+					}
 					if(e.key.keysym.sym == SDLK_RETURN){//Chat history
 						if(inputMode == 1){
 							if(currentCollectedText[0] != '\0' && currentCollectedText[0] != ' '){

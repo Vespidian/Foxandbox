@@ -264,13 +264,35 @@ void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent 
 	AutotileMap(levels[0].terrain, autotileData[0]);
 }
 
+int CalculateBlockRotation(Vector2 player, Vector2 tile){	
+	int rotation = 0;
+	Vector2 playerDir = {0, 0};
+	if(abs(tile.x - player.x) > abs(tile.y - player.y)){
+		playerDir.x = 1;
+	}
+	if(abs(tile.x - player.x) <= abs(tile.y - player.y)){
+		playerDir.y = tile.y > player.y ? 0 : 1;
+	}else if(tile.x > player.x){
+		playerDir.y = 1;
+	}
+	rotation = playerDir.y << 1;
+	rotation += playerDir.x;
+	return rotation;
+}
+
 void PlaceBlock(Vector2 tile, BlockComponent *block){
 	//If the player is where the block is to be placed, only place it if its non collidable
 	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
 		if(strcmp(block->layer, "terrain") == 0){
 			activeLevel->terrain[tile.y][tile.x].block = block;
+			if(block->allowRotation){
+				activeLevel->terrain[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
+			}
 		}else if(strcmp(block->layer, "feature") == 0){
 			activeLevel->features[tile.y][tile.x].block = block;
+			if(block->allowRotation){
+				activeLevel->features[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
+			}
 		}
 		activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
 	}
