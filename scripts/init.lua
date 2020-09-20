@@ -59,7 +59,7 @@ register_block({
 	block_sheet = "blocks",
 	block_tile_index = 0,
 
-	block_layer = "feature",
+	-- block_layer = "feature",
 	collision_type = -1,
 })
 register_block({
@@ -71,7 +71,7 @@ register_block({
 	block_tile_index = 0,
 	
 	block_layer = "feature",
-	collision_type = 0,
+	collision_type = 8,
 })
 
 register_block({
@@ -96,7 +96,6 @@ register_block({
 	block_tile_index = 1,
 
 	collision_type = -1,
-	flags = {"ground"},
 })
 
 register_block({
@@ -139,9 +138,10 @@ register_block({
 
 inventory_add("not_gate", 99)
 inventory_add("not_gate", 99)
-inventory_add("not_gate", 99)
+inventory_add("bookshelf", 16)
 
 inventory_add("nylium", 32)
+inventory_add("flower", 32)
 -- populate_autotile({
 -- 	name = "grass_water",
 -- 	base_block = "grass",

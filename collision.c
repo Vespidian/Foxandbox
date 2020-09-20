@@ -89,10 +89,12 @@ int EntityCollision(Entity *ent){
 	if(tilePosition.y >= 0 && tilePosition.y < activeLevel->map_size.y - 1 && tilePosition.x >= 0 && tilePosition.x < activeLevel->map_size.x - 1){
 		SDL_Rect tileR = {tileSize - mapOffsetPos.x, tileSize - mapOffsetPos.y, tileSize, tileSize};
 		for(int y = tilePosition.y - (tilePosition.y > 0 ? 1 : 0); y <= tilePosition.y + (tilePosition.y != activeLevel->map_size.y ? 1 : 0); y++){
-		tileR.y = (y * tileSize) - mapOffsetPos.y;
 			for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
-			tileR.x = (x * tileSize) - mapOffsetPos.x;
+				tileR = (SDL_Rect){(x * tileSize) - mapOffsetPos.x, (y * tileSize) - mapOffsetPos.y, tileSize, tileSize};
 				if(SDL_HasIntersection(&tileR, &ent->collider.boundingBox) && activeLevel->collision[y][x] != -1){
+					if(enableHitboxes){
+						AddToRenderQueue(renderer, &debugSheet, activeLevel->collision[y][x], tileR, -1, 1000);
+					}
 					switch(activeLevel->collision[y][x]){
 						case 0:
 							CheckCollisions(tileR, &ent->collider);
@@ -111,10 +113,6 @@ int EntityCollision(Entity *ent){
 							break;
 						default:
 							break;
-					}
-					
-					if(enableHitboxes){
-						AddToRenderQueue(renderer, &debugSheet, activeLevel->collision[y][x], tileR, -1, 1000);
 					}
 				}
 			}

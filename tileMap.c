@@ -601,14 +601,12 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			tile.x = tilePos.x;
 			tile.y = tilePos.y;
 			if(level->terrain[y][x].type != -1){//Render Terrain
-				// AddToRenderQueue(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos);
 				AddToRenderQueueEx(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
 				level->terrain[y][x].zPos = 0;
 			}
 			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
-				// AddToRenderQueue(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1);
-				AddToRenderQueueEx(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos + 1, level->features[y][x].rotation);
-				level->features[y][x].zPos = 0;
+				AddToRenderQueueEx(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos, level->features[y][x].rotation);
+				level->features[y][x].zPos = 1;
 			}
 		}
 	}
