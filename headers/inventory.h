@@ -32,8 +32,9 @@ ItemComponent *find_item(char *name);
 int INV_Add(int qty, ItemComponent *item);
 int INV_Subtract(int qty, ItemComponent *item);
 
-int INV_FindItem(ItemComponent *item);
-int INV_FindEmpty();
+int INV_FindItem(ItemComponent *item);//Find the first slot with specified item
+int INV_FindItem_NotFull(ItemComponent *item);//Find the first slot that contains specified item and is not full
+int INV_FindEmpty();//Find first slot that is not occupied
 //Lua functions
 int register_item(lua_State *L);
 

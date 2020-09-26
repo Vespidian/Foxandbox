@@ -14,6 +14,10 @@ void Quit();
 extern int WIDTH;
 extern int HEIGHT;
 
+extern FILE *logFile;
+extern enum DEBUG{D_ACT, D_WARN, D_ERR, D_SCRIPT_ERR, D_SCRIPT_ACT};
+// void DebugLog(int type, char *text);
+void DebugLog(int type, const char *format, ...);
 
 void TextureInit();
 void TextureDestroy();

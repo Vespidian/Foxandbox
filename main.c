@@ -141,31 +141,31 @@ int register_tilesheet(lua_State *L){
 	
 	luaL_checktype(L, 1, LUA_TTABLE);
 	lua_getfield(L, -1, "name");
-	// if(strcmp(*find_tilesheet(lua_tostring(L, -1))->name, "undefined") == 0){
-		if(lua_tostring(L, -1) != NULL){
-			strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
-		}else{
-			strcpy(tilesheets[num_tilesheets].name, "undefined");
-		}
-		
-		lua_getfield(L, -2, "path");
-		if(lua_tostring(L, -1) != NULL){
-			tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
-		}else{
-			tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
-		}
+	if(lua_tostring(L, -1) != NULL){
+		strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
+	}else{
+		strcpy(tilesheets[num_tilesheets].name, "undefined");
+	}
+	
+	lua_getfield(L, -2, "path");
+	if(lua_tostring(L, -1) != NULL){
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
+	}else{
+		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
+	}
 
-		lua_getfield(L, -3, "tile_size");
-		if(lua_tonumber(L, -1)){
-			tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
-			//Identify the width and height of the tilesheet based on tile size
-			SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
-			tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
-			tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
-		}
+	lua_getfield(L, -3, "tile_size");
+	if(lua_tonumber(L, -1)){
+		tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
+		//Identify the width and height of the tilesheet based on tile size
+		SDL_QueryTexture(tilesheets[num_tilesheets].tex, NULL, NULL, &tilesheets[num_tilesheets].w, &tilesheets[num_tilesheets].h);
+		tilesheets[num_tilesheets].w /= tilesheets[num_tilesheets].tile_size;
+		tilesheets[num_tilesheets].h /= tilesheets[num_tilesheets].tile_size;
+	}
 
-		num_tilesheets++;
-	// }
+	DebugLog(D_SCRIPT_ACT, "Loaded tilesheet '%s'", tilesheets[num_tilesheets].name);
+
+	num_tilesheets++;
 	return 0;
 }
 
@@ -206,6 +206,7 @@ int pass_table(lua_State *L){
 }
 
 void loadLua(){
+	DebugLog(D_ACT, "Initializing LUA -----------------------");
 	num_tilesheets = 0;
 	numItems = -1;
 	numBlocks = -1;
@@ -226,6 +227,7 @@ void loadLua(){
 	
 	luaL_dofile(L, "scripts/init.lua");	
 	lua_close(L);
+	DebugLog(D_ACT, "LUA initialization done ----------------");
 }
 
 
@@ -243,14 +245,6 @@ void Setup(){
 
 	loadLua();
 	NewEntity();
-
-	// INV_WriteCell("set", 4, 2, find_item("stone"));
-	// INV_WriteCell("set", 6, 99, find_item("feather"));
-	// INV_WriteCell("set", 2, 24, find_item("wood"));
-	// INV_WriteCell("set", 1, 17, find_item("nylium"));
-	// INV_WriteCell("set", 3, 16, find_item("grass"));
-	// INV_WriteCell("set", 0, 16, find_item("water"));
-	// INV_WriteCell("set", 12, 17, find_item("flower"));
 
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 
@@ -448,6 +442,12 @@ int main(int argc, char **argv) {
 					if(e.key.state == SDL_RELEASED){
 						mouseClicked = true;
 					}
+					//Set the pointer to the layer the mouse is editing on the current mouse hold
+					if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
+						mouseEditingLayer = activeLevel->features;
+					}else{
+						mouseEditingLayer = activeLevel->terrain;
+					}
 				}
 				
 				/*if(e.type == SDL_MOUSEBUTTONUP){
@@ -513,6 +513,9 @@ int main(int argc, char **argv) {
 						}
 					}
 					if(inputMode == 0){
+						if(e.key.keysym.sym == SDLK_j){
+							SaveLevel(activeLevel, "data/maps/testMap.dat");
+						}
 						if(e.key.keysym.sym == SDLK_c){
 							character.collider.noClip = !character.collider.noClip;
 						}

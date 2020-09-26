@@ -149,6 +149,16 @@ int register_block(lua_State *L){
 
 		blockData[numBlocks].item = &itemData[numItems];
 		itemData[numItems].isBlock = true;
+
+
+		// char *log;
+		// sprintf(log, "Created block '%s'", blockData[numBlocks].item->name);
+		// sprintf(log, "Created block '%s'", itemData[numItems].name);
+		// DebugLog(D_SCRIPT_ACT, log);
+		// char *log = malloc(strlen(itemData[numItems].name) + 32);
+		// sprintf(log, "Created block '%s'", itemData[numItems].name);
+		DebugLog(D_SCRIPT_ACT, "Created block '%s'", itemData[numItems].name);
+		// free(log);
 	}else{//If it does, use it
 		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
 		find_item((char *)lua_tostring(L, -1))->isBlock = true;
@@ -237,8 +247,9 @@ int register_block(lua_State *L){
 	// 		lua_pop(L, 1);
 	// 	}
 	// }
+	
 
-	blockData[numBlocks].autoTile = false;
+	// blockData[numBlocks].autoTile = false;
 
 	return 0;
 }
@@ -490,7 +501,7 @@ int LoadLevel(char *path){
 							int rotVal = strtol(strchr(token, '~') + 1, NULL, 10);
 							*(strchr(token, '~')) = '\0';
 							if(find_block(token)->allowRotation){
-								levels[numLevels].terrain[y][x].rotation = rotVal;
+								levels[numLevels].features[y][x].rotation = rotVal;
 							}
 						}
 						levels[numLevels].features[y][x].block = find_block(token);
@@ -509,6 +520,13 @@ int LoadLevel(char *path){
 			lineLength = GetLineLength(level);
 			lineBuffer = malloc(lineLength);
 			line++;
+		}
+		levels[numLevels].name = malloc(strlen(strtok(path, ".")) * sizeof(char));
+		// strcpy(levels[numLevels].name, strrchr(strtok(path, "."), '/') != NULL ? strrchr(strtok(path, "."), '/') + 1 : strtok(path, "."));
+		if(strrchr(strtok(path, "."), '/') != NULL){
+			strcpy(levels[numLevels].name, strrchr(strtok(path, "."), '/') + 1);
+		}else{
+			strcpy(levels[numLevels].name, strtok(path, "."));
 		}
 	}
 	fclose(level);
@@ -552,8 +570,8 @@ int SaveLevel(LevelComponent *level, char *path){
 	for(int y = 0; y < level->map_size.y; y++){
 		for(int x = 0; x < level->map_size.x; x++){
 			fprintf(file, "%s", level->features[y][x].block->item->name);
-			if(level->terrain[y][x].block->allowRotation){
-				fprintf(file, "~%d", level->terrain[y][x].rotation);
+			if(level->features[y][x].block->allowRotation){
+				fprintf(file, "~%d", level->features[y][x].rotation);
 			}
 
 			fprintf(file, ",");
@@ -575,7 +593,6 @@ int UnloadLevel(LevelComponent *level){
 	*/
 	if(&level != &activeLevel){
 		for(int y = 0; y < level->map_size.y; y++){
-			// memset(level->collision, -1, level->map_size.x * sizeof(int));
 			free(level->collision[y]);
 			free(level->features[y]);
 			free(level->terrain[y]);
@@ -594,12 +611,14 @@ int UnloadLevel(LevelComponent *level){
 void RenderLevel(LevelComponent *level){//Draw map from 2D array
 	Vector2 tilePos = {0, 0};
 	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
+	AddToRenderQueue(renderer, &debugSheet, 4, (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, WIDTH + mapOffsetPos.x, HEIGHT + mapOffsetPos.y}, 255, 0);
 	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < level->map_size.y; y++){
 		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < level->map_size.x; x++){
 			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
 			tilePos.y = (y * tileStretchSize) - mapOffsetPos.y;
 			tile.x = tilePos.x;
 			tile.y = tilePos.y;
+			// AddToRenderQueue(renderer, find_tilesheet("blocks"), 4, tile, 255, 0);
 			if(level->terrain[y][x].type != -1){//Render Terrain
 				AddToRenderQueueEx(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
 				level->terrain[y][x].zPos = 0;

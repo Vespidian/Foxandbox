@@ -4,6 +4,8 @@ Pimy: 2020
 Basic testing of the lua implementation to interact with game
 
 ]=]
+
+--TILESHEETS
 register_tilesheet({
 	name = "blocks",
 	path = "images/blocks.png",
@@ -35,6 +37,7 @@ register_tilesheet({
 })
 
 
+--ITEMS
 register_item({
 	name = "stone",
 	sheet = "items",
@@ -51,6 +54,8 @@ register_item({
 	tile_index = 4,
 })
 
+
+--BLOCKS
 register_block({
 	name = "air",
 	item_sheet = "blocks",
@@ -136,11 +141,14 @@ register_block({
 })
 
 
+--OTHER FUNCTIONS
 inventory_add("not_gate", 99)
 inventory_add("not_gate", 99)
 inventory_add("bookshelf", 16)
 
-inventory_add("nylium", 32)
+inventory_add("nylium", 99)
+inventory_add("grass", 99)
+inventory_add("water", 99)
 inventory_add("flower", 32)
 -- populate_autotile({
 -- 	name = "grass_water",

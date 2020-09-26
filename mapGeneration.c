@@ -13,6 +13,8 @@
 #include "headers/tileMap.h"
 #include "headers/mapGeneration.h"
 #include "headers/inventory.h"
+#include "headers/initialize.h"
+#include "headers/renderSystems.h"
 
 RenderTileComponent buildLayer_tmp[32][32] = {};
 enum types {GRASS = 0, WATER = 47};
@@ -283,17 +285,11 @@ int CalculateBlockRotation(Vector2 player, Vector2 tile){
 void PlaceBlock(Vector2 tile, BlockComponent *block){
 	//If the player is where the block is to be placed, only place it if its non collidable
 	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
-		if(strcmp(block->layer, "terrain") == 0){
-			activeLevel->terrain[tile.y][tile.x].block = block;
-			if(block->allowRotation){
-				activeLevel->terrain[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
-			}
-		}else if(strcmp(block->layer, "feature") == 0){
-			activeLevel->features[tile.y][tile.x].block = block;
-			if(block->allowRotation){
-				activeLevel->features[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
-			}
+		mouseEditingLayer[tile.y][tile.x].block = block;
+		if(block->allowRotation){
+			mouseEditingLayer[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
 		}
+		DebugLog(D_ACT, "placed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
 		activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
 	}
 }

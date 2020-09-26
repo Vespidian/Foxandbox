@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
+#include <time.h>
 
 #include <stdlib.h>
 
@@ -17,12 +20,14 @@ SDL_Window *window = NULL;
 //The window renderer
 SDL_Renderer *renderer = NULL;
 
+
 //Initial dimensions of the window
 // int WIDTH = 1280;
 int WIDTH = 1344;
 int HEIGHT = 960;
 bool success = true;
 
+FILE *logFile;
 
 SDL_Texture *undefinedTex;
 WB_Tilesheet undefinedSheet;
@@ -73,6 +78,8 @@ void TextureInit(){
 
 	InvertedAutotileMaskTex = IMG_LoadTexture(renderer, "images/INVERTEDautotileMask.png");
 	InvertedAutotileMaskSheet = (WB_Tilesheet){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
+
+	DebugLog(D_ACT, "Static textures loaded");
 }
 
 void UndefinedInit(){
@@ -81,19 +88,23 @@ void UndefinedInit(){
 }
 
 bool init(){
+	//Set up log file
+	logFile = fopen("data/log.txt", "a");
+	fprintf(logFile, "\n---------------\nSEPARATOR\n---------------\n\n");
+
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
-	
 	window = SDL_CreateWindow("Explorable World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	
 	SDL_Surface *gIcon = IMG_Load("images/icon.png");
 	SDL_SetWindowIcon(window, gIcon);
+	DebugLog(D_ACT, "SDL Initialized");
 
 	UndefinedInit();
 	TextureInit();
+
 	INV_Init();
-	
+
 	SDL_SetTextureColorMod(colorModTex, 0, 0, 255);
 	SDL_SetTextureAlphaMod(colorModTex, 0);		
 
@@ -101,11 +112,56 @@ bool init(){
 }
 
 void Quit() {
+	DebugLog(D_ACT, "Shutting down");
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	window = NULL;
 	renderer = NULL;
 	
+	fclose(logFile);
 	IMG_Quit();
 	SDL_Quit();
+}
+
+void DebugLog(int type, const char *format, ...){
+	va_list vaFormat;
+
+	va_start(vaFormat, format);
+
+	char *formattedText = malloc((strlen(format) + 64) * sizeof(char));
+	vsprintf(formattedText, format, vaFormat);
+
+	va_end(vaFormat);
+
+	// time_t rawtime;
+	// struct tm *currentTime;
+	// time(&rawtime);
+	// currentTime = localtime(&rawtime);
+	// fprintf(logFile, "%d-%d-%d %d:%d:%d: ", 1900 + currentTime->tm_year, currentTime->tm_mon,
+	// currentTime->tm_mday, currentTime->tm_hour, currentTime->tm_min, currentTime->tm_sec);
+
+	switch(type){
+		case D_ACT:
+			fprintf(logFile, "[ACTION]: ");
+			break;
+		case D_WARN:
+			fprintf(logFile, "[WARNING]: ");
+			break;
+		case D_ERR:
+			fprintf(logFile, "[ERROR]: ");
+			break;
+		case D_SCRIPT_ERR:
+			fprintf(logFile, "[LUA_ERROR]: ");
+			break;
+		case D_SCRIPT_ACT:
+			fprintf(logFile, "[LUA_ACTION]: ");
+			break;
+		default:
+			fprintf(logFile, "[UNKNOWN]: ");
+			break;
+	}
+
+	fprintf(logFile, "%s\n", formattedText);
+	free(formattedText);
+	fflush(logFile);
 }

@@ -59,16 +59,7 @@ void INV_Init(){
 			invArray[invPos].qty = 0;
 		}
 	}
-	// printf("%s\n", find_item("stone")->name);
-	// printf("%s\n", itemData[0].name);
-	// INV_WriteCell("set", 0, 2, undefinedItem);
-	// INV_WriteCell("set", 0, 2, *find_item("stone"));
-	// INV_WriteCell("set", 12, 90, 2);
-	// INV_WriteCell("set", 8, 1, 3);
-	// INV_WriteCell("set", 3, 1, 1);
-	// INV_WriteCell("set", 4, 1, 0);
-	// INV_WriteCell("set", 11, 0, -1);
-	// INV_WriteCell("set", 14, 20, 4);
+	DebugLog(D_ACT, "Inventory initialized");
 }
 
 
@@ -102,6 +93,13 @@ int register_item(lua_State *L){
 	}
 
 	itemData[numItems].isBlock = false;
+
+
+	// char *log = malloc(strlen(itemData[numItems].name) + 32);
+	// sprintf(log, "Created item '%s'", itemData[numItems].name);
+	// DebugLog(D_SCRIPT_ACT, log);
+	// free(log);
+	DebugLog(D_SCRIPT_ACT, "Created item '%s'", itemData[numItems].name);
 	return 0;
 }
 
@@ -365,10 +363,9 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 				}
 			}
 		}else if(strcmp(mode, "sub") == 0){
-			if(strcmp(invArray[cell].item->name, item->name) == 0){
-				if(invArray[cell].qty > 0){
+			if(&invArray[cell].item->name == &item->name && invArray[cell].occupied){
+				if(invArray[cell].qty > 1){
 					invArray[cell].qty -= itemQty;
-					invArray[cell].occupied = true;
 				}else{
 					invArray[cell].qty = 0;
 					invArray[cell].occupied = false;
@@ -383,25 +380,27 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 }
 
 int INV_Add(int qty, ItemComponent *item){
-	if(INV_FindEmpty(item) != -1 && item != find_item("air")){//Make sure inventory is not full and item is not air
-		if(INV_FindItem(item) != -1 && invArray[INV_FindItem(item)].qty < maxStack){//Check if item exists and can fit more items
-			if(invArray[INV_FindItem(item)].qty + qty <= maxStack){//Check if the qty can fit in the stack
-				invArray[INV_FindItem(item)].qty += qty;
+	if(item != find_item("air")){//Make sure item is not air
+		if(INV_FindItem_NotFull(item) != -1 && invArray[INV_FindItem_NotFull(item)].qty < maxStack){//Check if item exists in inventory and can fit more items
+			if(invArray[INV_FindItem_NotFull(item)].qty + qty <= maxStack){//Check if the qty can fit in the stack
+				invArray[INV_FindItem_NotFull(item)].qty += qty;
 			}else{//If it cant add to the next empty slot as well
-				qty -= maxStack - invArray[INV_FindItem(item)].qty;
-				invArray[INV_FindItem(item)].qty = maxStack;
-				invArray[INV_FindEmpty()].item = item;
-				invArray[INV_FindEmpty()].qty = qty;
-				invArray[INV_FindEmpty()].occupied = true;
+				qty -= maxStack - invArray[INV_FindItem_NotFull(item)].qty;
+				invArray[INV_FindItem_NotFull(item)].qty = maxStack;
+				int emptySlot = INV_FindEmpty();
+				invArray[emptySlot].item = item;
+				invArray[emptySlot].qty = qty;
+				invArray[emptySlot].occupied = true;
 			}
 			return 0;
-		}else{//If it does not exist create it
+		}else{//If it does not exist or is full create it in a new slot
 			invArray[INV_FindEmpty()].item = item;
 			invArray[INV_FindEmpty()].qty = qty;
 			invArray[INV_FindEmpty()].occupied = true;
 		}
 	}
 }
+
 int INV_Subtract(int qty, ItemComponent *item){
 	while(INV_FindItem(item) != -1){//Loop until there are no more of specified item
 		if(invArray[INV_FindItem(item)].qty >= qty){
@@ -420,20 +419,29 @@ int INV_Subtract(int qty, ItemComponent *item){
 	return qty;
 }
 
-int INV_FindItem(ItemComponent *item){
-	int itemQtyFound = 0;
-	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
+int INV_FindItem(ItemComponent *item){//Find the first slot with specified item
+	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){//Loop through inventory
 		if(&invArray[i].item->name == &item->name && invArray[i].occupied == true){
 			return i;
 		}
 	}
 	return -1;//Item does not exist in inventory
 }
-int INV_FindEmpty(){
-	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){
-		if(invArray[i].occupied == false){
+
+int INV_FindItem_NotFull(ItemComponent *item){//Find the first slot that has that item and is not full
+	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){//Loop through inventory
+		if(&invArray[i].item->name == &item->name && invArray[i].occupied == true && invArray[i].qty < maxStack){
 			return i;
 		}
 	}
-	return -1;//Inventory full
+	return -1;
+}
+
+int INV_FindEmpty(){//Find first slot that is not occupied
+	for(int i = 0; i < INV_WIDTH * INV_HEIGHT; i++){//Loop through inventory
+		if(invArray[i].occupied == false){//If there is not an item there return that slot 
+			return i;
+		}
+	}
+	return -1;//Every slot in the inventory is filled up / Item cannot fit in inventory
 }

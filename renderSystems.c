@@ -17,6 +17,7 @@
 
 const int particleCap = 10000;
 int particleCount = 0;
+RenderTileComponent **mouseEditingLayer;
 
 void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Range yR, Range duration){
 	particle->active = true;//Activate the particle
@@ -161,27 +162,37 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
 				//Only place the item if it is a block and the selected hotbar is occupied
 				//Only place if the indicated block is different from the selected hotbar block
-				// if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock && strcmp(invArray[selectedHotbar].item->name, levels[0].terrain[tile.y][tile.x].block->item->name) != 0){
-				if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
-					if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-						INV_Subtract(1, invArray[selectedHotbar].item);
-						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0 && &invArray[selectedHotbar].item != &activeLevel->terrain[tile.y][tile.x].block->item){
+				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+					/*if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
+						// INV_Subtract(1, invArray[selectedHotbar].item);
+						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0 && &invArray[selectedHotbar].item->name != &activeLevel->terrain[tile.y][tile.x].block->item->name){
 							INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, activeLevel->terrain[tile.y][tile.x].block->dropItem);
+							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
 						}
 						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "feature") == 0 && &invArray[selectedHotbar].item != &activeLevel->features[tile.y][tile.x].block->item){
 							INV_Add(activeLevel->features[tile.y][tile.x].block->dropQty, activeLevel->features[tile.y][tile.x].block->dropItem);
+							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
 						}
 						PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
+					}*/
+					if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
+						if(&invArray[selectedHotbar].item->name != &mouseEditingLayer[tile.y][tile.x].block->item->name){
+							INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
+							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
+							PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
+						}
+					}
+				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+					if(mouseEditingLayer[tile.y][tile.x].block != find_block("air")){
+						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
+						mouseEditingLayer[tile.y][tile.x].block = find_block("air");
+						if(activeLevel->features[tile.y][tile.x].block == find_block("air")){
+							activeLevel->collision[tile.y][tile.x] = -1;
+						}else{
+							activeLevel->collision[tile.y][tile.x] = activeLevel->features[tile.y][tile.x].block->collisionType;
+						}
 					}
 				}
-				/*if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
-					TileMapEdit(levels[0].terrain, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("grass"), false);
-				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-					TileMapEdit(levels[0].terrain, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
-					TileMapEdit(buildLayer_tmp, (Vector2){mouseTransform.tilePos.x, mouseTransform.tilePos.y}, find_block("water"), false);
-				}*/
-
 			}
 		}
 	}
