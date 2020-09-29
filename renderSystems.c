@@ -184,6 +184,7 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 					}
 				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 					if(mouseEditingLayer[tile.y][tile.x].block != find_block("air")){
+						DebugLog(D_ACT, "Removed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
 						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
 						mouseEditingLayer[tile.y][tile.x].block = find_block("air");
 						if(activeLevel->features[tile.y][tile.x].block == find_block("air")){

@@ -121,7 +121,8 @@ int register_block(lua_State *L){
 	luaL_checktype(L, 1, LUA_TTABLE);
 
 	lua_getfield(L, -1, "name");
-	if(strcmp(find_item((char *)lua_tostring(L, -1))->name, "undefined") == 0){//Check if the item already exists
+	// if(strcmp(find_item((char *)lua_tostring(L, -1))->name, "undefined") == 0){//Check if the item already exists
+	if(&find_item((char *)lua_tostring(L, -1))->name == &undefinedItem.name){//Check if the item already exists
 		numItems++;
 		itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
 
@@ -150,20 +151,14 @@ int register_block(lua_State *L){
 		blockData[numBlocks].item = &itemData[numItems];
 		itemData[numItems].isBlock = true;
 
-
-		// char *log;
-		// sprintf(log, "Created block '%s'", blockData[numBlocks].item->name);
-		// sprintf(log, "Created block '%s'", itemData[numItems].name);
-		// DebugLog(D_SCRIPT_ACT, log);
-		// char *log = malloc(strlen(itemData[numItems].name) + 32);
-		// sprintf(log, "Created block '%s'", itemData[numItems].name);
-		DebugLog(D_SCRIPT_ACT, "Created block '%s'", itemData[numItems].name);
-		// free(log);
+		DebugLog(D_SCRIPT_ACT, "Created item '%s'", itemData[numItems].name);
 	}else{//If it does, use it
 		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
 		find_item((char *)lua_tostring(L, -1))->isBlock = true;
 	}
 	
+
+
 	lua_getfield(L, -4, "block_sheet");
 	if(lua_tostring(L, -1) != NULL){
 		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
@@ -224,6 +219,8 @@ int register_block(lua_State *L){
 		blockData[numBlocks].allowRotation = false;
 	}
 
+	printf("hero - %d\n", numBlocks);
+
 	// blockData[numBlocks].flags = malloc(sizeof(char **));
 	// lua_getfield(L, -8, "flags");
 	// if(lua_istable(L, -1)){
@@ -249,6 +246,7 @@ int register_block(lua_State *L){
 	// }
 	
 
+	DebugLog(D_SCRIPT_ACT, "Created block '%s'", blockData[numBlocks].item->name);
 	// blockData[numBlocks].autoTile = false;
 
 	return 0;

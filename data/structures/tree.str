@@ -1,12 +1,5 @@
-21,22,23,
-29,30,31,
-37,38,39,
--1,46,-1,
--1,54,-1,
-
-::COLLISION
-2,2,2,
-2,2,2,
-2,2,2,
--1,2,-1,
--1,0,-1,
+leaf,leaf,leaf,
+leaf,leaf,leaf,
+leaf,leaf,leaf,
+air,log,air,
+air,log,air,

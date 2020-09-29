@@ -443,10 +443,18 @@ int main(int argc, char **argv) {
 						mouseClicked = true;
 					}
 					//Set the pointer to the layer the mouse is editing on the current mouse hold
-					if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
-						mouseEditingLayer = activeLevel->features;
-					}else{
-						mouseEditingLayer = activeLevel->terrain;
+					if(e.button.button == SDL_BUTTON_RIGHT){
+						if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
+							mouseEditingLayer = activeLevel->features;
+						}else{
+							mouseEditingLayer = activeLevel->terrain;
+						}
+					}else if(e.button.button == SDL_BUTTON_LEFT){
+						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0){
+							mouseEditingLayer = activeLevel->terrain;
+						}else{
+							mouseEditingLayer = activeLevel->features;
+						}
 					}
 				}
 				

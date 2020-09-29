@@ -140,6 +140,20 @@ register_block({
 	collision_type = -1,
 })
 
+register_block({
+	name = "leaf",
+	item_sheet = "items",
+	item_tile_index = 5,
+	
+	block_sheet = "blocks",
+	block_tile_index = 5,
+	
+	block_layer = "feature",
+	
+	collision_type = 2,
+})
+
+
 
 --OTHER FUNCTIONS
 inventory_add("not_gate", 99)
@@ -150,6 +164,7 @@ inventory_add("nylium", 99)
 inventory_add("grass", 99)
 inventory_add("water", 99)
 inventory_add("flower", 32)
+inventory_add("leaf", 32)
 -- populate_autotile({
 -- 	name = "grass_water",
 -- 	base_block = "grass",

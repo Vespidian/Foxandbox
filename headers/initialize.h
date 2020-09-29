@@ -17,6 +17,10 @@ extern int HEIGHT;
 extern FILE *logFile;
 extern enum DEBUG{D_ACT, D_WARN, D_ERR, D_SCRIPT_ERR, D_SCRIPT_ACT};
 // void DebugLog(int type, char *text);
+
+/** 
+ *  \brief Write formatted string to the log file 
+ */
 void DebugLog(int type, const char *format, ...);
 
 void TextureInit();

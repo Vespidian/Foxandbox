@@ -95,10 +95,6 @@ int register_item(lua_State *L){
 	itemData[numItems].isBlock = false;
 
 
-	// char *log = malloc(strlen(itemData[numItems].name) + 32);
-	// sprintf(log, "Created item '%s'", itemData[numItems].name);
-	// DebugLog(D_SCRIPT_ACT, log);
-	// free(log);
 	DebugLog(D_SCRIPT_ACT, "Created item '%s'", itemData[numItems].name);
 	return 0;
 }
@@ -106,15 +102,12 @@ int register_item(lua_State *L){
 int inventory_add(lua_State *L){
 	char *name;
 	int qty = 0;
-	if(lua_tostring(L, 1) != NULL){
-		name = malloc(sizeof(char) * strlen(lua_tostring(L, 1)));
-		strcpy(name, lua_tostring(L, 1));
-	}
 	if(lua_tonumber(L, 2) != NULL){
 		qty = lua_tonumber(L, 2);
 	}
-	INV_Add(qty, find_item(name));
-	free(name);
+	if(lua_tostring(L, 1) != NULL){
+		INV_Add(qty, find_item((char *)lua_tostring(L, 1)));
+	}
 	return 0;
 }
 

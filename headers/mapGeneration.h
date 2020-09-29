@@ -1,28 +1,39 @@
 #ifndef MAPGENERATION_H_
 #define MAPGENERATION_H_
 
+/**
+ *  Initializes blank level pointer to size
+ */
 void InitializeBlankLevel(LevelComponent *level, Vector2 size);
 
+/**
+ *  \returns An integer between 0 and 8 based on tiles of type type surrounding tile
+ */
 int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type);
 
-//Basic procedural map generation functions
+/**
+ *  Randomly fills terrain layer of level with base and secondary tiles based on ratioPercent
+ */
 void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockComponent *base, BlockComponent *secondary);
 
+/**
+ *  Uses cellular automata to order randomness
+ */
 void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *secondary);
-void AutotileMap(RenderTileComponent map[][32], AutotileComponent autotile);
 
-//Generate a random procedural map
+/**
+ * Combinations of mapGeneration functions to generate a procedural map
+ */
 void GenerateProceduralMap(int ratioPercent, int smoothSteps);
 
+/**
+ *  Calculate collision layer
+ */
 void DefineCollisions(LevelComponent *level);
+
+/**
+ *  Replace block at tile position with specified block
+ */
 void PlaceBlock(Vector2 tile, BlockComponent *block);
-
-//Edit a single tile on a map
-void TileMapEdit(RenderTileComponent tileMap[][32], Vector2 pos, BlockComponent *block, bool collide);
-
-
-extern RenderTileComponent buildLayer_tmp[32][32];
-// extern RenderTileComponent levels[0].terrain[32][32];
-
 
 #endif
