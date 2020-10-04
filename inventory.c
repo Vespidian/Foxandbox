@@ -16,10 +16,12 @@
 #include "headers/ECS.h"
 
 #include "headers/initialize.h"
-#include "headers/renderSystems.h"
+#include "headers/render_systems.h"
 #include "headers/data.h"
-#include "headers/tileMap.h"
+#include "headers/level_systems.h"
 #include "headers/inventory.h"
+#include "headers/lua_systems.h"
+#include "headers/action_systems.h"
 
 enum INV_SECTIONS {ITM_SECT, QTY_SECT};
 itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
@@ -33,22 +35,8 @@ Vector2 numOffset = {-2, 16};
 itmcell_t mouseInv;
 bool showInv = false;
 
-ItemComponent undefinedItem;
-ItemComponent *itemData;
-int numItems = -1;
-
-
 RecipeComponent recipes[64];
 int numberOfRecipes = 0;
-
-ItemComponent *find_item(char *name){
-	for(int i = 0; i < numItems + 1; i++){
-		if(strcmp(name, itemData[i].name) == 0){
-			return &itemData[i];
-		}
-	}
-	return &undefinedItem;
-}
 
 void INV_Init(){
 	int invPos = 0;
@@ -60,55 +48,6 @@ void INV_Init(){
 		}
 	}
 	DebugLog(D_ACT, "Inventory initialized");
-}
-
-
-int register_item(lua_State *L){
-	numItems++;
-	itemData = realloc(itemData, (numItems + 10) * sizeof(ItemComponent));
-
-	luaL_checktype(L, 1, LUA_TTABLE);
-
-	lua_getfield(L, -1, "name");
-	if(lua_tostring(L, -1) != NULL && strlen(lua_tostring(L, -1)) > 0){
-		itemData[numItems].name = malloc(sizeof(char) * (strlen(lua_tostring(L, -1)) + 1));
-		strcpy(itemData[numItems].name, lua_tostring(L, -1));
-	}else{
-		itemData[numItems].name = malloc(sizeof(char) * (strlen("undefined") + 1));
-		strcpy(itemData[numItems].name, "undefined");
-	}
-
-	lua_getfield(L, -2, "sheet");
-	if(lua_tostring(L, -1) != NULL){
-		itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
-	}else{
-		itemData[numItems].sheet = undefinedSheet;
-	}
-
-	lua_getfield(L, -3, "tile_index");
-	if(lua_tonumber(L, -1)){
-		itemData[numItems].tile = lua_tonumber(L, -1);
-	}else{
-		itemData[numItems].tile = -1;
-	}
-
-	itemData[numItems].isBlock = false;
-
-
-	DebugLog(D_SCRIPT_ACT, "Created item '%s'", itemData[numItems].name);
-	return 0;
-}
-
-int inventory_add(lua_State *L){
-	char *name;
-	int qty = 0;
-	if(lua_tonumber(L, 2) != NULL){
-		qty = lua_tonumber(L, 2);
-	}
-	if(lua_tostring(L, 1) != NULL){
-		INV_Add(qty, find_item((char *)lua_tostring(L, 1)));
-	}
-	return 0;
 }
 
 int INV_InitRecipes(){
@@ -202,7 +141,7 @@ void INV_DrawInv(){
 		if(mousePoint.x + 1 <= INV_WIDTH && mousePoint.y + 1 <= INV_HEIGHT){
 			hoveredCell = mousePoint.x % INV_WIDTH + (mousePoint.y * INV_WIDTH);
 		}
-		if(SDL_PointInRect(&mouseTransform.screenPos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
+		if(SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 			if(mouseClicked == true){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && &invArray[hoveredCell].item->name == &mouseInv.item->name){//Check for double clicked
@@ -237,7 +176,7 @@ void INV_DrawInv(){
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
 					if(mouseInv.qty > 0){//Check if mouse has any item
-						if(invArray[hoveredCell].occupied == false || &invArray[hoveredCell].item->name == &mouseInv.item->name && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
+						if((invArray[hoveredCell].occupied == false || &invArray[hoveredCell].item->name == &mouseInv.item->name) && invArray[hoveredCell].qty < maxStack){//Check if cell is empty or has the same item as mouse
 							if(mouseInv.qty > 1){//If there are multiple items in mouseInv add one to inv cell
 								INV_WriteCell("add", hoveredCell, 1, mouseInv.item);
 								mouseInv.qty--;
@@ -329,7 +268,7 @@ int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
 		return 1;
 	}
 
-	if(itemQty != NULL && itemQty != 0){
+	if(itemQty > 0){
 		
 		if(strcmp(mode, "set") == 0){
 			invArray[cell].item = item;
@@ -392,6 +331,7 @@ int INV_Add(int qty, ItemComponent *item){
 			invArray[INV_FindEmpty()].occupied = true;
 		}
 	}
+	return 0;
 }
 
 int INV_Subtract(int qty, ItemComponent *item){

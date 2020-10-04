@@ -2,7 +2,13 @@
 #define ENTITIES_H_
 
 
-
+typedef struct{
+	char *name;
+	SDL_Texture *tex;
+	int tile_size;
+	int w;
+	int h;
+}TilesheetComponent;
 
 //Particle System
 typedef struct{
@@ -30,7 +36,7 @@ typedef struct{
 	Range xR;
 	Range yR;
 	
-	WB_Tilesheet *pSheet;
+	TilesheetComponent *pSheet;
 	SDL_Rect destRect;
 	
 }ParticleSystem;
@@ -75,8 +81,7 @@ typedef struct{
 //Inventory components
 typedef struct{
 	char *name;
-	// char name[64];
-	WB_Tilesheet sheet;
+	TilesheetComponent sheet;
 	int tile;
 	bool isBlock;
 	
@@ -95,40 +100,15 @@ typedef struct{
 	ItemComponent *dropItem;//Item to drop when block broken, if null just drop item
 	int dropQty;//Number of items to drop
 
-	WB_Tilesheet sheet;//Block tilesheet
+	TilesheetComponent sheet;//Block tilesheet
 	int tile;//Block tile index
 
-	bool autoTile;//Is this block from an autotile set?
 	bool allowRotation;
 
 	int collisionType;
 	char layer[16];
 
-	char **flags;
-	
 }BlockComponent;
-
-typedef struct{
-	ItemComponent item;
-	ItemComponent dropItem;//If null just drop item
-	int dropQty;//If null drop 1
-
-	WB_Tilesheet sheet;
-	int tile;
-
-	bool rotate;
-	bool autoTile;
-
-	char **flags;
-	
-}BlockComponent_local;
-
-typedef struct{
-	char *name;
-	BlockComponent *baseBlock;
-	BlockComponent *auto_block;//Array
-	BlockComponent *subBlock;
-}AutotileComponent;
 
 typedef struct {
 	int inItem;
@@ -141,7 +121,7 @@ typedef struct {
 //Render Components
 typedef struct{
 	SDL_Renderer *renderer;
-	WB_Tilesheet *tileSheet;
+	TilesheetComponent *tileSheet;
 	int tile;
 	SDL_Rect transform;
 	int alpha;
@@ -156,17 +136,6 @@ typedef struct{
 	int rotation;
 	BlockComponent *block;
 }RenderTileComponent;
-
-
-
-// typedef struct{
-// 	char name[128];
-// 	Vector2 size;
-// 	RenderTileComponent terrain[32][32];
-// 	RenderTileComponent features[32][32];
-// 	int collision[32][32];
-// 	Vector2 *spawns;
-// }LevelComponent_old;
 
 typedef struct{
 	char *name;

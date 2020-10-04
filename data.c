@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -63,14 +64,16 @@ int getRnd(int min, int max){
 	return(Lehmer32() % (max - min)) + min;
 }
 
-char *strshft_l(char stringShift[128], int shiftBy){
+// char *strshft_l(char stringShift[128], int shiftBy){
+int strshft_l(char *stringShift, int shiftBy){
 	if(strlen(stringShift) < shiftBy){
-		return "";
+		return -1;
 	}
-	char tempString[128];
-	for(int i = 0; i < strlen(stringShift) - shiftBy + 1; i++){
+	char *tempString = malloc(strlen(stringShift) * sizeof(char));
+	for(int i = shiftBy; i < strlen(stringShift) + 1; i++){
 		tempString[i] = stringShift[i + shiftBy];
 	}
+	strcpy(stringShift, tempString);
 	// strcpy(stringShift, tempString);
-	return tempString;
+	return 0;
 }

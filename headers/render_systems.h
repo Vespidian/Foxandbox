@@ -1,5 +1,8 @@
-#ifndef RENDERSYSTEMS_H_
-#define RENDERSYSTEMS_H_
+#ifndef render_systems_H_
+#define render_systems_H_
+
+enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR_INV_ITEMS = 25, RNDRLYR_TEXT = 30};
+extern enum zBufferOrder zOrder;
 
 extern int particleCount;
 extern RenderTileComponent **mouseEditingLayer;
@@ -17,6 +20,17 @@ extern char currentCollectedText[128];
 extern char consoleOutput[512];
 extern int chatLogSize;
 extern char **chatHistory;
+
+extern int renderItemIndex;
+extern int tilePixelSize;
+extern const int tileStretchSize;
+
+void SetupRenderFrame();
+int AddToRenderQueue(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
+int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation);
+void RenderUpdate();
+
+void RenderDroppedItems();
 
 void RenderPauseMenu();
 

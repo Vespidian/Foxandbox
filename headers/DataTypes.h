@@ -1,31 +1,19 @@
 #ifndef DATATYPE_H_
 # define DATATYPE_H_
 
-typedef struct{
+typedef struct Vector2{
 	int x;
 	int y;
 }Vector2;
 
-typedef struct{
+typedef struct fVector2{
 	double x;
 	double y;
 }fVector2;
 
-typedef struct{
+typedef struct Range{
 	int min;
 	int max;
 }Range;
-
-//INV Structs
-typedef struct{
-	char name[64];
-	SDL_Texture *tex;
-	int tile_size;
-	int w;
-	int h;
-}WB_Tilesheet;
-
-
-//Inventory items
 
 #endif

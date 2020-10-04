@@ -10,56 +10,78 @@
 #include "headers/ECS.h"
 #include "headers/initialize.h"
 #include "headers/data.h"
-#include "headers/tileMap.h"
-#include "headers/mapGeneration.h"
-#include "headers/renderSystems.h"
+#include "headers/level_systems.h"
+#include "headers/map_generation.h"
+#include "headers/render_systems.h"
 #include "headers/inventory.h"
+#include "headers/lua_systems.h"
+#include "headers/action_systems.h"
 
-const int particleCap = 10000;
 int particleCount = 0;
 RenderTileComponent **mouseEditingLayer;
+/*Formula
 
-void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Range yR, Range duration){
-	particle->active = true;//Activate the particle
-	particle->initDuration = getRnd(duration.min, duration.max);
-	particle->duration = particle->initDuration;
-	particle->size = 4;
-	particle->pos.x = getRnd(spawnArea.x, spawnArea.x + spawnArea.w);
-	particle->pos.y = getRnd(spawnArea.y, spawnArea.y + spawnArea.h);
-	particle->pos.w = particle->size;
-	particle->pos.h = particle->size;
-	
-	particle->dir.x = getRnd(xR.min, xR.max + 1);
-	particle->dir.y = getRnd(yR.min, yR.max + 1);
+x = (tileNum % tileSheetWidth) * 16
+y = (tileNum / tileSheetHeight) * 16
+
+*/
+int renderItemIndex = 0;
+RenderComponent *renderBuffer;
+
+void SetupRenderFrame(){//Clear and allocate render buffer + reset render counter
+	free(renderBuffer);
+	renderItemIndex = 0;
+	renderBuffer = malloc(sizeof(RenderComponent));
 }
 
-void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration){
-	// pSystem.area = (SDL_Rect){200, 200, 16, 16};
-	// pSystem.area = (SDL_Rect){0, 0, WIDTH, HEIGHT};
-	// pSystem.maxParticles = 25;
-	// pSystem->sysDir = sysDir;
-	pSystem->playSystem = true;//Play the system by default
-	pSystem->pType = pType;
-	pSystem->area = area;
-	pSystem->fade = true;//Enable fade by default
-	pSystem->maxParticles = particleNum;
-	pSystem->xR = xR;
-	pSystem->yR = yR;
-	pSystem->duration = duration;
-	pSystem->boundaryCheck = false;//Dont delete when outside boundary by default
-	pSystem->pSheet = &particleSheet;//Use the particles sheet by default
-	
-	pSystem->particles = malloc(sizeof(ParticleComponent));//Allocate the size of the particle array
-	
-	for(int i = 0; i < pSystem->maxParticles; i++){
-		particleCount++;
-		if(particleCount <= particleCap){
-			pSystem->particles = realloc(pSystem->particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
-			SpawnParticle(&pSystem->particles[i], area, xR, yR, duration);
-		}else{
-			break;
-		}
+int AddToRenderQueue(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
+	return AddToRenderQueueEx(renderer, tileSheet, tileNum, destRect, alpha, zPos, 0);
+}
+
+int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation){
+	if(alpha == -1){
+		alpha = 255;
 	}
+	if(tileNum <= tileSheet->w * tileSheet->h - 1){
+		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos, rotation};
+		renderItemIndex++;
+	}else if(strcmp(tileSheet->name, "undefined") == 0 || tileSheet->tex == NULL || tileNum < 0){
+		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, &undefinedSheet, 0, destRect, 255, zPos, 0};
+		renderItemIndex++;
+	}else{
+		printf("Error: Tile index not in image bounds!\n");
+		return 1;
+	}
+	return 0;
+}
+
+// int RenderTextureFromSheet(){
+void RenderUpdate(){
+	int key, j; //Insertion sort
+	RenderComponent tmpRenderItem;
+	for (int i = 1; i < renderItemIndex; i++) {
+		tmpRenderItem = renderBuffer[i];
+		key = renderBuffer[i].zPos;
+		j = i - 1;
+		while (j >= 0 && renderBuffer[j].zPos > key) {
+			renderBuffer[j + 1] = renderBuffer[j];
+			j--;
+		}
+		renderBuffer[j + 1] = tmpRenderItem;
+	}
+	
+	Vector2 tileInSheet;
+	for(int i = 0; i < renderItemIndex; i++){
+		tileInSheet.x = (renderBuffer[i].tile % renderBuffer[i].tileSheet->w) * renderBuffer[i].tileSheet->tile_size;
+		tileInSheet.y = (renderBuffer[i].tile / renderBuffer[i].tileSheet->w) * renderBuffer[i].tileSheet->tile_size;
+		
+		SDL_SetTextureAlphaMod(renderBuffer[i].tileSheet->tex, renderBuffer[i].alpha);
+		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet->tile_size, renderBuffer[i].tileSheet->tile_size};
+		SDL_RenderCopyEx(renderBuffer[i].renderer, renderBuffer[i].tileSheet->tex, &sourceRect, &renderBuffer[i].transform, renderBuffer[i].rotation * 90, NULL, SDL_FLIP_NONE);	
+	}
+	SetupRenderFrame();
 }
 
 void RenderParticleSystem(ParticleSystem system){
@@ -99,6 +121,38 @@ void RenderParticleSystem(ParticleSystem system){
 	}
 }
 
+void RenderDroppedItems(){
+	for(int i = 0; i < numDroppedItems; i++){
+		SDL_Rect itemRect = {droppedItems[i].transform.worldPos.x - mapOffsetPos.x, 
+			droppedItems[i].transform.worldPos.y - mapOffsetPos.y + droppedItems[i].animLocation,
+			32, 32};
+		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+		SDL_Point p = {itemRect.x, itemRect.y};
+		if(SDL_PointInRect(&p, &winRect)){
+			AddToRenderQueue(renderer, &droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
+			if(droppedItems[i].animDir == 1){
+				droppedItems[i].animLocation -= 0.6;
+			}else if(droppedItems[i].animDir == 0){
+				droppedItems[i].animLocation += 0.6;
+			}
+			if(droppedItems[i].animLocation >= 10){
+				droppedItems[i].animDir = 1;
+			}else if(droppedItems[i].animLocation <= 0){
+				droppedItems[i].animDir = 0;
+			}
+
+			if(SDL_HasIntersection(&character.collider.boundingBox, &itemRect)){
+				INV_WriteCell("add", INV_FindEmpty(droppedItems[i].item), droppedItems[i].qty, droppedItems[i].item);
+
+				for(int j = i; j < numDroppedItems; j++){
+					droppedItems[j] = droppedItems[j + 1];
+				}
+
+				numDroppedItems--;
+			}
+		}
+	}
+}
 
 int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod){
 	int tracking = 9;//Spacing between letters
@@ -223,7 +277,7 @@ void RenderConsole(){
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	bool isClicked = false;
 	
-	if(SDL_PointInRect(&mouseTransform.screenPos, &rect)){
+	if(SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &rect)){
 		if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 			isClicked = true;
 		}

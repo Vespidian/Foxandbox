@@ -1,5 +1,10 @@
-#ifndef MAPGENERATION_H_
-#define MAPGENERATION_H_
+#ifndef map_generation_H_
+#define map_generation_H_
+
+/**
+ *  \file
+ *  \brief Procedural generation tools and level interaction
+ */
 
 /**
  *  Initializes blank level pointer to size
@@ -22,7 +27,7 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *secondary);
 
 /**
- * Combinations of mapGeneration functions to generate a procedural map
+ * Combinations of map_generation functions to generate a procedural map
  */
 void GenerateProceduralMap(int ratioPercent, int smoothSteps);
 

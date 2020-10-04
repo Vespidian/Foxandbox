@@ -14,7 +14,8 @@ uint32_t Lehmer32();
 
 int getRnd(int min, int max);
 
-char *strshft_l(char stringShift[128], int shiftBy);
+// char *strshft_l(char stringShift[128], int shiftBy);
+int strshft_l(char *stringShift, int shiftBy);
 
 //Predefinitions
 extern SDL_Event e;
@@ -45,16 +46,6 @@ extern bool showDebugInfo;
 extern bool reachLimit;
 extern int reachDistance;
 extern int inputMode;
-
-float lerp(float goal, float current, float increment);
-
-//Lua functions
-int num_from_table(lua_State *L, char *field);
-
-
-//TMP
-extern DroppedItemComponent *droppedItems;
-void DropItem(ItemComponent *item, int qty, Vector2 pos);
-void RenderDroppedItems();
+const int particleCap;
 
 #endif
