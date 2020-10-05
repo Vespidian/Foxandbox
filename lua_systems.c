@@ -103,14 +103,16 @@ int register_tilesheet(lua_State *L){
 		strcpy(tilesheets[num_tilesheets].name, "undefined");
 	}
 	
-	lua_getfield(L, -2, "path");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "path");
 	if(lua_tostring(L, -1) != NULL){
 		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, lua_tostring(L, -1));
 	}else{
 		tilesheets[num_tilesheets].tex = IMG_LoadTexture(renderer, "undefined");
 	}
 
-	lua_getfield(L, -3, "tile_size");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "tile_size");
 	if(lua_tonumber(L, -1)){
 		tilesheets[num_tilesheets].tile_size = lua_tonumber(L, -1);
 		//Identify the width and height of the tilesheet based on tile size
@@ -140,20 +142,23 @@ int register_item(lua_State *L){
 		strcpy(itemData[numItems].name, "undefined");
 	}
 
-	lua_getfield(L, -2, "sheet");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "sheet");
 	if(lua_tostring(L, -1) != NULL){
 		itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
 	}else{
 		itemData[numItems].sheet = undefinedSheet;
 	}
 
-	lua_getfield(L, -3, "tile_index");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "tile_index");
 	if(lua_tonumber(L, -1)){
 		itemData[numItems].tile = lua_tonumber(L, -1);
 	}else{
 		itemData[numItems].tile = -1;
 	}
 
+	lua_pop(L, 1);
 	itemData[numItems].isBlock = false;
 
 
@@ -181,14 +186,16 @@ int register_block(lua_State *L){
 			strcpy(itemData[numItems].name, "undefined");
 		}
 
-		lua_getfield(L, -2, "item_sheet");
+		lua_pop(L, 1);
+		lua_getfield(L, -1, "item_sheet");
 		if(lua_tostring(L, -1) != NULL){
 			itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
 		}else{
 			itemData[numItems].sheet = undefinedSheet;
 		}
 
-		lua_getfield(L, -3, "item_tile_index");
+		lua_pop(L, 1);
+		lua_getfield(L, -1, "item_tile_index");
 		if(lua_tonumber(L, -1)){
 			itemData[numItems].tile = lua_tonumber(L, -1);
 		}else{
@@ -205,22 +212,24 @@ int register_block(lua_State *L){
 	}
 	
 
-
-	lua_getfield(L, -4, "block_sheet");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "block_sheet");
 	if(lua_tostring(L, -1) != NULL){
 		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
 	}else{
 		blockData[numBlocks].sheet = undefinedSheet;
 	}
 
-	lua_getfield(L, -5, "block_tile_index");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "block_tile_index");
 	if(lua_tonumber(L, -1) || lua_tonumber(L, -1) == 0){
 		blockData[numBlocks].tile = lua_tonumber(L, -1);
 	}else{
 		blockData[numBlocks].tile = -1;
 	}
 
-	lua_getfield(L, -6, "dropped_item");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "dropped_item");
 	if(lua_tostring(L, -1) != NULL){
 		if(find_item((char *)lua_tostring(L, -1)) != NULL){
 			blockData[numBlocks].dropItem = find_item((char *)lua_tostring(L, -1));
@@ -231,22 +240,24 @@ int register_block(lua_State *L){
 		blockData[numBlocks].dropItem = blockData[numBlocks].item;
 	}
 
-	lua_getfield(L, -7, "dropped_qty");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "dropped_qty");
 	if(lua_tonumber(L, -1)){
 		blockData[numBlocks].dropQty = lua_tonumber(L, -1);
 	}else{
 		blockData[numBlocks].dropQty = 1;
 	}
 
-	// lua_pop(L, 1);
-	lua_getfield(L, -8, "collision_type");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "collision_type");
 	if(lua_toboolean(L, -1)){
 		blockData[numBlocks].collisionType = lua_tonumber(L, -1);
 	}else{
 		blockData[numBlocks].collisionType = -1;
 	}
 
-	lua_getfield(L, -9, "block_layer");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "block_layer");
 	if(lua_tostring(L, -1)){
 		strcpy(blockData[numBlocks].layer, lua_tostring(L, -1));
 	}else{
@@ -257,13 +268,15 @@ int register_block(lua_State *L){
 		blockData[numBlocks].collisionType = -1;
 	}
 
-	lua_getfield(L, -10, "enable_rotation");
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "enable_rotation");
 	if(lua_toboolean(L, -1)){
 		blockData[numBlocks].allowRotation = lua_toboolean(L, -1);
 	}else{
 		blockData[numBlocks].allowRotation = false;
 	}
 
+	lua_pop(L, 1);
 	DebugLog(D_SCRIPT_ACT, "Created block '%s'", blockData[numBlocks].item->name);
 
 	return 0;

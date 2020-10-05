@@ -40,7 +40,7 @@ int tileSize = 64;
 Vector2 mapOffsetPos = {0, 0};//Offset of the map to simulate movement
 Vector2 playerCoord = {0, 0};//Player's coordinate on map
 Vector2 placeLocation = {0, 0};
-fVector2 characterOffset = {0, 0};//Position of character sprite relative to window 0,0
+Vector2 characterOffset = {0, 0};//Position of character sprite relative to window 0,0
 Vector2 midScreen = {0, 0};
 TransformComponent mouseTransform;
 
@@ -164,6 +164,18 @@ void ParseConsoleCommand(char *command){
 	}
 }
 
+Vector2 modVector2(Vector2 pos, int multiple){
+	Vector2 diff = {pos.x % multiple, pos.y % multiple};
+
+	if(diff.x != 0){
+		pos.x -= diff.x;
+	}
+	if(diff.y != 0){
+		pos.y -= diff.y;
+	}
+	return pos;
+}
+
 void Setup(){
 	SDL_SetRenderDrawColor(renderer, 47, 140, 153, 255);
 	SDL_RenderClear(renderer);
@@ -220,20 +232,34 @@ int main(int argc, char **argv) {
 				quit = true;
 			}
 			
+			int freeRoamDistance = 128;
+			if(currentKeyStates[SDL_SCANCODE_Q]){
+				SDL_Rect freeRoamRect = {midScreen.x - freeRoamDistance, midScreen.y - freeRoamDistance, freeRoamDistance * 2 + 64, freeRoamDistance * 2 + 64};
+				AddToRenderQueue(renderer, &debugSheet, 6, freeRoamRect, 255, RNDRLYR_UI);
+			}
 			isWalking = false;
 			float playerMovementSpeed = playerSpeed * deltaTime;
 			if(inputMode == 0){
 				if(!(currentKeyStates[SDL_SCANCODE_A] && currentKeyStates[SDL_SCANCODE_D])){
 					if(currentKeyStates[SDL_SCANCODE_A]){
 						if(!character.collider.colLeft){
-							mapOffsetPos.x -= playerMovementSpeed;
+							if(midScreen.x - characterOffset.x < freeRoamDistance){
+								characterOffset.x -= playerMovementSpeed;
+							}else{
+								mapOffsetPos.x -= playerMovementSpeed;
+							}
+
 							isWalking = true;
 						}
 						characterFacing = 0;
 					}
 					if(currentKeyStates[SDL_SCANCODE_D]){
 						if(!character.collider.colRight){
-							mapOffsetPos.x += playerMovementSpeed;
+							if(characterOffset.x - midScreen.x < freeRoamDistance){
+								characterOffset.x += playerMovementSpeed;
+							}else{
+								mapOffsetPos.x += playerMovementSpeed;
+							}
 							isWalking = true;
 						}
 						characterFacing = 1;
@@ -242,13 +268,21 @@ int main(int argc, char **argv) {
 				if(!(currentKeyStates[SDL_SCANCODE_W] && currentKeyStates[SDL_SCANCODE_S])){
 					if(currentKeyStates[SDL_SCANCODE_W]){
 						if(!character.collider.colUp){
-							mapOffsetPos.y -= playerMovementSpeed;
+							if(midScreen.y - characterOffset.y < freeRoamDistance){
+								characterOffset.y -= playerMovementSpeed;
+							}else{
+								mapOffsetPos.y -= playerMovementSpeed;
+							}
 							isWalking = true;
 						}
 					}
 					if(currentKeyStates[SDL_SCANCODE_S]){
 						if(!character.collider.colDown){
-							mapOffsetPos.y += playerMovementSpeed;
+							if(characterOffset.y - midScreen.y < freeRoamDistance){
+								characterOffset.y += playerMovementSpeed;
+							}else{
+								mapOffsetPos.y += playerMovementSpeed;
+							}
 							isWalking = true;
 						}
 					}
@@ -307,14 +341,8 @@ int main(int argc, char **argv) {
 				}
 
 				if(e.type == SDL_KEYUP){//KEY UP
-					Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};/*Make sure the character position is always a 
-																					multiple of 4 keeping everything pixel perfect*/
-					if(roundSpeed.x != 0){
-						mapOffsetPos.x -= roundSpeed.x;
-					}
-					if(roundSpeed.y != 0){
-						mapOffsetPos.y -= roundSpeed.y;
-					}
+					mapOffsetPos = modVector2(mapOffsetPos, 4);
+					characterOffset = modVector2(characterOffset, 4);
 					if(e.key.keysym.sym == SDLK_F3){
 						showDebugInfo = !showDebugInfo;
 					}
@@ -355,6 +383,11 @@ int main(int argc, char **argv) {
 						}
 						if(e.key.keysym.sym == SDLK_b){//Fullscreen
 							FullscreenWindow();
+						}
+						if(e.key.keysym.sym == SDLK_h){
+							mapOffsetPos.x += characterOffset.x - midScreen.x;
+							mapOffsetPos.y += characterOffset.y - midScreen.y;
+							characterOffset = midScreen;
 						}
 					}
 				}

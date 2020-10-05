@@ -25,7 +25,7 @@ void clearScreen(SDL_Renderer *renderer);
 
 extern Vector2 mapOffsetPos;
 extern Vector2 playerCoord;
-extern fVector2 characterOffset;
+extern Vector2 characterOffset;
 extern Vector2 midScreen;
 extern TransformComponent mouseTransform;
 
@@ -47,5 +47,7 @@ extern bool reachLimit;
 extern int reachDistance;
 extern int inputMode;
 const int particleCap;
+
+Vector2 modVector2(Vector2 pos, int multiple);
 
 #endif

@@ -82,7 +82,7 @@ void UndefinedInit(){
 
 bool init(){
 	//Set up log file
-	logFile = fopen("data/log.txt", "a");
+	logFile = fopen("log.txt", "a");
 	fprintf(logFile, "\n---------------\nSEPARATOR\n---------------\n\n");
 
 	//Set up SDL2 and SDL_image

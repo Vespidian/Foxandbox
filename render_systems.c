@@ -217,18 +217,6 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 				//Only place the item if it is a block and the selected hotbar is occupied
 				//Only place if the indicated block is different from the selected hotbar block
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-					/*if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
-						// INV_Subtract(1, invArray[selectedHotbar].item);
-						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0 && &invArray[selectedHotbar].item->name != &activeLevel->terrain[tile.y][tile.x].block->item->name){
-							INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, activeLevel->terrain[tile.y][tile.x].block->dropItem);
-							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
-						}
-						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "feature") == 0 && &invArray[selectedHotbar].item != &activeLevel->features[tile.y][tile.x].block->item){
-							INV_Add(activeLevel->features[tile.y][tile.x].block->dropQty, activeLevel->features[tile.y][tile.x].block->dropItem);
-							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
-						}
-						PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
-					}*/
 					if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
 						if(&invArray[selectedHotbar].item->name != &mouseEditingLayer[tile.y][tile.x].block->item->name){
 							INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);

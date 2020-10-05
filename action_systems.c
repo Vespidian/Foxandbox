@@ -46,14 +46,8 @@ void CheckCollisions(SDL_Rect tileR, CollisionComponent *col){
 			col->colRight = true;
 		}
 		if(SDL_HasIntersection(&tileR, &col->collisionBox)){
-			Vector2 roundSpeed = {mapOffsetPos.x % 4, mapOffsetPos.y % 4};/*Make sure the character position is always a 
-																			multiple of 4 keeping everything pixel perfect*/
-			if(roundSpeed.x != 0){
-				mapOffsetPos.x -= roundSpeed.x;
-			}
-			if(roundSpeed.y != 0){
-				mapOffsetPos.y -= roundSpeed.y;
-			}
+			mapOffsetPos = modVector2(mapOffsetPos, 4);
+			characterOffset = modVector2(characterOffset, 4);
 		}
 	}
 }
@@ -140,7 +134,8 @@ void EntityCollision(Entity *ent){
 }
 
 void FindCollisions(){
-	charRect = (SDL_Rect){(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize + 2};
+	// charRect = (SDL_Rect){(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2), tileSize, tileSize + 2};
+	charRect = (SDL_Rect){characterOffset.x, characterOffset.y, tileSize, tileSize + 2};
 	SDL_Rect colBox = {charRect.x + 12, charRect.y + tileSize - 4, tileSize - 24, 4};
 	
 	character.collider.collisionBox = colBox;
