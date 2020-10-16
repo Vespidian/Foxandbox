@@ -29,7 +29,7 @@ void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *seco
 /**
  * Combinations of map_generation functions to generate a procedural map
  */
-void GenerateProceduralMap(int ratioPercent, int smoothSteps);
+void GenerateProceduralMap(LevelComponent *level, int ratioPercent, int smoothSteps);
 
 /**
  *  Calculate collision layer

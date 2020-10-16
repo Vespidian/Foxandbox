@@ -44,7 +44,7 @@ register_item({
 	tile_index = 1,
 })
 register_item({
-	name = "wood",
+	name = "plank",
 	sheet = "items",
 	tile_index = 2,
 })
@@ -197,7 +197,7 @@ inventory_add("flower", 32)
 inventory_add("leaf", 32)
 -- inventory_add("testBlock", 32)
 inventory_add("wood", 32)
-inventory_add("stone", 32)
+-- inventory_add("stone", 32)
 -- inventory_add("wood", 32)
 -- inventory_add("wood", 32)
 -- populate_autotile({

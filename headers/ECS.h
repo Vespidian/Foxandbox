@@ -81,7 +81,7 @@ typedef struct{
 //Inventory components
 typedef struct{
 	char *name;
-	TilesheetComponent sheet;
+	TilesheetComponent *sheet;
 	int tile;
 	bool isBlock;
 	
@@ -100,7 +100,7 @@ typedef struct{
 	ItemComponent *dropItem;//Item to drop when block broken, if null just drop item
 	int dropQty;//Number of items to drop
 
-	TilesheetComponent sheet;//Block tilesheet
+	TilesheetComponent *sheet;//Block tilesheet
 	int tile;//Block tile index
 
 	bool allowRotation;

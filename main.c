@@ -119,9 +119,10 @@ void ResizeWindow(Vector2 previousSize){
 	
 	mapOffsetPos.x -= diff.x / 2;
 	mapOffsetPos.y -= diff.y / 2;
-	
-	characterOffset.x = WIDTH / 2 - tileSize / 2;
-	characterOffset.y = HEIGHT / 2 - tileSize / 2;
+
+	midScreen = (Vector2){(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2)};
+	characterOffset.x += diff.x / 2;
+	characterOffset.y += diff.y / 2;
 }
 
 void FullscreenWindow(){
@@ -190,19 +191,17 @@ void Setup(){
 	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
 
 
-	activeLevel = &levels[0];
-	InitializeBlankLevel(activeLevel, (Vector2){128, 128});
-	GenerateProceduralMap(50, 10);
 	// LoadLevel("data/maps/testmap.dat");
+	activeLevel = &levels[numLevels];
+	InitializeBlankLevel(activeLevel, (Vector2){32, 32});
+	GenerateProceduralMap(activeLevel, 50, 10);
 	// UnloadLevel(activeLevel);
-	SaveLevel(activeLevel, "data/maps/testMap.dat");
+	// SaveLevel(activeLevel, "data/maps/testMap.dat");
 
 	SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
-	midScreen.x = (WIDTH / 2 - tileSize / 2);
-	midScreen.y = (HEIGHT / 2 - tileSize / 2);
-	characterOffset.x = midScreen.x;
-	characterOffset.y = midScreen.y;
-	
+	midScreen = (Vector2){(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2)};
+	characterOffset = midScreen;
+
 	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
 	// NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
 	pSys1.boundaryCheck = true;
@@ -214,7 +213,6 @@ int main(int argc, char **argv) {
 	if(init()){
 		Setup();
 		while(!quit){
-			mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
 			loopStartTime = SDL_GetTicks();
 			
 			if(characterFacing == 4){
@@ -232,7 +230,7 @@ int main(int argc, char **argv) {
 				quit = true;
 			}
 			
-			int freeRoamDistance = 128;
+			int freeRoamDistance = 32;
 			if(currentKeyStates[SDL_SCANCODE_Q]){
 				SDL_Rect freeRoamRect = {midScreen.x - freeRoamDistance, midScreen.y - freeRoamDistance, freeRoamDistance * 2 + 64, freeRoamDistance * 2 + 64};
 				AddToRenderQueue(renderer, &debugSheet, 6, freeRoamRect, 255, RNDRLYR_UI);
@@ -289,6 +287,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
+			mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
 			mouseClicked = false;
 			mouseHeld = false;
 			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){

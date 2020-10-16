@@ -88,17 +88,16 @@ void GenerateFlowers(LevelComponent *level, int ratio){
 	}
 }
 
-void GenerateProceduralMap(int ratioPercent, int smoothSteps){
-	// FillMap(&levels[0], "features", find_block("air"));
-	RandomMap(&levels[0], "terrain", 53, find_block("grass"), find_block("water"));
+void GenerateProceduralMap(LevelComponent *level, int ratioPercent, int smoothSteps){
+	RandomMap(level, "terrain", 53, find_block("grass"), find_block("water"));
 
 
 	for(int i = 0; i < smoothSteps; i++){
-		SmoothMap(&levels[0], find_block("grass"), find_block("water"));
+		SmoothMap(level, find_block("grass"), find_block("water"));
 	}
 
-	GenerateFlowers(&levels[0], 10);
-	DefineCollisions(&levels[0]);
+	GenerateFlowers(level, 10);
+	DefineCollisions(level);
 }
 
 void SmoothMap(LevelComponent *level, BlockComponent *main, BlockComponent *secondary){
@@ -121,7 +120,7 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 	// timeinfo = localtime(&rawTime);
 	// int worldSeed = timeinfo->tm_sec;
 	unsigned long seed;
-	seed = 27052004;
+	seed = 831130583115427;
 	// seed = worldSeed;
 	// seed = SDL_GetTicks() * worldSeed;
 	SeedLehmer(seed, 0, 0);
@@ -181,8 +180,11 @@ void PlaceBlock(Vector2 tile, BlockComponent *block){
 		mouseEditingLayer[tile.y][tile.x].block = block;
 		if(block->allowRotation){
 			mouseEditingLayer[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
+		}else{
+			mouseEditingLayer[tile.y][tile.x].rotation = 0;
 		}
 		DebugLog(D_ACT, "placed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
 		activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
 	}
+
 }

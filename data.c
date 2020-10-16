@@ -64,16 +64,15 @@ int getRnd(int min, int max){
 	return(Lehmer32() % (max - min)) + min;
 }
 
-// char *strshft_l(char stringShift[128], int shiftBy){
 int strshft_l(char *stringShift, int shiftBy){
 	if(strlen(stringShift) < shiftBy){
 		return -1;
 	}
 	char *tempString = malloc(strlen(stringShift) * sizeof(char));
-	for(int i = shiftBy; i < strlen(stringShift) + 1; i++){
+	for(int i = 0; i < strlen(stringShift) + 1; i++){
 		tempString[i] = stringShift[i + shiftBy];
 	}
 	strcpy(stringShift, tempString);
-	// strcpy(stringShift, tempString);
+	free(tempString);
 	return 0;
 }

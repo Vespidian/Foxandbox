@@ -17,7 +17,6 @@ temp:
 	CFLAGS = -Werror -Wall -LC:\Users\Chris\Code\C\SDL_TCC\lib\ -lSDL2 -static -lSDL2_image -static -llua53 -static
 	$(CC) $(CFLAGS) -o $(OUTFILE) $(CFILES)
 
-
 # CC = gcc
 # CFLAGS = -Werror -Wall -lmingw32 -llua54 -lSDL2main -lSDL2 -lSDL2_image
 

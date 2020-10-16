@@ -75,8 +75,8 @@ void TextureInit(){
 }
 
 void UndefinedInit(){
-	undefinedItem = (ItemComponent){"undefined", undefinedSheet, 0};
-	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, undefinedSheet, 0, false, -1, "terrain"};
+	undefinedItem = (ItemComponent){"undefined", &undefinedSheet, 0};
+	undefinedBlock = (BlockComponent){&undefinedItem, &undefinedItem, 1, &undefinedSheet, 0, false, -1, "terrain"};
 	DebugLog(D_ACT, "Initialized undefined variables");
 }
 
@@ -102,8 +102,30 @@ bool init(){
 	return success;
 }
 
+void DestroyBlocks(){
+	free(blockData);
+}
+
+void DestroyItems(){
+	for(int i = 0; i < numItems; i++){
+		free(itemData[i].name);
+	}
+	free(itemData);
+}
+
+void DestroyTilesheets(){
+	for(int i = 0; i < num_tilesheets; i++){
+		SDL_DestroyTexture(tilesheets[i].tex);
+	}
+	free(tilesheets);
+}
+
 void Quit() {
 	DebugLog(D_ACT, "Shutting down");
+
+	DestroyBlocks();
+	DestroyItems();
+	DestroyTilesheets();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	window = NULL;

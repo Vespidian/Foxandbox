@@ -111,7 +111,7 @@ void UpdateHotbar(){
 		}
 		AddToRenderQueue(renderer, find_tilesheet("ui"), 8, slotRect, -1, RNDRLYR_UI);
 		if(invArray[i].occupied == true && invArray[i].qty > 0){
-			AddToRenderQueue(renderer, &invArray[i].item->sheet, invArray[i].item->tile, slotRect, -1, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, slotRect, -1, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(invArray[i].qty, itemqty, 10);
@@ -237,7 +237,7 @@ void INV_DrawInv(){
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
 			AddToRenderQueue(renderer, find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(renderer, &invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
 				
 				char itemqty[16];
 				itoa(invArray[i].qty, itemqty, 10);
@@ -250,7 +250,7 @@ void INV_DrawInv(){
 		//Drawing the mouse inventory
 		if(mouseInv.occupied == true && mouseInv.qty > 0){
 			SDL_Rect mouseItem = {mouseTransform.screenPos.x - 16, mouseTransform.screenPos.y - 16, itemRectSize, itemRectSize};
-			AddToRenderQueue(renderer, &mouseInv.item->sheet, mouseInv.item->tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
+			AddToRenderQueue(renderer, mouseInv.item->sheet, mouseInv.item->tile, mouseItem, 255, RNDRLYR_INV_ITEMS);
 			
 			char itemqty[16];
 			itoa(mouseInv.qty, itemqty, 10);

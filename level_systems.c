@@ -78,7 +78,6 @@ int LoadLevel(char *path){
 			if(strchr(lineBuffer, '\n') != NULL){
 				*strchr(lineBuffer, '\n') = '\0';
 			}
-
 			/*
 			Check for block rotation specifier using strchr to find ~
 			If ~ exists strtok once more to seperate block name and rotation specifier
@@ -87,7 +86,7 @@ int LoadLevel(char *path){
 			*/
 			if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){//Detect headers
 				// strcpy(header, strshft_l(lineBuffer, 2));//MINGW BINARY CRASHES ON THIS LINE
-				strshft_l(lineBuffer, 2);//MINGW BINARY CRASHES ON THIS LINE
+				strshft_l(lineBuffer, 2);
 				strcpy(header, lineBuffer);
 				y = 0;
 			}else if(y < mapSize.y){	
@@ -151,6 +150,7 @@ int LoadLevel(char *path){
 	}
 	fclose(level);
 	DefineCollisions(&levels[numLevels]);
+	// printf("%s\n", levels[numLevels].terrain[0][0].block->item->name);
 	return 0;
 }
 
@@ -233,7 +233,7 @@ int UnloadLevel(LevelComponent *level){
 void RenderLevel(LevelComponent *level){//Draw map from 2D array
 	Vector2 tilePos = {0, 0};
 	SDL_Rect tile = {tilePos.x, tilePos.y, tileStretchSize, tileStretchSize};
-	AddToRenderQueue(renderer, &debugSheet, 4, (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, WIDTH + mapOffsetPos.x, HEIGHT + mapOffsetPos.y}, 255, 0);
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 5, mapRect, 255, 0);
 	for(int y = (mapOffsetPos.y / tileSize - 1) * ((mapOffsetPos.y / tileSize - 1) > 0); y < ((mapOffsetPos.y + HEIGHT) / tileSize + 1) && y < level->map_size.y; y++){
 		for(int x = (mapOffsetPos.x / tileSize - 1) * ((mapOffsetPos.x / tileSize - 1) > 0); x < ((mapOffsetPos.x + WIDTH) / tileSize + 1) && x < level->map_size.x; x++){
 			tilePos.x = (x * tileStretchSize) - mapOffsetPos.x;
@@ -242,11 +242,11 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			tile.y = tilePos.y;
 			// AddToRenderQueue(renderer, find_tilesheet("blocks"), 4, tile, 255, 0);
 			if(level->terrain[y][x].type != -1){//Render Terrain
-				AddToRenderQueueEx(renderer, &level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
+				AddToRenderQueueEx(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
 				level->terrain[y][x].zPos = 0;
 			}
 			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
-				AddToRenderQueueEx(renderer, &level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos, level->features[y][x].rotation);
+				AddToRenderQueueEx(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos, level->features[y][x].rotation);
 				level->features[y][x].zPos = 1;
 			}
 		}

@@ -84,7 +84,7 @@ void EntityCollision(Entity *ent){
 	ent->collider.colLeft = false;
 	ent->collider.colRight = false;
 	
-	if(tilePosition.y >= 0 && tilePosition.y < activeLevel->map_size.y - 1 && tilePosition.x >= 0 && tilePosition.x < activeLevel->map_size.x - 1){
+	if(tilePosition.y >= 0 && tilePosition.y < activeLevel->map_size.y && tilePosition.x >= 0 && tilePosition.x < activeLevel->map_size.x){
 		SDL_Rect tileR = {tileSize - mapOffsetPos.x, tileSize - mapOffsetPos.y, tileSize, tileSize};
 		for(int y = tilePosition.y - (tilePosition.y > 0 ? 1 : 0); y <= tilePosition.y + (tilePosition.y != activeLevel->map_size.y ? 1 : 0); y++){
 			for(int x = tilePosition.x - 1; x <= tilePosition.x + 1; x++){
@@ -146,7 +146,7 @@ void FindCollisions(){
 
 void DropItem(ItemComponent *item, int qty, Vector2 pos){
 	if(qty > 0){
-		if(levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
+		if(levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0 && SDL_PointInRect((SDL_Point *)&mouseTransform.worldPos, &mapRect)){
 			droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
 
 			droppedItems[numDroppedItems].item = item;

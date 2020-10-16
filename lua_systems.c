@@ -91,12 +91,12 @@ BlockComponent *find_block(char *name){
 }
 
 int register_tilesheet(lua_State *L){
-	tilesheets = realloc(tilesheets, (num_tilesheets + 1) * sizeof(TilesheetComponent));
+	tilesheets = realloc(tilesheets, (num_tilesheets + 2) * sizeof(TilesheetComponent));
 	
 	luaL_checktype(L, 1, LUA_TTABLE);
 	lua_getfield(L, -1, "name");
 	if(lua_tostring(L, -1) != NULL){
-        tilesheets[num_tilesheets].name = malloc(strlen(lua_tostring(L, -1) + 1) * sizeof(char));
+        tilesheets[num_tilesheets].name = malloc(sizeof(char) * (strlen(lua_tostring(L, -1)) + 1));
 		strcpy(tilesheets[num_tilesheets].name, lua_tostring(L, -1));
 	}else{
         tilesheets[num_tilesheets].name = malloc((strlen("undefined") + 1) * sizeof(char));
@@ -145,9 +145,9 @@ int register_item(lua_State *L){
 	lua_pop(L, 1);
 	lua_getfield(L, -1, "sheet");
 	if(lua_tostring(L, -1) != NULL){
-		itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+		itemData[numItems].sheet = find_tilesheet((char *)lua_tostring(L, -1));
 	}else{
-		itemData[numItems].sheet = undefinedSheet;
+		itemData[numItems].sheet = &undefinedSheet;
 	}
 
 	lua_pop(L, 1);
@@ -155,7 +155,7 @@ int register_item(lua_State *L){
 	if(lua_tonumber(L, -1)){
 		itemData[numItems].tile = lua_tonumber(L, -1);
 	}else{
-		itemData[numItems].tile = -1;
+		itemData[numItems].tile = 0;
 	}
 
 	lua_pop(L, 1);
@@ -174,7 +174,7 @@ int register_block(lua_State *L){
 
 	lua_getfield(L, -1, "name");
 	// if(strcmp(find_item((char *)lua_tostring(L, -1))->name, "undefined") == 0){//Check if the item already exists
-	if(&find_item((char *)lua_tostring(L, -1))->name == &undefinedItem.name){//Check if the item already exists
+	if(find_item((char *)lua_tostring(L, -1))->name == undefinedItem.name){//Check if the item already exists
 		numItems++;
 		itemData = realloc(itemData, (numItems + 1) * sizeof(ItemComponent));
 
@@ -189,9 +189,9 @@ int register_block(lua_State *L){
 		lua_pop(L, 1);
 		lua_getfield(L, -1, "item_sheet");
 		if(lua_tostring(L, -1) != NULL){
-			itemData[numItems].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+			itemData[numItems].sheet = find_tilesheet((char *)lua_tostring(L, -1));
 		}else{
-			itemData[numItems].sheet = undefinedSheet;
+			itemData[numItems].sheet = &undefinedSheet;
 		}
 
 		lua_pop(L, 1);
@@ -210,14 +210,14 @@ int register_block(lua_State *L){
 		blockData[numBlocks].item = find_item((char *)lua_tostring(L, -1));
 		find_item((char *)lua_tostring(L, -1))->isBlock = true;
 	}
+	lua_pop(L, 1);
 	
 
-	lua_pop(L, 1);
 	lua_getfield(L, -1, "block_sheet");
 	if(lua_tostring(L, -1) != NULL){
-		blockData[numBlocks].sheet = *find_tilesheet((char *)lua_tostring(L, -1));
+		blockData[numBlocks].sheet = find_tilesheet((char *)lua_tostring(L, -1));
 	}else{
-		blockData[numBlocks].sheet = undefinedSheet;
+		blockData[numBlocks].sheet = &undefinedSheet;
 	}
 
 	lua_pop(L, 1);

@@ -129,7 +129,7 @@ void RenderDroppedItems(){
 		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
 		SDL_Point p = {itemRect.x, itemRect.y};
 		if(SDL_PointInRect(&p, &winRect)){
-			AddToRenderQueue(renderer, &droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
+			AddToRenderQueue(renderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
 			if(droppedItems[i].animDir == 1){
 				droppedItems[i].animLocation -= 0.6;
 			}else if(droppedItems[i].animDir == 0){
