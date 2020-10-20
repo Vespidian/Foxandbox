@@ -23,6 +23,11 @@ LevelComponent *activeLevel;
 LevelComponent *levels;
 int numLevels = -1;
 
+RenderTileComponent **mouseEditingLayer;
+
+DroppedItemComponent *droppedItems;
+int numDroppedItems = 0;
+
 int GetLineLength(FILE *file){
 	int lineLength = 0;
 	while(fgetc(file) != '\n'){
@@ -141,6 +146,7 @@ int LoadLevel(char *path){
 			lineBuffer = malloc(lineLength);
 			line++;
 		}
+		free(lineBuffer);
 		levels[numLevels].name = malloc(strlen(strtok(path, ".")) * sizeof(char));
 		if(strrchr(strtok(path, "."), '/') != NULL){
 			strcpy(levels[numLevels].name, strrchr(strtok(path, "."), '/') + 1);
@@ -256,4 +262,100 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 void DrawLevel(){
 	RenderLevel(activeLevel);
 	DrawCharacter(characterFacing, 6);
+}
+
+void RenderCursor(){// Highlight the tile the mouse is currently on
+	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * activeLevel->map_size.x, 64 * activeLevel->map_size.y};
+	// mouseTransform.tilePos = (Vector2){mouseTransform.screenPos.x, mouseTransform.screenPos.y};
+	mouseTransform.tilePos.x = ((mouseTransform.screenPos.x + mapOffsetPos.x) / 64);
+	mouseTransform.tilePos.y = ((mouseTransform.screenPos.y + mapOffsetPos.y) / 64);
+	SDL_Point cursor = {(mouseTransform.tilePos.x * 64) - mapOffsetPos.x, (mouseTransform.tilePos.y * 64) - mapOffsetPos.y};
+	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
+		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
+		//Determine wether or not the user can reach infinitely
+			AddToRenderQueue(renderer, find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
+			
+			//MouseText
+			if(showDebugInfo){
+				char screenPosT[256];
+				snprintf(screenPosT, 1024, "mouseTransform.screenPos ->\nx: %d, y: %d", mouseTransform.tilePos.x, mouseTransform.tilePos.y);
+				RenderText_d(renderer, screenPosT, 0, 96);
+			}
+
+			if(mouseHeld){//Place and remove tiles
+				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
+				//Only place the item if it is a block and the selected hotbar is occupied
+				//Only place if the indicated block is different from the selected hotbar block
+				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+					if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
+						if(&invArray[selectedHotbar].item->name != &mouseEditingLayer[tile.y][tile.x].block->item->name){
+							INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
+							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
+							PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
+						}
+					}
+				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+					if(mouseEditingLayer[tile.y][tile.x].block != find_block("air")){
+						DebugLog(D_ACT, "Removed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
+						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
+						mouseEditingLayer[tile.y][tile.x].block = find_block("air");
+						if(activeLevel->features[tile.y][tile.x].block == find_block("air")){
+							activeLevel->collision[tile.y][tile.x] = -1;
+						}else{
+							activeLevel->collision[tile.y][tile.x] = activeLevel->features[tile.y][tile.x].block->collisionType;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void DropItem(ItemComponent *item, int qty, Vector2 pos){
+	if(qty > 0){
+		if(activeLevel->collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0 && SDL_PointInRect((SDL_Point *)&mouseTransform.worldPos, &mapRect)){
+			droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
+
+			droppedItems[numDroppedItems].item = item;
+			droppedItems[numDroppedItems].qty = qty;
+			droppedItems[numDroppedItems].transform.worldPos = (Vector2)pos;
+			droppedItems[numDroppedItems].animLocation = 0;
+			droppedItems[numDroppedItems].animDir = 0;
+
+			numDroppedItems++;
+		}
+	}
+}
+
+void RenderDroppedItems(){
+	for(int i = 0; i < numDroppedItems; i++){
+		SDL_Rect itemRect = {droppedItems[i].transform.worldPos.x - mapOffsetPos.x, 
+			droppedItems[i].transform.worldPos.y - mapOffsetPos.y + droppedItems[i].animLocation,
+			32, 32};
+		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
+		SDL_Point p = {itemRect.x, itemRect.y};
+		if(SDL_PointInRect(&p, &winRect)){
+			if(droppedItems[i].animDir == 1){
+				droppedItems[i].animLocation -= 0.6;
+			}else if(droppedItems[i].animDir == 0){
+				droppedItems[i].animLocation += 0.6;
+			}
+			if(droppedItems[i].animLocation >= 10){
+				droppedItems[i].animDir = 1;
+			}else if(droppedItems[i].animLocation <= 0){
+				droppedItems[i].animDir = 0;
+			}
+
+			if(SDL_HasIntersection(&character.collider.boundingBox, &itemRect)){
+				INV_Add(droppedItems[i].qty, droppedItems[i].item);
+
+				numDroppedItems--;
+				for(int j = i; j < numDroppedItems; j++){
+					droppedItems[j] = droppedItems[j + 1];
+				}
+				droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
+			}
+			AddToRenderQueue(renderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER + 5);
+		}
+	}
 }

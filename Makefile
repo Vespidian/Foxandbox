@@ -3,7 +3,7 @@ CFLAGS = -Werror -Wall -lSDL2 -lSDL2_image -llua53
 
 BUILDVARS = -Wl,-subsystem=gui
 
-CFILES = main.c data.c initialize.c level_systems.c action_systems.c inventory.c map_generation.c render_systems.c lua_systems.c
+CFILES = main.c data.c initialize.c level_systems.c entity_systems.c inventory.c map_generation.c render_systems.c lua_systems.c
 OUTFILE = world_builder.exe
 
 debug: $(CFILES)
@@ -24,7 +24,7 @@ temp:
 
 # BUILDVARS = -Wl,-subsystem=gui
 
-# CFILES = main.c data.c initialize.c level_systems.c action_systems.c inventory.c map_generation.c render_systems.c lua_systems.c
+# CFILES = main.c data.c initialize.c level_systems.c entity_systems.c inventory.c map_generation.c render_systems.c lua_systems.c
 # OUTFILE = mingw_build/world_builder.exe
 
 # debug: $(CFILES)

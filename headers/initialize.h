@@ -27,31 +27,16 @@ void TextureInit();
 void TextureDestroy();
 
 
-extern SDL_Texture *undefinedTex;
 extern TilesheetComponent undefinedSheet;
 
 extern SDL_Texture *loadScreenTex;
 extern SDL_Texture *backgroundTex;
 
-
-extern SDL_Texture *fontTex;
 extern TilesheetComponent fontSheet;
 
-
-extern SDL_Texture *debugTex;
 extern TilesheetComponent debugSheet;
 
-
-extern SDL_Texture *particleTex;
 extern TilesheetComponent particleSheet;
-
-
-extern SDL_Texture *autotileMaskTex;
-extern TilesheetComponent autotileMaskSheet;
-
-
-extern SDL_Texture *InvertedAutotileMaskTex;
-extern TilesheetComponent InvertedAutotileMaskSheet;
 
 
 #endif

@@ -6,29 +6,28 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+
 #include "headers/DataTypes.h"
 #include "headers/ECS.h"
-#include "headers/initialize.h"
-#include "headers/data.h"
-#include "headers/level_systems.h"
-#include "headers/map_generation.h"
 #include "headers/render_systems.h"
-#include "headers/inventory.h"
+#include "headers/initialize.h"
 #include "headers/lua_systems.h"
-#include "headers/action_systems.h"
+#include "headers/data.h"
 
 int particleCount = 0;
-RenderTileComponent **mouseEditingLayer;
-/*Formula
 
-x = (tileNum % tileSheetWidth) * 16
-y = (tileNum / tileSheetHeight) * 16
-
-*/
 int renderItemIndex = 0;
 RenderComponent *renderBuffer;
 
-void SetupRenderFrame(){//Clear and allocate render buffer + reset render counter
+TilesheetComponent undefinedSheet;
+TilesheetComponent fontSheet;
+
+int InitializeRenderer(SDL_Renderer *renderer){
+	undefinedSheet = (TilesheetComponent){"undefined", IMG_LoadTexture(renderer, "images/undefined.png"), 16, 1, 1};
+	fontSheet = (TilesheetComponent){"font", IMG_LoadTexture(renderer, "fonts/font.png"), 16, 12, 8};
+}
+
+void ResetRenderFrame(){//Clear and allocate render buffer + reset render counter
 	free(renderBuffer);
 	renderItemIndex = 0;
 	renderBuffer = malloc(sizeof(RenderComponent));
@@ -57,7 +56,6 @@ int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, in
 	return 0;
 }
 
-// int RenderTextureFromSheet(){
 void RenderUpdate(){
 	int key, j; //Insertion sort
 	RenderComponent tmpRenderItem;
@@ -81,7 +79,107 @@ void RenderUpdate(){
 		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet->tile_size, renderBuffer[i].tileSheet->tile_size};
 		SDL_RenderCopyEx(renderBuffer[i].renderer, renderBuffer[i].tileSheet->tex, &sourceRect, &renderBuffer[i].transform, renderBuffer[i].rotation * 90, NULL, SDL_FLIP_NONE);	
 	}
-	SetupRenderFrame();
+	ResetRenderFrame();
+}
+
+/**
+ *  TEXT RENDERING
+ */
+ 
+int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod){
+	int tracking = 9;//Spacing between letters
+	int spacing = 16;
+	
+	if(text == NULL){
+		printf("Error: RenderText called with null text field\n");
+		return 1;
+	}
+	SDL_Rect screenRect = {0, 0, WIDTH, HEIGHT};
+	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
+	
+	SDL_Rect charRect = {x, y, spacing, spacing};
+	if(strlen(text) > 0){//Make sure there is a string to display
+		for(int i = 0; i < strlen(text); i++){//Iterate through the characters of the string
+			int charVal = (int)text[i] - (int)' ';//Get an integer value from the character to be drawn
+			//Non character cases
+			if(charVal >= 0){//NOT SPACE
+				if(SDL_HasIntersection(&charRect, &screenRect)){//Only render if text is on screen
+					AddToRenderQueue(renderer, &fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
+				}
+				charRect.x += tracking;
+			}else if(charVal == -22){//NEWLINE (\n)
+				charRect.y += spacing;
+				charRect.x = x;
+			}else if(charVal == -23){//TAB
+				charRect.x += tracking * 4;
+			}
+		}
+	}else if(strlen(text) < 1){
+		// printf("Error: No text provided on RenderText()\n");
+		return 1;
+	}
+	SDL_SetTextureColorMod(fontSheet.tex, 255, 255, 255);
+	return 0;
+}
+int RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
+	SDL_Color defaultColor = {255, 255, 255, 0xff};
+	return RenderText(renderer, text, x, y, defaultColor);
+}
+
+/**
+ *  PARTICLE SYSTEM
+ */
+
+void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Range yR, Range duration){
+	particle->active = true;//Activate the particle
+	particle->initDuration = getRnd(duration.min, duration.max);
+	particle->duration = particle->initDuration;
+	particle->size = 4;
+	particle->pos.x = getRnd(spawnArea.x, spawnArea.x + spawnArea.w);
+	particle->pos.y = getRnd(spawnArea.y, spawnArea.y + spawnArea.h);
+	particle->pos.w = particle->size;
+	particle->pos.h = particle->size;
+	
+	particle->dir.x = getRnd(xR.min, xR.max + 1);
+	particle->dir.y = getRnd(yR.min, yR.max + 1);
+}
+
+void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration){
+	// pSystem.area = (SDL_Rect){200, 200, 16, 16};
+	// pSystem.area = (SDL_Rect){0, 0, WIDTH, HEIGHT};
+	// pSystem.maxParticles = 25;
+	// pSystem->sysDir = sysDir;
+	pSystem->playSystem = true;//Play the system by default
+	pSystem->pType = pType;
+	pSystem->area = area;
+	pSystem->fade = true;//Enable fade by default
+	pSystem->maxParticles = particleNum;
+	pSystem->xR = xR;
+	pSystem->yR = yR;
+	pSystem->duration = duration;
+	pSystem->boundaryCheck = false;//Dont delete when outside boundary by default
+	pSystem->pSheet = &particleSheet;//Use the particles sheet by default
+	
+	//Allocate the size of the particle array
+	if(particleNum <= particleCap){
+		pSystem->particles = malloc(sizeof(ParticleComponent) * particleNum + 1);
+	}else{
+		pSystem->particles = malloc(sizeof(ParticleComponent) * particleCap + 1);
+	}
+
+	for(int i = 0; i < pSystem->maxParticles; i++){
+		particleCount++;
+		if(particleCount <= particleCap){
+			// pSystem->particles = realloc(pSystem->particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
+			SpawnParticle(&pSystem->particles[i], area, xR, yR, duration);
+		}else{
+			break;
+		}
+	}
+}
+
+void DestroyParticleSystem(ParticleSystem *pSystem){
+	free(pSystem->particles);
 }
 
 void RenderParticleSystem(ParticleSystem system){
@@ -121,151 +219,12 @@ void RenderParticleSystem(ParticleSystem system){
 	}
 }
 
-void RenderDroppedItems(){
-	for(int i = 0; i < numDroppedItems; i++){
-		SDL_Rect itemRect = {droppedItems[i].transform.worldPos.x - mapOffsetPos.x, 
-			droppedItems[i].transform.worldPos.y - mapOffsetPos.y + droppedItems[i].animLocation,
-			32, 32};
-		SDL_Rect winRect = {-tileSize, -tileSize, WIDTH + tileSize, HEIGHT + tileSize};
-		SDL_Point p = {itemRect.x, itemRect.y};
-		if(SDL_PointInRect(&p, &winRect)){
-			AddToRenderQueue(renderer, droppedItems[i].item->sheet, droppedItems[i].item->tile, itemRect, 255, RNDRLYR_PLAYER - 1);
-			if(droppedItems[i].animDir == 1){
-				droppedItems[i].animLocation -= 0.6;
-			}else if(droppedItems[i].animDir == 0){
-				droppedItems[i].animLocation += 0.6;
-			}
-			if(droppedItems[i].animLocation >= 10){
-				droppedItems[i].animDir = 1;
-			}else if(droppedItems[i].animLocation <= 0){
-				droppedItems[i].animDir = 0;
-			}
-
-			if(SDL_HasIntersection(&character.collider.boundingBox, &itemRect)){
-				INV_WriteCell("add", INV_FindEmpty(droppedItems[i].item), droppedItems[i].qty, droppedItems[i].item);
-
-				for(int j = i; j < numDroppedItems; j++){
-					droppedItems[j] = droppedItems[j + 1];
-				}
-
-				numDroppedItems--;
-			}
-		}
-	}
-}
-
-int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod){
-	int tracking = 9;//Spacing between letters
-	int spacing = 16;
-	
-	if(text == NULL){
-		printf("Error: RenderText called with null text field\n");
-		return 1;
-	}
-	SDL_Rect screenRect = {0, 0, WIDTH, HEIGHT};
-	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
-	
-	SDL_Rect charRect = {x, y, spacing, spacing};
-	if(strlen(text) > 0){//Make sure there is a string to display
-		for(int i = 0; i < strlen(text); i++){//Iterate through the characters of the string
-			int charVal = (int)text[i] - (int)' ';//Get an integer value from the character to be drawn
-			//Non character cases
-			if(charVal >= 0){//NOT SPACE
-				if(SDL_HasIntersection(&charRect, &screenRect)){//Only render if text is on screen
-					AddToRenderQueue(renderer, &fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
-				}
-				charRect.x += tracking;
-			}else if(charVal == -22){//NEWLINE (\n)
-				charRect.y += spacing;
-				charRect.x = x;
-			}else if(charVal == -23){//TAB
-				charRect.x += tracking * 4;
-			}
-		}
-	}else if(strlen(text) < 1){
-		// printf("Error: No text provided on RenderText()\n");
-		return 1;
-	}
-	SDL_SetTextureColorMod(fontSheet.tex, 255, 255, 255);
-	return 0;
-}
-void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
-	SDL_Color defaultColor = {255, 255, 255, 0xff};
-	RenderText(renderer, text, x, y, defaultColor);
-}
-
-void RenderCursor(){// Highlight the tile the mouse is currently on
-	SDL_Rect mapRect = {-mapOffsetPos.x, -mapOffsetPos.y, 64 * activeLevel->map_size.x, 64 * activeLevel->map_size.y};
-	// mouseTransform.tilePos = (Vector2){mouseTransform.screenPos.x, mouseTransform.screenPos.y};
-	mouseTransform.tilePos.x = ((mouseTransform.screenPos.x + mapOffsetPos.x) / 64);
-	mouseTransform.tilePos.y = ((mouseTransform.screenPos.y + mapOffsetPos.y) / 64);
-	SDL_Point cursor = {(mouseTransform.tilePos.x * 64) - mapOffsetPos.x, (mouseTransform.tilePos.y * 64) - mapOffsetPos.y};
-	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
-		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
-		//Determine wether or not the user can reach infinitely
-			AddToRenderQueue(renderer, find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
-			
-			//MouseText
-			if(showDebugInfo){
-				char screenPosT[256];
-				snprintf(screenPosT, 1024, "mouseTransform.screenPos ->\nx: %d, y: %d", mouseTransform.tilePos.x, mouseTransform.tilePos.y);
-				RenderText_d(renderer, screenPosT, 0, 96);
-			}
-
-			if(mouseHeld){//Place and remove tiles
-				Vector2 tile = {mouseTransform.tilePos.x, mouseTransform.tilePos.y};
-				//Only place the item if it is a block and the selected hotbar is occupied
-				//Only place if the indicated block is different from the selected hotbar block
-				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
-					if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
-						if(&invArray[selectedHotbar].item->name != &mouseEditingLayer[tile.y][tile.x].block->item->name){
-							INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
-							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
-							PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
-						}
-					}
-				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-					if(mouseEditingLayer[tile.y][tile.x].block != find_block("air")){
-						DebugLog(D_ACT, "Removed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
-						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
-						mouseEditingLayer[tile.y][tile.x].block = find_block("air");
-						if(activeLevel->features[tile.y][tile.x].block == find_block("air")){
-							activeLevel->collision[tile.y][tile.x] = -1;
-						}else{
-							activeLevel->collision[tile.y][tile.x] = activeLevel->features[tile.y][tile.x].block->collisionType;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void RenderConsole(){
-	int stringFit = 31;//Maximum number of characters to fit in the textbox
-	int characterSpacing = 9;
-	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
-	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
-	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, console, 170, RNDRLYR_UI);//Console
-	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, textBox, 190, RNDRLYR_UI);//Text input
-
-	if(strlen(currentCollectedText) < stringFit){
-		if(inputMode == 1){
-			RenderText_d(renderer, "_", strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);//Cursor
-		}
-		RenderText_d(renderer, currentCollectedText, 0, HEIGHT - 20);
-	}else{//Scroll text
-		RenderText_d(renderer, "_", stringFit * characterSpacing, HEIGHT - 20);//Cursor
-		RenderText_d(renderer, currentCollectedText, 278 - strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);
-	}
-
-	RenderText_d(renderer, consoleOutput, console.x, console.y + 4);
-}
-
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	bool isClicked = false;
 	
-	if(SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &rect)){
+	SDL_Point mouse; 
+	SDL_GetMouseState(&mouse.x, &mouse.y);
+	if(SDL_PointInRect(&mouse, &rect)){
 		if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 			isClicked = true;
 		}
@@ -276,7 +235,6 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	
 	return isClicked;
 }
-
 
 void RenderPauseMenu(){
 	// SDL_Rect tmp1 = {WIDTH / 2 - 32, 300, 128, 32};

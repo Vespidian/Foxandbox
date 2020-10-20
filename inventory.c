@@ -21,7 +21,7 @@
 #include "headers/level_systems.h"
 #include "headers/inventory.h"
 #include "headers/lua_systems.h"
-#include "headers/action_systems.h"
+#include "headers/entity_systems.h"
 
 enum INV_SECTIONS {ITM_SECT, QTY_SECT};
 itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
@@ -141,8 +141,9 @@ void INV_DrawInv(){
 		if(mousePoint.x + 1 <= INV_WIDTH && mousePoint.y + 1 <= INV_HEIGHT){
 			hoveredCell = mousePoint.x % INV_WIDTH + (mousePoint.y * INV_WIDTH);
 		}
-		if(SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &invRect) && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
-			if(mouseClicked == true){
+		//Check if the mouse is over the inventory
+		if(SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &invRect)){
+			if(mouseClicked && hoveredCell >= 0 && hoveredCell < INV_WIDTH * INV_HEIGHT){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && &invArray[hoveredCell].item->name == &mouseInv.item->name){//Check for double clicked
 						//Collect all the items of that type to the mouse pointer
@@ -187,7 +188,6 @@ void INV_DrawInv(){
 							}
 						}
 					}else if(invArray[hoveredCell].qty > 1){//Otherwise take half the items in that inventory cell
-						// printf("here\n");
 						mouseInv.item = invArray[hoveredCell].item;
 						mouseInv.qty = invArray[hoveredCell].qty / 2;
 						mouseInv.occupied = true;
@@ -205,18 +205,19 @@ void INV_DrawInv(){
 
 				RenderText_d(renderer, tempChar, itemNameDisp.x + 4, itemNameDisp.y + 6);//Item name
 			}
-		}else{
-			if(mouseClicked == true && levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
+		}else{//Otherwise drop item
+			if(mouseClicked && activeLevel->collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
-					if(mouseInv.occupied == true){
+					if(mouseInv.occupied){
 						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
+						
 						DropItem(find_item(mouseInv.item->name), mouseInv.qty, dropLocation);
 						mouseInv.qty = 0;
 						mouseInv.item = &undefinedItem;
 						mouseInv.occupied = false;
 					}
 				}else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT){//RIGHT CLICK
-					if(mouseInv.occupied == true){
+					if(mouseInv.occupied){
 						Vector2 dropLocation = {mouseTransform.screenPos.x + mapOffsetPos.x - 16, mouseTransform.screenPos.y + mapOffsetPos.y - 16};
 						DropItem(find_item(mouseInv.item->name), 1, dropLocation);
 						if(mouseInv.qty > 1){

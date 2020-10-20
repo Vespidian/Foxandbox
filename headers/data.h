@@ -29,7 +29,12 @@ extern Vector2 characterOffset;
 extern Vector2 midScreen;
 extern TransformComponent mouseTransform;
 
-	
+void RenderConsole();
+extern char currentCollectedText[128];
+extern char consoleOutput[512];
+extern int chatLogSize;
+extern char **chatHistory;
+
 extern int tileSize;
 extern bool enableHitboxes;
 extern int characterFacing;

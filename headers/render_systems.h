@@ -5,32 +5,22 @@ enum zBufferOrder {RNDRLYR_MAP = 0, RNDRLYR_PLAYER = 5, RNDRLYR_UI = 20, RNDRLYR
 extern enum zBufferOrder zOrder;
 
 extern int particleCount;
-extern RenderTileComponent **mouseEditingLayer;
+
+void ResetRenderFrame();
+int AddToRenderQueue(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
+int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation);
+void RenderUpdate();
 
 void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Range yR, Range duration);
 void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration);
 void RenderParticleSystem(ParticleSystem system);
 
 int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color colorMod);
-void RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
-void RenderCursor();
-
-void RenderConsole();
-extern char currentCollectedText[128];
-extern char consoleOutput[512];
-extern int chatLogSize;
-extern char **chatHistory;
+int RenderText_d(SDL_Renderer *renderer, char *text, int x, int y);
 
 extern int renderItemIndex;
 extern int tilePixelSize;
 extern const int tileStretchSize;
-
-void SetupRenderFrame();
-int AddToRenderQueue(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos);
-int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation);
-void RenderUpdate();
-
-void RenderDroppedItems();
 
 void RenderPauseMenu();
 

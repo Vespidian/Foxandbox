@@ -28,48 +28,28 @@ bool success = true;
 
 FILE *logFile;
 
-SDL_Texture *undefinedTex;
 TilesheetComponent undefinedSheet;
 
 SDL_Texture *loadScreenTex;
 SDL_Texture *backgroundTex;
 
-SDL_Texture *fontTex;
 TilesheetComponent fontSheet;
 
-SDL_Texture *debugTex;
 TilesheetComponent debugSheet;
 
-SDL_Texture *particleTex;
 TilesheetComponent particleSheet;
 
-SDL_Texture *autotileMaskTex;
-TilesheetComponent autotileMaskSheet;
-
-SDL_Texture *InvertedAutotileMaskTex;
-TilesheetComponent InvertedAutotileMaskSheet;
-
 void TextureInit(){
-	undefinedTex = IMG_LoadTexture(renderer, "images/undefined.png");
-	undefinedSheet = (TilesheetComponent){"undefined", undefinedTex, 16, 1, 1};
+	undefinedSheet = (TilesheetComponent){"undefined", IMG_LoadTexture(renderer, "images/undefined.png"), 16, 1, 1};
 
 	loadScreenTex = IMG_LoadTexture(renderer, "images/loadScreen.png");
 	backgroundTex = IMG_LoadTexture(renderer, "images/background.png");
 	
-	fontTex = IMG_LoadTexture(renderer, "fonts/font.png");
-	fontSheet = (TilesheetComponent){"font", fontTex, 16, 12, 8};
+	fontSheet = (TilesheetComponent){"font", IMG_LoadTexture(renderer, "fonts/font.png"), 16, 12, 8};
 	
-	debugTex = IMG_LoadTexture(renderer, "images/debug.png");
-	debugSheet = (TilesheetComponent){"debug", debugTex, 16, 8, 8};
+	debugSheet = (TilesheetComponent){"debug", IMG_LoadTexture(renderer, "images/debug.png"), 16, 8, 8};
 	
-	particleTex = IMG_LoadTexture(renderer, "images/particles.png");
-	particleSheet = (TilesheetComponent){"particles", particleTex, 1, 4, 4};
-
-	autotileMaskTex = IMG_LoadTexture(renderer, "images/autotileMask.png");
-	autotileMaskSheet = (TilesheetComponent){"autotileMask", autotileMaskTex, 16, 6, 8};
-
-	InvertedAutotileMaskTex = IMG_LoadTexture(renderer, "images/INVERTEDautotileMask.png");
-	InvertedAutotileMaskSheet = (TilesheetComponent){"InvertedAutotileMask", autotileMaskTex, 16, 6, 8};
+	particleSheet = (TilesheetComponent){"particles", IMG_LoadTexture(renderer, "images/particles.png"), 1, 4, 4};
 
 	DebugLog(D_ACT, "Static textures loaded");
 }
@@ -98,6 +78,33 @@ bool init(){
 	TextureInit();
 
 	INV_Init();
+
+
+
+	/*int arraySize = 10;
+	int start = 5;
+	int *test;
+
+
+	test = malloc(sizeof(int) * arraySize);
+	for(int i = 0; i < arraySize; i++){
+		test[i] = rand() % 10;
+		printf("%d\n", test[i]);
+	}
+	printf("\n\n");
+
+	//Important part
+	arraySize--;
+	for(int i = start; i < arraySize; i++){
+		test[i] = test[i + 1];
+	}
+	test = realloc(test, sizeof(int) * arraySize);
+	//Important part
+
+	for(int i = 0; i < arraySize; i++){
+		printf("%d\n", test[i]);
+	}
+	free(test);*/
 
 	return success;
 }

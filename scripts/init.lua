@@ -186,7 +186,7 @@ register_block({
 
 
 --OTHER FUNCTIONS
-inventory_add("not_gate", 99)
+inventory_add("stone", 99)
 inventory_add("not_gate", 99)
 inventory_add("bookshelf", 16)
 

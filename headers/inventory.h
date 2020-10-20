@@ -10,6 +10,7 @@ typedef struct item_cell{
 enum INV_PARAMS {INV_WIDTH = 8, INV_HEIGHT = 4};
 extern enum INV_PARAMS inv_params;
 extern itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
+extern itmcell_t mouseInv;
 
 extern bool showInv;	
 extern int selectedHotbar;//Number representation of currently selected hotbar slot

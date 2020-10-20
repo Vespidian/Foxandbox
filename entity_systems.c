@@ -10,7 +10,7 @@
 #include "headers/data.h"
 #include "headers/render_systems.h"
 #include "headers/level_systems.h"
-#include "headers/action_systems.h"
+#include "headers/entity_systems.h"
 
 
 SDL_Rect charRect;
@@ -19,9 +19,6 @@ SDL_Rect charCollider;
 Vector2 charTilePos = {0, 0};
 
 Entity character;
-
-DroppedItemComponent *droppedItems;
-int numDroppedItems = 0;
 
 void CheckCollisions(SDL_Rect tileR, CollisionComponent *col){
 	SDL_Rect collider = col->collisionBox;
@@ -142,63 +139,4 @@ void FindCollisions(){
 	character.collider.boundingBox = charRect;
 
 	EntityCollision(&character);
-}
-
-void DropItem(ItemComponent *item, int qty, Vector2 pos){
-	if(qty > 0){
-		if(levels[0].collision[mouseTransform.tilePos.y][mouseTransform.tilePos.x] != 0 && SDL_PointInRect((SDL_Point *)&mouseTransform.worldPos, &mapRect)){
-			droppedItems = realloc(droppedItems, (numDroppedItems + 1) * sizeof(DroppedItemComponent));
-
-			droppedItems[numDroppedItems].item = item;
-			droppedItems[numDroppedItems].qty = qty;
-			droppedItems[numDroppedItems].transform.worldPos = (Vector2)pos;
-			droppedItems[numDroppedItems].animLocation = 0;
-			droppedItems[numDroppedItems].animDir = 0;
-
-			numDroppedItems++;
-		}
-	}
-}
-
-void SpawnParticle(ParticleComponent *particle, SDL_Rect spawnArea, Range xR, Range yR, Range duration){
-	particle->active = true;//Activate the particle
-	particle->initDuration = getRnd(duration.min, duration.max);
-	particle->duration = particle->initDuration;
-	particle->size = 4;
-	particle->pos.x = getRnd(spawnArea.x, spawnArea.x + spawnArea.w);
-	particle->pos.y = getRnd(spawnArea.y, spawnArea.y + spawnArea.h);
-	particle->pos.w = particle->size;
-	particle->pos.h = particle->size;
-	
-	particle->dir.x = getRnd(xR.min, xR.max + 1);
-	particle->dir.y = getRnd(yR.min, yR.max + 1);
-}
-
-void NewParticleSystem(ParticleSystem *pSystem, int pType, SDL_Rect area, int particleNum, Range xR, Range yR, Range duration){
-	// pSystem.area = (SDL_Rect){200, 200, 16, 16};
-	// pSystem.area = (SDL_Rect){0, 0, WIDTH, HEIGHT};
-	// pSystem.maxParticles = 25;
-	// pSystem->sysDir = sysDir;
-	pSystem->playSystem = true;//Play the system by default
-	pSystem->pType = pType;
-	pSystem->area = area;
-	pSystem->fade = true;//Enable fade by default
-	pSystem->maxParticles = particleNum;
-	pSystem->xR = xR;
-	pSystem->yR = yR;
-	pSystem->duration = duration;
-	pSystem->boundaryCheck = false;//Dont delete when outside boundary by default
-	pSystem->pSheet = &particleSheet;//Use the particles sheet by default
-	
-	pSystem->particles = malloc(sizeof(ParticleComponent));//Allocate the size of the particle array
-	
-	for(int i = 0; i < pSystem->maxParticles; i++){
-		particleCount++;
-		if(particleCount <= particleCap){
-			pSystem->particles = realloc(pSystem->particles, (i + 1) * sizeof(ParticleComponent));//Allocate the space for the particle
-			SpawnParticle(&pSystem->particles[i], area, xR, yR, duration);
-		}else{
-			break;
-		}
-	}
 }

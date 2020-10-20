@@ -18,7 +18,7 @@
 #include "headers/render_systems.h"
 #include "headers/data.h"
 #include "headers/level_systems.h"
-#include "headers/action_systems.h"
+#include "headers/entity_systems.h"
 #include "headers/inventory.h"
 #include "headers/map_generation.h"
 // Normally SDL2 will redefine the main entry point of the program for Windows applications
@@ -188,7 +188,7 @@ void Setup(){
 	levels = calloc(1, sizeof(LevelComponent));//TEMP
 
 	loadLua();
-	droppedItems = malloc(sizeof(DroppedItemComponent) * 2);
+	droppedItems = malloc(sizeof(DroppedItemComponent) + 1);
 
 
 	// LoadLevel("data/maps/testmap.dat");
@@ -202,11 +202,11 @@ void Setup(){
 	midScreen = (Vector2){(WIDTH / 2 - tileSize / 2), (HEIGHT / 2 - tileSize / 2)};
 	characterOffset = midScreen;
 
-	NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
+	// NewParticleSystem(&pSys1, 1, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{-1, 1}, (Range)/*y*/{1, 1}, (Range){20, 70});//Snow
 	// NewParticleSystem(&pSys1, 2, (SDL_Rect){0, 0, WIDTH, HEIGHT}, 1000, (Range)/*x*/{0, 0}, (Range)/*y*/{5, 6}, (Range){20, 70});//Rain
-	pSys1.boundaryCheck = true;
+	// pSys1.boundaryCheck = true;
 	// pSys1.fade = false;
-	pSys1.playSystem = false;
+	// pSys1.playSystem = false;
 }
 
 int main(int argc, char **argv) {
@@ -237,6 +237,11 @@ int main(int argc, char **argv) {
 			}
 			isWalking = false;
 			float playerMovementSpeed = playerSpeed * deltaTime;
+
+			// char tmptxt[32];
+			// sprintf(tmptxt, "Player movement speed -> \n%f", playerMovementSpeed);
+			// RenderText_d(renderer, tmptxt, 0, 145);
+
 			if(inputMode == 0){
 				if(!(currentKeyStates[SDL_SCANCODE_A] && currentKeyStates[SDL_SCANCODE_D])){
 					if(currentKeyStates[SDL_SCANCODE_A]){
@@ -300,22 +305,25 @@ int main(int argc, char **argv) {
 					if(e.key.state == SDL_RELEASED){
 						mouseClicked = true;
 					}
+
 					//Set the mouseEditing pointer to the layer the mouse is currently holding on
-					if(e.button.button == SDL_BUTTON_RIGHT){
-						if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
-							mouseEditingLayer = activeLevel->features;
-						}else{
-							mouseEditingLayer = activeLevel->terrain;
-						}
-					}else if(e.button.button == SDL_BUTTON_LEFT){
-						if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0){
-							mouseEditingLayer = activeLevel->terrain;
-						}else{
-							mouseEditingLayer = activeLevel->features;
+					if(!showInv){
+						if(e.button.button == SDL_BUTTON_RIGHT){
+							if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
+								mouseEditingLayer = activeLevel->features;
+							}else{
+								mouseEditingLayer = activeLevel->terrain;
+							}
+						}else if(e.button.button == SDL_BUTTON_LEFT){
+							if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0){
+								mouseEditingLayer = activeLevel->terrain;
+							}else{
+								mouseEditingLayer = activeLevel->features;
+							}
 						}
 					}
 				}
-				
+
 				if(inputMode == 1){
 					if(e.type == SDL_TEXTINPUT){
 						strcat(currentCollectedText, e.text.text);
@@ -418,6 +426,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
+
 			RenderScreen();
 			SDL_Delay(1000 / targetFramerate);//Game FrameRate
 			deltaTime = (SDL_GetTicks() - loopStartTime) / 10;
@@ -470,4 +479,25 @@ void RenderScreen(){
 	RenderUpdate();
 	SDL_RenderPresent(renderer);
 	particleCount = 0;
+}
+
+void RenderConsole(){
+	int stringFit = 31;//Maximum number of characters to fit in the textbox
+	int characterSpacing = 9;
+	SDL_Rect console = {0, HEIGHT - 200, 300, 200};
+	SDL_Rect textBox = {0, HEIGHT - 24, 300, 32};
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, console, 170, RNDRLYR_UI);//Console
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, textBox, 190, RNDRLYR_UI);//Text input
+
+	if(strlen(currentCollectedText) < stringFit){
+		if(inputMode == 1){
+			RenderText_d(renderer, "_", strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);//Cursor
+		}
+		RenderText_d(renderer, currentCollectedText, 0, HEIGHT - 20);
+	}else{//Scroll text
+		RenderText_d(renderer, "_", stringFit * characterSpacing, HEIGHT - 20);//Cursor
+		RenderText_d(renderer, currentCollectedText, 278 - strlen(currentCollectedText) * characterSpacing, HEIGHT - 20);
+	}
+
+	RenderText_d(renderer, consoleOutput, console.x, console.y + 4);
 }
