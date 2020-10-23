@@ -29,6 +29,7 @@
 
 //FUNCTION PREDEFINITIONS
 void RenderScreen();
+void RenderStartScreen();
 
 //MISC
 bool quit = false;
@@ -61,30 +62,18 @@ float playerSpeed = 2;
 bool mouseClicked = false;
 bool mouseHeld = false;
 bool showDebugInfo = true;
-bool levelLoaded = true;
+bool levelLoaded = false;
 
 ParticleSystem pSys1;
 int chatLogSize = 0;
 char **chatHistory;
 const int particleCap = 10000;
 const int tileStretchSize = 64;
+unsigned int submenuIndex = 0;
 
 void clearScreen(SDL_Renderer *renderer){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xff);
 	SDL_RenderClear(renderer);
-
-	//Draw background sky
-	int texSize = 512;//Size of one background texture-tile
-	int tilesX = (WIDTH / texSize) + 1;//Number of tiles that fit on the x axis
-	int tilesY = (HEIGHT / texSize) + 1;//Number of tile that fit on the y axis
-	SDL_Rect destRect = {0, 0, texSize, texSize};//Template rect to paste each of the textures to screen
-	for(int y = 0; y < tilesY + 2; y++){//Nested loop to iterate through tiles (the plus one is there as to make sure to not leave gaps)
-		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;//set y offset
-		for(int x = 0; x < tilesX + 2; x++){
-			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;//Set x offset
-			SDL_RenderCopy(renderer, backgroundTex, NULL, &destRect);//Draw the texture
-		}
-	}
 }
 
 void DrawAnimation(SDL_Rect dest, TilesheetComponent *tileSheet, int startFrame, int numFrames, int delay){
@@ -241,6 +230,9 @@ int main(int argc, char **argv) {
 			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 				mouseHeld = true;
 			}
+			if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
+				quit = true;
+			}
 
 			while(SDL_PollEvent(&e) != 0){
 				SDL_GetMouseState(&mouseTransform.screenPos.x, &mouseTransform.screenPos.y);
@@ -264,7 +256,7 @@ int main(int argc, char **argv) {
 								FullscreenWindow();
 							}
 						}
-						
+
 						break;
 
 					case SDL_QUIT:
@@ -383,10 +375,6 @@ int main(int argc, char **argv) {
 					placeLocation = (Vector2){0, 1};
 				}
 				
-				if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
-					quit = true;
-				}
-				
 				int freeRoamDistance = 32;
 				if(currentKeyStates[SDL_SCANCODE_Q]){
 					SDL_Rect freeRoamRect = {midScreen.x - freeRoamDistance, midScreen.y - freeRoamDistance, freeRoamDistance * 2 + 64, freeRoamDistance * 2 + 64};
@@ -440,7 +428,7 @@ int main(int argc, char **argv) {
 				mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
 				RenderScreen();
 			}else{
-
+				RenderStartScreen();
 			}
 
 			SDL_Delay(1000 / targetFramerate);//Game FrameRate
@@ -456,9 +444,50 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-fVector2 entPos = {0, 0};
+void RenderStartScreen(){
+	SDL_SetRenderDrawColor(renderer, 139, 214, 239, 255);
+	SDL_RenderClear(renderer);
+
+	switch(submenuIndex){
+		case 1://Options menu
+			if(DrawButton(renderer, "Back", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32})){
+				submenuIndex = 0;
+			}
+
+			break;
+
+		default://Default start menu
+			if(DrawButton(renderer, "Start", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 56, 128, 32})){
+				levelLoaded = true;
+			}
+			if(DrawButton(renderer, "Options", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32})){
+				submenuIndex = 1;
+			}
+			if(DrawButton(renderer, "Exit", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 + 24, 128, 32})){
+				quit = true;
+			}
+			break;
+	}
+
+
+	RenderUpdate();
+	SDL_RenderPresent(renderer);
+}
+
 void RenderScreen(){
 	clearScreen(renderer);
+	//Draw background sky
+	int texSize = 512;//Size of one background texture-tile
+	int tilesX = (WIDTH / texSize) + 1;//Number of tiles that fit on the x axis
+	int tilesY = (HEIGHT / texSize) + 1;//Number of tile that fit on the y axis
+	SDL_Rect destRect = {0, 0, texSize, texSize};//Template rect to paste each of the textures to screen
+	for(int y = 0; y < tilesY + 2; y++){//Nested loop to iterate through tiles (the plus one is there as to make sure to not leave gaps)
+		destRect.y = (y - 1) * texSize + -mapOffsetPos.y / 2 % texSize;//set y offset
+		for(int x = 0; x < tilesX + 2; x++){
+			destRect.x = (x - 1) * texSize + -mapOffsetPos.x / 2 % texSize;//Set x offset
+			SDL_RenderCopy(renderer, backgroundTex, NULL, &destRect);//Draw the texture
+		}
+	}
 	//Call SDL draw functions here and call RenderScreen from the main loop
 	DrawLevel();
 	RenderPauseMenu();
@@ -470,7 +499,6 @@ void RenderScreen(){
 	
 	FindCollisions();
 	
-	// playerCoord = (Vector2){
 	character.transform.tilePos = (Vector2){
 		((characterOffset.x + 32) + mapOffsetPos.x) / 64,
 		((characterOffset.y + 32) + mapOffsetPos.y) / 64,

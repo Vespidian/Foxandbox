@@ -22,6 +22,8 @@ extern int renderItemIndex;
 extern int tilePixelSize;
 extern const int tileStretchSize;
 
+bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect);
+
 void RenderPauseMenu();
 
 

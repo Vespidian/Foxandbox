@@ -28,7 +28,7 @@ itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
 
 int selectedHotbar = 0;
 
-const int INV_spacing = 8;
+const int INV_spacing = 16;
 const int maxStack = 99;
 
 Vector2 numOffset = {-2, 16};
@@ -94,7 +94,7 @@ int INV_InitRecipes(){
 
 void UpdateHotbar(){
 	//Drawing the hotbar
-	SDL_Rect hotBar = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_spacing * 2 - 32, // ->
+	SDL_Rect hotBar = {WIDTH / 2 - (INV_WIDTH * 32) / 2 - ((INV_WIDTH + 1) * INV_spacing) / 2, HEIGHT - INV_spacing * 2 - 32, // ->
 	INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_spacing * 2 + 32};
 	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, hotBar, -1, RNDRLYR_UI - 1);//Render hotbar background
 	
@@ -130,7 +130,7 @@ void INV_DrawInv(){
 		const int itemRectSize = 32;
 		SDL_Rect invItemRect = {0, 0, itemRectSize, itemRectSize};//Position of the current item slot
 		uiInteractMode = true;
-		SDL_Rect invRect = {WIDTH / 2 - INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, HEIGHT - INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing - 132, // ->
+		SDL_Rect invRect = {WIDTH / 2 - (INV_WIDTH * 32) / 2 - ((INV_WIDTH + 1) * INV_spacing) / 2, HEIGHT - (INV_HEIGHT + 2) * 32 - (INV_HEIGHT + 2) * INV_spacing, // ->
 		INV_WIDTH * 32 + (INV_WIDTH + 1) * INV_spacing, INV_HEIGHT * 32 + (INV_HEIGHT + 1) * INV_spacing};
 		
 		AddToRenderQueue(renderer, find_tilesheet("ui"), 0, invRect, -1, RNDRLYR_UI - 1);//Render background of inventory
@@ -244,7 +244,12 @@ void INV_DrawInv(){
 			invItemRect.y = (invRect.y + itemRectSize * y) + INV_spacing * (y + 1);
 			AddToRenderQueue(renderer, find_tilesheet("ui"), 8, invItemRect, -1, RNDRLYR_UI);//Draw the background of each cell
 			if(invArray[i].occupied == true && invArray[i].qty > 0){//Check if item exists in cell and render it
-				AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				if(i == hoveredCell && SDL_PointInRect((SDL_Point *) &mouseTransform.screenPos, &invRect)){
+					SDL_Rect largerRect = {invItemRect.x - 8, invItemRect.y - 8, invItemRect.w + 16, invItemRect.h + 16};
+					AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, largerRect, -1, RNDRLYR_INV_ITEMS);
+				}else{
+					AddToRenderQueue(renderer, invArray[i].item->sheet, invArray[i].item->tile, invItemRect, -1, RNDRLYR_INV_ITEMS);
+				}
 				
 				char itemqty[16];
 				itoa(invArray[i].qty, itemqty, 10);

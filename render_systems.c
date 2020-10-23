@@ -227,14 +227,17 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	SDL_Point mouse; 
 	SDL_GetMouseState(&mouse.x, &mouse.y);
 	if(SDL_PointInRect(&mouse, &rect)){
-		if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+		rect.x -= 2;
+		rect.y -= 2;
+		rect.w += 4;
+		rect.h += 4;
+		if(mouseClicked){
 			isClicked = true;
 		}
 	}
 	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
-	// RenderText_d(renderer, text, textPos.x, textPos.y);
-	RenderText(renderer, text, textPos.x, textPos.y, (SDL_Color){243, 208, 43});
+	RenderText_d(renderer, text, textPos.x, textPos.y);
 	
 	return isClicked;
 }
