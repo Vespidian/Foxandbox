@@ -288,7 +288,7 @@ int inventory_add(lua_State *L){
 		qty = lua_tonumber(L, 2);
 	}
 	if(lua_tostring(L, 1)){
-		INV_Add(qty, find_item((char *)lua_tostring(L, 1)));
+		INV_Add(qty, find_item((char *)lua_tostring(L, 1)), -1);
 	}
 	return 0;
 }

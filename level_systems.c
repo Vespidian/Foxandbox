@@ -248,11 +248,11 @@ void RenderLevel(LevelComponent *level){//Draw map from 2D array
 			tile.y = tilePos.y;
 			// AddToRenderQueue(renderer, find_tilesheet("blocks"), 4, tile, 255, 0);
 			if(level->terrain[y][x].type != -1){//Render Terrain
-				AddToRenderQueueEx(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation);
+				AddToRenderQueueEx(renderer, level->terrain[y][x].block->sheet, level->terrain[y][x].block->tile, tile, -1, level->terrain[y][x].zPos, level->terrain[y][x].rotation, (SDL_Color){255, 255, 255});
 				level->terrain[y][x].zPos = 0;
 			}
 			if(level->features[y][x].type != -1 && level->terrain[y][x].type != -1){//Render Features
-				AddToRenderQueueEx(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos, level->features[y][x].rotation);
+				AddToRenderQueueEx(renderer, level->features[y][x].block->sheet, level->features[y][x].block->tile, tile, -1, level->features[y][x].zPos, level->features[y][x].rotation, (SDL_Color){255, 255, 255});
 				level->features[y][x].zPos = 1;
 			}
 		}
@@ -289,15 +289,18 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 				if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
 					if(invArray[selectedHotbar].occupied && invArray[selectedHotbar].item->isBlock){
 						if(&invArray[selectedHotbar].item->name != &mouseEditingLayer[tile.y][tile.x].block->item->name){
-							INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
-							INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
-							PlaceBlock(tile, find_block(invArray[selectedHotbar].item->name));
+							//If the player is where the block is to be placed, only place it if its non collidable
+							if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){(tile.x * 64) - mapOffsetPos.x, (tile.y * 64) - mapOffsetPos.y, 64, 64}) || find_block(invArray[selectedHotbar].item->name)->collisionType != 0)){
+								INV_Add(mouseEditingLayer[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem, -1);
+								INV_WriteCell("sub", selectedHotbar, 1, invArray[selectedHotbar].item);
+								PlaceBlock(mouseEditingLayer, tile, find_block(invArray[selectedHotbar].item->name));
+							}
 						}
 					}
 				}else if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
 					if(mouseEditingLayer[tile.y][tile.x].block != find_block("air")){
 						DebugLog(D_ACT, "Removed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
-						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem);
+						INV_Add(activeLevel->terrain[tile.y][tile.x].block->dropQty, mouseEditingLayer[tile.y][tile.x].block->dropItem, -1);
 						mouseEditingLayer[tile.y][tile.x].block = find_block("air");
 						if(activeLevel->features[tile.y][tile.x].block == find_block("air")){
 							activeLevel->collision[tile.y][tile.x] = -1;
@@ -347,7 +350,7 @@ void RenderDroppedItems(){
 			}
 
 			if(SDL_HasIntersection(&character.collider.boundingBox, &itemRect)){
-				INV_Add(droppedItems[i].qty, droppedItems[i].item);
+				INV_Add(droppedItems[i].qty, droppedItems[i].item, -1);
 
 				numDroppedItems--;
 				for(int j = i; j < numDroppedItems; j++){

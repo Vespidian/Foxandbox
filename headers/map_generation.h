@@ -39,6 +39,6 @@ void DefineCollisions(LevelComponent *level);
 /**
  *  Replace block at tile position with specified block
  */
-void PlaceBlock(Vector2 tile, BlockComponent *block);
+void PlaceBlock(RenderTileComponent **layer, Vector2 tile, BlockComponent *block);
 
 #endif

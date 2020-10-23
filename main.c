@@ -61,6 +61,7 @@ float playerSpeed = 2;
 bool mouseClicked = false;
 bool mouseHeld = false;
 bool showDebugInfo = true;
+bool levelLoaded = true;
 
 ParticleSystem pSys1;
 int chatLogSize = 0;
@@ -209,43 +210,194 @@ void Setup(){
 	// pSys1.playSystem = false;
 }
 
+void e_CheckMouseLayer(SDL_Event e){
+	//Set the mouseEditing pointer to the layer the mouse is currently holding on
+	if(!showInv){
+		if(e.button.button == SDL_BUTTON_RIGHT){
+			if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
+				mouseEditingLayer = activeLevel->features;
+			}else{
+				mouseEditingLayer = activeLevel->terrain;
+			}
+		}else if(e.button.button == SDL_BUTTON_LEFT){
+			if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0){
+				mouseEditingLayer = activeLevel->terrain;
+			}else{
+				mouseEditingLayer = activeLevel->features;
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 	if(init()){
 		Setup();
 		while(!quit){
 			loopStartTime = SDL_GetTicks();
-			
-			if(characterFacing == 4){
-				placeLocation = (Vector2){-1, 0};
-			}else if(characterFacing == 3){
-				placeLocation = (Vector2){1, 0};
-			}else if(characterFacing == 2){
-				placeLocation = (Vector2){0, -1};
-			}else if(characterFacing == 1){
-				placeLocation = (Vector2){0, 1};
-			}
-			
 			const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-			if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
-				quit = true;
-			}
 			
-			int freeRoamDistance = 32;
-			if(currentKeyStates[SDL_SCANCODE_Q]){
-				SDL_Rect freeRoamRect = {midScreen.x - freeRoamDistance, midScreen.y - freeRoamDistance, freeRoamDistance * 2 + 64, freeRoamDistance * 2 + 64};
-				AddToRenderQueue(renderer, &debugSheet, 6, freeRoamRect, 255, RNDRLYR_UI);
+			mouseClicked = false;
+			mouseHeld = false;
+			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+				mouseHeld = true;
 			}
-			isWalking = false;
-			float playerMovementSpeed = playerSpeed * deltaTime;
 
-			// char tmptxt[32];
-			// sprintf(tmptxt, "Player movement speed -> \n%f", playerMovementSpeed);
-			// RenderText_d(renderer, tmptxt, 0, 145);
+			while(SDL_PollEvent(&e) != 0){
+				SDL_GetMouseState(&mouseTransform.screenPos.x, &mouseTransform.screenPos.y);
+				switch(e.type){
+					case SDL_MOUSEBUTTONDOWN:
+						if(e.key.state == SDL_RELEASED){
+							mouseClicked = true;
+						}
 
-			if(inputMode == 0){
-				if(!(currentKeyStates[SDL_SCANCODE_A] && currentKeyStates[SDL_SCANCODE_D])){
-					if(currentKeyStates[SDL_SCANCODE_A]){
-						if(!character.collider.colLeft){
+						break;
+
+					case SDL_WINDOWEVENT:
+						if(e.window.event == SDL_WINDOWEVENT_RESIZED){
+							ResizeWindow((Vector2){WIDTH, HEIGHT});
+						}
+						break;
+
+					case SDL_KEYUP:
+						if(inputMode == 0){
+							if(e.key.keysym.sym == SDLK_b){//Fullscreen
+								FullscreenWindow();
+							}
+						}
+						
+						break;
+
+					case SDL_QUIT:
+						quit = true;
+
+						break;
+				}
+
+				if(levelLoaded){
+					switch(e.type){
+						case SDL_MOUSEBUTTONDOWN:
+							e_CheckMouseLayer(e);
+
+							break;
+
+						case SDL_KEYDOWN:
+							if(inputMode == 0){
+								//Hotbar slot selection via number keys
+								if(e.key.keysym.sym >= 49 && e.key.keysym.sym <= 57 && e.key.keysym.sym - 49 < INV_WIDTH){
+									selectedHotbar = e.key.keysym.sym - 49;
+								}
+							}else if(inputMode == 1){
+								if(e.key.keysym.sym == SDLK_BACKSPACE){
+									currentCollectedText[strlen(currentCollectedText) - 1] = '\0';
+								}
+							}
+
+							break;
+
+						case SDL_KEYUP:
+							mapOffsetPos = modVector2(mapOffsetPos, 4);
+							characterOffset = modVector2(characterOffset, 4);
+							
+							if(e.key.keysym.sym == SDLK_RETURN){//Chat history
+								if(inputMode == 1){
+									if(currentCollectedText[0] != '\0' && currentCollectedText[0] != ' '){
+										chatHistory = realloc(chatHistory, (chatLogSize + 1) * sizeof(char **));
+										chatHistory[chatLogSize] = calloc(strlen(currentCollectedText) + 1, sizeof(char));
+										strcpy(chatHistory[chatLogSize], currentCollectedText);
+										chatLogSize++;
+										currentCollectedText[0] = '\0';
+										printf("%s\n", chatHistory[chatLogSize - 1]);
+										ParseConsoleCommand(chatHistory[chatLogSize - 1]);
+									}
+								}
+								if(inputMode < numInputModes - 1){
+									inputMode++;
+									
+								}else{
+									inputMode = 0;
+								}
+							}
+							if(inputMode == 0){
+								if(e.key.keysym.sym == SDLK_F3){
+									showDebugInfo = !showDebugInfo;
+								}
+								if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
+									loadLua();
+								}
+								if(e.key.keysym.sym == SDLK_j){
+									SaveLevel(activeLevel, "data/maps/testMap.dat");
+								}
+								if(e.key.keysym.sym == SDLK_c){
+									character.collider.noClip = !character.collider.noClip;
+								}
+								if(e.key.keysym.sym == SDLK_x){
+									enableHitboxes = !enableHitboxes;
+								}
+								if(e.key.keysym.sym == SDLK_e){
+									showInv = !showInv;
+								}
+								if(e.key.keysym.sym == SDLK_h){
+									mapOffsetPos.x += characterOffset.x - midScreen.x;
+									mapOffsetPos.y += characterOffset.y - midScreen.y;
+									characterOffset = midScreen;
+								}
+							}
+
+							break;
+
+						case SDL_MOUSEWHEEL:
+							if(e.wheel.y > 0){
+								if(selectedHotbar <= INV_WIDTH && selectedHotbar > 0){
+									selectedHotbar--;
+								}else{
+									selectedHotbar = INV_WIDTH - 1;
+								}
+							}else if(e.wheel.y < 0){
+								if(selectedHotbar < INV_WIDTH - 1 && selectedHotbar >= 0){
+									selectedHotbar++;
+								}else{
+									selectedHotbar = 0;
+								}
+							}
+
+							break;
+					}
+
+					if(inputMode == 1){
+						if(e.type == SDL_TEXTINPUT){
+							strcat(currentCollectedText, e.text.text);
+						}
+					}
+				}
+			}
+
+
+			if(levelLoaded){
+				if(characterFacing == 4){
+					placeLocation = (Vector2){-1, 0};
+				}else if(characterFacing == 3){
+					placeLocation = (Vector2){1, 0};
+				}else if(characterFacing == 2){
+					placeLocation = (Vector2){0, -1};
+				}else if(characterFacing == 1){
+					placeLocation = (Vector2){0, 1};
+				}
+				
+				if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
+					quit = true;
+				}
+				
+				int freeRoamDistance = 32;
+				if(currentKeyStates[SDL_SCANCODE_Q]){
+					SDL_Rect freeRoamRect = {midScreen.x - freeRoamDistance, midScreen.y - freeRoamDistance, freeRoamDistance * 2 + 64, freeRoamDistance * 2 + 64};
+					AddToRenderQueue(renderer, &debugSheet, 6, freeRoamRect, 255, RNDRLYR_UI);
+				}
+				isWalking = false;
+				float playerMovementSpeed = playerSpeed * deltaTime;
+
+				if(inputMode == 0){
+					if(!(currentKeyStates[SDL_SCANCODE_A] && currentKeyStates[SDL_SCANCODE_D])){
+						if(currentKeyStates[SDL_SCANCODE_A] && !character.collider.colLeft){
 							if(midScreen.x - characterOffset.x < freeRoamDistance){
 								characterOffset.x -= playerMovementSpeed;
 							}else{
@@ -253,24 +405,20 @@ int main(int argc, char **argv) {
 							}
 
 							isWalking = true;
+							characterFacing = 0;
 						}
-						characterFacing = 0;
-					}
-					if(currentKeyStates[SDL_SCANCODE_D]){
-						if(!character.collider.colRight){
+						if(currentKeyStates[SDL_SCANCODE_D] && !character.collider.colRight){
 							if(characterOffset.x - midScreen.x < freeRoamDistance){
 								characterOffset.x += playerMovementSpeed;
 							}else{
 								mapOffsetPos.x += playerMovementSpeed;
 							}
 							isWalking = true;
+							characterFacing = 1;
 						}
-						characterFacing = 1;
 					}
-				}
-				if(!(currentKeyStates[SDL_SCANCODE_W] && currentKeyStates[SDL_SCANCODE_S])){
-					if(currentKeyStates[SDL_SCANCODE_W]){
-						if(!character.collider.colUp){
+					if(!(currentKeyStates[SDL_SCANCODE_W] && currentKeyStates[SDL_SCANCODE_S])){
+						if(currentKeyStates[SDL_SCANCODE_W] && !character.collider.colUp){
 							if(midScreen.y - characterOffset.y < freeRoamDistance){
 								characterOffset.y -= playerMovementSpeed;
 							}else{
@@ -278,9 +426,7 @@ int main(int argc, char **argv) {
 							}
 							isWalking = true;
 						}
-					}
-					if(currentKeyStates[SDL_SCANCODE_S]){
-						if(!character.collider.colDown){
+						if(currentKeyStates[SDL_SCANCODE_S] && !character.collider.colDown){
 							if(characterOffset.y - midScreen.y < freeRoamDistance){
 								characterOffset.y += playerMovementSpeed;
 							}else{
@@ -290,144 +436,13 @@ int main(int argc, char **argv) {
 						}
 					}
 				}
+
+				mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
+				RenderScreen();
+			}else{
+
 			}
 
-			mapRect = (SDL_Rect){-mapOffsetPos.x, -mapOffsetPos.y, activeLevel->map_size.x * 64, activeLevel->map_size.y * 64};	
-			mouseClicked = false;
-			mouseHeld = false;
-			if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
-				mouseHeld = true;
-			}
-			while(SDL_PollEvent(&e) != 0){
-				SDL_GetMouseState(&mouseTransform.screenPos.x, &mouseTransform.screenPos.y);
-				
-				if(e.type == SDL_MOUSEBUTTONDOWN){
-					if(e.key.state == SDL_RELEASED){
-						mouseClicked = true;
-					}
-
-					//Set the mouseEditing pointer to the layer the mouse is currently holding on
-					if(!showInv){
-						if(e.button.button == SDL_BUTTON_RIGHT){
-							if(activeLevel->features[mouseTransform.tilePos.y][mouseTransform.tilePos.x].block != find_block("air")){
-								mouseEditingLayer = activeLevel->features;
-							}else{
-								mouseEditingLayer = activeLevel->terrain;
-							}
-						}else if(e.button.button == SDL_BUTTON_LEFT){
-							if(strcmp(find_block(invArray[selectedHotbar].item->name)->layer, "terrain") == 0){
-								mouseEditingLayer = activeLevel->terrain;
-							}else{
-								mouseEditingLayer = activeLevel->features;
-							}
-						}
-					}
-				}
-
-				if(inputMode == 1){
-					if(e.type == SDL_TEXTINPUT){
-						strcat(currentCollectedText, e.text.text);
-					}
-				}
-
-				if(e.type == SDL_KEYDOWN){//KEY DOWN
-					if(inputMode == 0){
-						if(e.key.keysym.sym == SDLK_y){
-							characterOffset.x = midScreen.x;
-							characterOffset.y = midScreen.y;
-						}
-						//Hotbar slot selection via number keys
-						if(e.key.keysym.sym >= 49 && e.key.keysym.sym <= 57 && e.key.keysym.sym - 49 < INV_WIDTH){
-							selectedHotbar = e.key.keysym.sym - 49;
-						}
-					}else if(inputMode == 1){
-						if(e.key.keysym.sym == SDLK_BACKSPACE){
-							currentCollectedText[strlen(currentCollectedText) - 1] = '\0';
-						}
-					}
-				}
-
-				if(e.type == SDL_KEYUP){//KEY UP
-					mapOffsetPos = modVector2(mapOffsetPos, 4);
-					characterOffset = modVector2(characterOffset, 4);
-					if(e.key.keysym.sym == SDLK_F3){
-						showDebugInfo = !showDebugInfo;
-					}
-					if(e.key.keysym.sym == SDLK_F10){//Memory leak possible
-						loadLua();
-					}
-					if(e.key.keysym.sym == SDLK_RETURN){//Chat history
-						if(inputMode == 1){
-							if(currentCollectedText[0] != '\0' && currentCollectedText[0] != ' '){
-								chatHistory = realloc(chatHistory, (chatLogSize + 1) * sizeof(char **));
-								chatHistory[chatLogSize] = calloc(strlen(currentCollectedText) + 1, sizeof(char));
-								strcpy(chatHistory[chatLogSize], currentCollectedText);
-								chatLogSize++;
-								currentCollectedText[0] = '\0';
-								printf("%s\n", chatHistory[chatLogSize - 1]);
-								ParseConsoleCommand(chatHistory[chatLogSize - 1]);
-							}
-						}
-						if(inputMode < numInputModes - 1){
-							inputMode++;
-							
-						}else{
-							inputMode = 0;
-						}
-					}
-					if(inputMode == 0){
-						if(e.key.keysym.sym == SDLK_j){
-							SaveLevel(activeLevel, "data/maps/testMap.dat");
-						}
-						if(e.key.keysym.sym == SDLK_c){
-							character.collider.noClip = !character.collider.noClip;
-						}
-						if(e.key.keysym.sym == SDLK_x){
-							enableHitboxes = !enableHitboxes;
-						}
-						if(e.key.keysym.sym == SDLK_e){
-							showInv = !showInv;
-						}
-						if(e.key.keysym.sym == SDLK_b){//Fullscreen
-							FullscreenWindow();
-						}
-						if(e.key.keysym.sym == SDLK_h){
-							mapOffsetPos.x += characterOffset.x - midScreen.x;
-							mapOffsetPos.y += characterOffset.y - midScreen.y;
-							characterOffset = midScreen;
-						}
-					}
-				}
-
-				if(e.type == SDL_MOUSEWHEEL){//SCROLL
-					if(e.wheel.y > 0){
-						if(selectedHotbar <= INV_WIDTH && selectedHotbar > 0){
-							selectedHotbar--;
-						}else{
-							selectedHotbar = INV_WIDTH - 1;
-						}
-					}else if(e.wheel.y < 0){
-						if(selectedHotbar < INV_WIDTH - 1 && selectedHotbar >= 0){
-							selectedHotbar++;
-						}else{
-							selectedHotbar = 0;
-						}
-					}
-				}
-
-				if(e.type == SDL_WINDOWEVENT){//WINDOW RESIZE / MINIMIZE
-					if(e.window.event == SDL_WINDOWEVENT_RESIZED){
-						ResizeWindow((Vector2){WIDTH, HEIGHT});
-					}
-				}
-				
-				if(e.type == SDL_QUIT){
-					quit = true;
-				}
-			}
-
-
-			RenderScreen();
 			SDL_Delay(1000 / targetFramerate);//Game FrameRate
 			deltaTime = (SDL_GetTicks() - loopStartTime) / 10;
 		}

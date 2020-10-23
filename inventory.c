@@ -147,11 +147,17 @@ void INV_DrawInv(){
 				if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){//LEFT CLICK
 					if(e.button.clicks == 2 && invArray[hoveredCell].occupied == true && &invArray[hoveredCell].item->name == &mouseInv.item->name){//Check for double clicked
 						//Collect all the items of that type to the mouse pointer
-						int totalFound = 0;
+						int totalFound = mouseInv.qty;
 						while(INV_FindItem(mouseInv.item) != -1 && totalFound < maxStack){
-							totalFound += invArray[INV_FindItem(mouseInv.item)].qty;
-							invArray[INV_FindItem(mouseInv.item)].qty = 0;
-							invArray[INV_FindItem(mouseInv.item)].occupied = false;
+							//Check if found stack can fit in mouse inventory
+							if(totalFound + invArray[INV_FindItem(mouseInv.item)].qty < maxStack){
+								totalFound += invArray[INV_FindItem(mouseInv.item)].qty;
+								invArray[INV_FindItem(mouseInv.item)].qty = 0;
+								invArray[INV_FindItem(mouseInv.item)].occupied = false;
+							}else{//If it cannot, subtract from stack and fill mouse inventory
+								invArray[INV_FindItem(mouseInv.item)].qty -= (maxStack - totalFound);
+								totalFound = maxStack;
+							}
 						}
 						mouseInv.occupied = true;
 						mouseInv.qty = totalFound;
@@ -263,57 +269,59 @@ void INV_DrawInv(){
 }
 
 
-int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item){
+int INV_WriteCell(char *mode, int cell, int qty, ItemComponent *item){
 	if(cell > INV_HEIGHT * INV_WIDTH){
 		printf("Error: Item location out of bounds!\n");
 		return 1;
 	}
 
-	if(itemQty > 0){
+	if(qty > 0){
 		
 		if(strcmp(mode, "set") == 0){
 			invArray[cell].item = item;
 			invArray[cell].occupied = true;
-			if(itemQty < maxStack){
-				invArray[cell].qty = itemQty;
+			if(qty < maxStack){
+				invArray[cell].qty = qty;
 				invArray[cell].occupied = true;
 			}else{
 				invArray[cell].qty = maxStack;
 				invArray[cell].occupied = true;
 			}
 		}else if(strcmp(mode, "add") == 0){
-			invArray[cell].item = item;
-			invArray[cell].occupied = true;
-			if(strcmp(invArray[cell].item->name, item->name) == 0 && invArray[cell].qty <= maxStack){//Check if item is of different type or exceeding limit
-				if(invArray[cell].qty + itemQty > maxStack){//Check if adding item will cause cell to exceed maxStack size
-					int remainder = (itemQty - (maxStack - invArray[cell].qty));
-					invArray[cell].qty += maxStack - invArray[cell].qty;//Fill the cell
-					return remainder;//Return the remainder if the stack is full
-				}else{
-					invArray[cell].qty += itemQty;
-					invArray[cell].occupied = true;
-					return 0;
-				}
-			}
+			return INV_Add(qty, item, cell);
 		}else if(strcmp(mode, "sub") == 0){
-			if(&invArray[cell].item->name == &item->name && invArray[cell].occupied){
-				if(invArray[cell].qty > 1){
-					invArray[cell].qty -= itemQty;
-				}else{
-					invArray[cell].qty = 0;
-					invArray[cell].occupied = false;
-				}
-			}
+			return INV_Subtract(qty, item, cell);
 		}
-	}else{
-		invArray[cell].qty = 0;
-		invArray[cell].occupied = false;
 	}
 	return 0;
 }
 
-int INV_Add(int qty, ItemComponent *item){
+int INV_Add(int qty, ItemComponent *item, int cell){
+	if(qty > maxStack){
+		qty = maxStack;
+	}
 	if(item != find_item("air")){//Make sure item is not air
+		if(cell > -1 && cell < INV_WIDTH * INV_HEIGHT){
+			if((invArray[cell].item == item && invArray[cell].occupied) || !invArray[cell].occupied){
+					printf("here\n");
+				int remainder = 0;
+				if(!invArray[cell].occupied){
+					invArray[cell].occupied = true;
+					invArray[cell].item = item;
+					invArray[cell].qty = qty;
+				}else{
+					if(invArray[cell].qty + qty > maxStack){
+						remainder = qty - (maxStack - invArray[cell].qty);
+						invArray[cell].qty = maxStack;
+					}else{
+						invArray[cell].qty += qty;
+					}
+				}
+				printf("%d\n", remainder);
+				return remainder;
+			}
+		}
+
 		if(INV_FindItem_NotFull(item) != -1 && invArray[INV_FindItem_NotFull(item)].qty < maxStack){//Check if item exists in inventory and can fit more items
 			if(invArray[INV_FindItem_NotFull(item)].qty + qty <= maxStack){//Check if the qty can fit in the stack
 				invArray[INV_FindItem_NotFull(item)].qty += qty;
@@ -335,7 +343,15 @@ int INV_Add(int qty, ItemComponent *item){
 	return 0;
 }
 
-int INV_Subtract(int qty, ItemComponent *item){
+int INV_Subtract(int qty, ItemComponent *item, int cell){
+	if(cell > -1 && cell < INV_WIDTH * INV_HEIGHT){
+		if(invArray[cell].qty <= qty){
+			invArray[cell].occupied = false;
+		}else{
+			invArray[cell].qty -= qty;
+		}
+		return 0;
+	}
 	while(INV_FindItem(item) != -1){//Loop until there are no more of specified item
 		if(invArray[INV_FindItem(item)].qty >= qty){
 			if(invArray[INV_FindItem(item)].qty == qty){

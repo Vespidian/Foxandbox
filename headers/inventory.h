@@ -29,20 +29,20 @@ void INV_DrawInv();
  *  \brief All purpose function for interacting with inventory
  *  \param mode The interaction method (sub, add, set)
  * 	\param cell The inventory cell to interact with
- *  \param itemQty The amount of specified item to write
+ *  \param qty The amount of specified item to write
  * 	\param item The item to write
  */
-int INV_WriteCell(char *mode, int cell, int itemQty, ItemComponent *item);
+int INV_WriteCell(char *mode, int cell, int qty, ItemComponent *item);
 
 /**
  *  Add qty of item to inventory array
  */
-int INV_Add(int qty, ItemComponent *item);
+int INV_Add(int qty, ItemComponent *item, int cell);
 
 /**
  *  Subtract qty of item from inventory array
  */
-int INV_Subtract(int qty, ItemComponent *item);
+int INV_Subtract(int qty, ItemComponent *item, int cell);
 
 /**
  *  Find the first slot with specified item

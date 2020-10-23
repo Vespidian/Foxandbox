@@ -174,17 +174,14 @@ int CalculateBlockRotation(Vector2 player, Vector2 tile){
 	return rotation;
 }
 
-void PlaceBlock(Vector2 tile, BlockComponent *block){
-	//If the player is where the block is to be placed, only place it if its non collidable
-	if((!SDL_HasIntersection(&character.collider.boundingBox, &(SDL_Rect){tile.x, tile.y, 64, 64}) || block->collisionType != 0)){
-		mouseEditingLayer[tile.y][tile.x].block = block;
-		if(block->allowRotation){
-			mouseEditingLayer[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
-		}else{
-			mouseEditingLayer[tile.y][tile.x].rotation = 0;
-		}
-		DebugLog(D_ACT, "placed tile '%s' at %d,%d", mouseEditingLayer[tile.y][tile.x].block->item->name, tile.x, tile.y);
-		activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
+void PlaceBlock(RenderTileComponent **layer, Vector2 tile, BlockComponent *block){
+	layer[tile.y][tile.x].block = block;
+	if(block->allowRotation){
+		layer[tile.y][tile.x].rotation = CalculateBlockRotation(character.transform.tilePos, tile);
+	}else{
+		layer[tile.y][tile.x].rotation = 0;
 	}
+	DebugLog(D_ACT, "placed tile '%s' at %d,%d", layer[tile.y][tile.x].block->item->name, tile.x, tile.y);
+	activeLevel->collision[tile.y][tile.x] = block->collisionType;//INCOMPLETE
 
 }

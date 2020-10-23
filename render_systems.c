@@ -34,20 +34,20 @@ void ResetRenderFrame(){//Clear and allocate render buffer + reset render counte
 }
 
 int AddToRenderQueue(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos){
-	return AddToRenderQueueEx(renderer, tileSheet, tileNum, destRect, alpha, zPos, 0);
+	return AddToRenderQueueEx(renderer, tileSheet, tileNum, destRect, alpha, zPos, 0, (SDL_Color){255, 255, 255});
 }
 
-int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation){
+int AddToRenderQueueEx(SDL_Renderer *renderer, TilesheetComponent *tileSheet, int tileNum, SDL_Rect destRect, int alpha, int zPos, int rotation, SDL_Color colorMod){
 	if(alpha == -1){
 		alpha = 255;
 	}
 	if(tileNum <= tileSheet->w * tileSheet->h - 1){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos, rotation};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, tileSheet, tileNum, destRect, alpha, zPos, rotation, colorMod};
 		renderItemIndex++;
 	}else if(strcmp(tileSheet->name, "undefined") == 0 || tileSheet->tex == NULL || tileNum < 0){
 		renderBuffer = realloc(renderBuffer, (renderItemIndex + 1) * sizeof(RenderComponent));
-		renderBuffer[renderItemIndex] = (RenderComponent){renderer, &undefinedSheet, 0, destRect, 255, zPos, 0};
+		renderBuffer[renderItemIndex] = (RenderComponent){renderer, &undefinedSheet, 0, destRect, 255, zPos, 0, (SDL_Color){255, 255, 255}};
 		renderItemIndex++;
 	}else{
 		printf("Error: Tile index not in image bounds!\n");
@@ -77,7 +77,11 @@ void RenderUpdate(){
 		
 		SDL_SetTextureAlphaMod(renderBuffer[i].tileSheet->tex, renderBuffer[i].alpha);
 		SDL_Rect sourceRect = {tileInSheet.x, tileInSheet.y, renderBuffer[i].tileSheet->tile_size, renderBuffer[i].tileSheet->tile_size};
-		SDL_RenderCopyEx(renderBuffer[i].renderer, renderBuffer[i].tileSheet->tex, &sourceRect, &renderBuffer[i].transform, renderBuffer[i].rotation * 90, NULL, SDL_FLIP_NONE);	
+
+		SDL_SetTextureColorMod(renderBuffer[i].tileSheet->tex, renderBuffer[i].colorMod.r, renderBuffer[i].colorMod.g, renderBuffer[i].colorMod.b);
+		SDL_RenderCopyEx(renderBuffer[i].renderer, renderBuffer[i].tileSheet->tex, &sourceRect, &renderBuffer[i].transform, renderBuffer[i].rotation * 90, NULL, SDL_FLIP_NONE);
+		SDL_SetTextureColorMod(renderBuffer[i].tileSheet->tex, 255, 255, 255);
+
 	}
 	ResetRenderFrame();
 }
@@ -95,7 +99,6 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 		return 1;
 	}
 	SDL_Rect screenRect = {0, 0, WIDTH, HEIGHT};
-	SDL_SetTextureColorMod(fontSheet.tex, colorMod.r, colorMod.g, colorMod.b);
 	
 	SDL_Rect charRect = {x, y, spacing, spacing};
 	if(strlen(text) > 0){//Make sure there is a string to display
@@ -104,7 +107,7 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 			//Non character cases
 			if(charVal >= 0){//NOT SPACE
 				if(SDL_HasIntersection(&charRect, &screenRect)){//Only render if text is on screen
-					AddToRenderQueue(renderer, &fontSheet, charVal, charRect, -1, RNDRLYR_TEXT);
+					AddToRenderQueueEx(renderer, &fontSheet, charVal, charRect, -1, RNDRLYR_TEXT, 0, colorMod);
 				}
 				charRect.x += tracking;
 			}else if(charVal == -22){//NEWLINE (\n)
@@ -118,7 +121,6 @@ int RenderText(SDL_Renderer *renderer, char *text, int x, int y, SDL_Color color
 		// printf("Error: No text provided on RenderText()\n");
 		return 1;
 	}
-	SDL_SetTextureColorMod(fontSheet.tex, 255, 255, 255);
 	return 0;
 }
 int RenderText_d(SDL_Renderer *renderer, char *text, int x, int y){
@@ -231,13 +233,14 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	}
 	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
-	RenderText_d(renderer, text, textPos.x, textPos.y);
+	// RenderText_d(renderer, text, textPos.x, textPos.y);
+	RenderText(renderer, text, textPos.x, textPos.y, (SDL_Color){243, 208, 43});
 	
 	return isClicked;
 }
 
 void RenderPauseMenu(){
-	// SDL_Rect tmp1 = {WIDTH / 2 - 32, 300, 128, 32};
+	// SDL_Rect tmp1 = {WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32};
 	// SDL_Rect tmp2 = {WIDTH / 2 - 32, 336, 128, 32};
 	// if(DrawButton(renderer, "Button 1", tmp1)){
 	// 	printf("wow 1\n");
