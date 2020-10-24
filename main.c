@@ -444,28 +444,73 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+SDL_Rect VerticalRectList(int numItems, int itemIndex, Vector2 size, Vector2 origin, int spacing){
+	SDL_Rect rect = {0, 0, size.x, size.y};
+	int yOffset = 0;
+	if(numItems % 2 == 0){//Even number of elements
+		rect.x = origin.x - size.x / 2;
+		if(itemIndex < numItems / 2){//Top half
+			yOffset = (numItems / 2 - itemIndex);
+			rect.y = origin.y - (spacing / 2 + size.y * yOffset + spacing * (yOffset - 1));
+		}else{//Bottom half
+			yOffset = (itemIndex - numItems / 2);
+			rect.y = origin.y + (spacing / 2 + size.y * yOffset + spacing * yOffset);
+		}
+	}else{//Odd number of elements
+		rect.x = origin.x - size.x / 2;
+		if(itemIndex < numItems / 2){//top half
+			yOffset = (numItems / 2 - itemIndex);
+			rect.y = origin.y - (size.y / 2 + size.y * yOffset + spacing * yOffset);
+		}else if(itemIndex == (numItems + 1) / 2 - 1){//Middle element
+			rect.y = origin.y - (size.y / 2);
+		}else{//Bottom half
+			yOffset = (itemIndex - 1 - numItems / 2);
+			rect.y = origin.y + (size.y / 2 + size.y * yOffset + spacing * (yOffset	+ 1));
+		}
+	}
+	return rect;
+}
+
 void RenderStartScreen(){
 	SDL_SetRenderDrawColor(renderer, 139, 214, 239, 255);
 	SDL_RenderClear(renderer);
 
+	Vector2 size = {128, 32};
+	Vector2 origin = {WIDTH / 2, HEIGHT / 2};
+	// SDL_Rect orig = {origin.x - 4, origin.y - 4, 8, 8};
+	int spacing = 6;
+
 	switch(submenuIndex){
 		case 1://Options menu
-			if(DrawButton(renderer, "Back", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32})){
+			if(DrawButton(renderer, "Wow cool!", VerticalRectList(2, 0, size, origin, spacing))){}
+			if(DrawButton(renderer, "Back", VerticalRectList(2, 1, size, origin, spacing))){
 				submenuIndex = 0;
 			}
 
 			break;
 
+		case 2:
+			if(DrawButton(renderer, "There", VerticalRectList(5, 0, size, origin, spacing))){}
+			if(DrawButton(renderer, "Are", VerticalRectList(5, 1, size, origin, spacing))){}
+			if(DrawButton(renderer, "Five", VerticalRectList(5, 2, size, origin, spacing))){}
+			if(DrawButton(renderer, "Here", VerticalRectList(5, 3, size, origin, spacing))){}
+			if(DrawButton(renderer, "Back", VerticalRectList(5, 4, size, origin, spacing))){submenuIndex = 0;}
+			break;
+
 		default://Default start menu
-			if(DrawButton(renderer, "Start", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 56, 128, 32})){
+			// AddToRenderQueue(renderer, &debugSheet, 5, orig, 255, 1000);
+			// int numItems = 5;
+			if(DrawButton(renderer, "Start", VerticalRectList(4, 0, size, origin, spacing))){
 				levelLoaded = true;
 			}
-			if(DrawButton(renderer, "Options", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32})){
+			if(DrawButton(renderer, "Options", VerticalRectList(4, 1, size, origin, spacing))){
 				submenuIndex = 1;
 			}
-			if(DrawButton(renderer, "Exit", (SDL_Rect){WIDTH / 2 - 64, HEIGHT / 2 + 24, 128, 32})){
+			if(DrawButton(renderer, "Exit", VerticalRectList(4, 2, size, origin, spacing))){
 				quit = true;
 			}
+			if(DrawButton(renderer, "Temp1", VerticalRectList(4, 3, size, origin, spacing))){submenuIndex = 2;}
+			// if(DrawButton(renderer, "Temp2", VerticalRectList(numItems, 4, size, origin, spacing))){}
 			break;
 	}
 
