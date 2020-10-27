@@ -226,6 +226,9 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	
 	SDL_Point mouse; 
 	SDL_GetMouseState(&mouse.x, &mouse.y);
+
+	rect.h = 32;
+
 	if(SDL_PointInRect(&mouse, &rect)){
 		rect.x -= 2;
 		rect.y -= 2;
@@ -235,11 +238,37 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 			isClicked = true;
 		}
 	}
+
 	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, rect, 255, RNDRLYR_UI);
+
+	//Testing button textures
+	// SDL_Rect mid = {rect.x + 16, rect.y, rect.w - 32, rect.h};
+	// SDL_Rect side = {rect.x - 16, rect.y, 32, rect.h};
+	// AddToRenderQueue(renderer, find_tilesheet("ui"), 13, mid, 255, RNDRLYR_UI);
+	// AddToRenderQueue(renderer, find_tilesheet("ui"), 12, side, 255, RNDRLYR_UI);
+	// side.x += rect.w;
+	// AddToRenderQueue(renderer, find_tilesheet("ui"), 14, side, 255, RNDRLYR_UI);
+
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
 	RenderText_d(renderer, text, textPos.x, textPos.y);
 	
 	return isClicked;
+}
+
+void DrawCheckbox(SDL_Renderer *renderer, bool *value, char *label, SDL_Rect rect){
+	SDL_Point mouse; 
+	SDL_GetMouseState(&mouse.x, &mouse.y);
+
+	SDL_Rect checkbox = {rect.x + rect.w - 42, rect.y, 32, 32};
+	SDL_Rect hitbox = {checkbox.x + 8, checkbox.y + 8, checkbox.w - 16, checkbox.h - 16};
+
+	if(SDL_PointInRect(&mouse, &hitbox)){
+		if(mouseClicked){
+			*value = !*value;
+		}
+	}
+	AddToRenderQueue(renderer, find_tilesheet("ui"), !*value + 10, checkbox, 255, RNDRLYR_UI);
+	RenderText_d(renderer, label, rect.x + 14, rect.y + 8);
 }
 
 void RenderPauseMenu(){

@@ -233,7 +233,6 @@ int main(int argc, char **argv) {
 			if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
 				quit = true;
 			}
-
 			while(SDL_PollEvent(&e) != 0){
 				SDL_GetMouseState(&mouseTransform.screenPos.x, &mouseTransform.screenPos.y);
 				switch(e.type){
@@ -471,46 +470,94 @@ SDL_Rect VerticalRectList(int numItems, int itemIndex, Vector2 size, Vector2 ori
 	return rect;
 }
 
+typedef void (*func)(int a);
+
+typedef struct{
+	char *text;
+	func a;
+}Button;
+
+typedef struct{
+	int numElements;
+	int spacing;
+	Vector2 origin;
+	Vector2 size;
+	int lastInteracted;
+}ButtonMenu;
+
+bool b1 = false;
+bool b2 = false;
+bool b3 = false;
+
+
+int optionsSubmenu = 0;
 void RenderStartScreen(){
 	SDL_SetRenderDrawColor(renderer, 139, 214, 239, 255);
 	SDL_RenderClear(renderer);
 
-	Vector2 size = {128, 32};
-	Vector2 origin = {WIDTH / 2, HEIGHT / 2};
+	Vector2 buttonSize = {128, 32};
+	Vector2 origin = {84, HEIGHT / 2};
+
+	Vector2 checkboxSize = {160, 32};
+	Vector2 cOrigin = {300, HEIGHT / 2};
 	// SDL_Rect orig = {origin.x - 4, origin.y - 4, 8, 8};
 	int spacing = 6;
 
 	switch(submenuIndex){
-		case 1://Options menu
-			if(DrawButton(renderer, "Wow cool!", VerticalRectList(2, 0, size, origin, spacing))){}
-			if(DrawButton(renderer, "Back", VerticalRectList(2, 1, size, origin, spacing))){
+		case 1:
+			if(DrawButton(renderer, "General", VerticalRectList(5, 0, buttonSize, origin, spacing))){optionsSubmenu = 0;}
+			if(DrawButton(renderer, "Video", VerticalRectList(5, 1, buttonSize, origin, spacing))){optionsSubmenu = 1;}
+			if(DrawButton(renderer, "Audio", VerticalRectList(5, 2, buttonSize, origin, spacing))){optionsSubmenu = 2;}
+			if(DrawButton(renderer, "Controls", VerticalRectList(5, 3, buttonSize, origin, spacing))){optionsSubmenu = 3;}
+			if(DrawButton(renderer, "Back", VerticalRectList(5, 4, buttonSize, origin, spacing))){submenuIndex = 0;}
+
+			origin = (Vector2){232, HEIGHT / 2};
+			switch(optionsSubmenu){
+				case 0:
+					if(DrawButton(renderer, "b1", VerticalRectList(6, 0, buttonSize, origin, spacing))){}
+					DrawCheckbox(renderer, &b1, "Checkbox 1:", VerticalRectList(6, 1, checkboxSize, origin, spacing));
+					if(DrawButton(renderer, "b2", VerticalRectList(6, 2, buttonSize, origin, spacing))){}
+					DrawCheckbox(renderer, &b2, "Checkbox 2:", VerticalRectList(6, 3, checkboxSize, origin, spacing));
+					DrawCheckbox(renderer, &b3, "Checkbox 3:", VerticalRectList(6, 4, checkboxSize, origin, spacing));
+					if(DrawButton(renderer, "b3", VerticalRectList(6, 5, buttonSize, origin, spacing))){}
+
+					break;
+				case 1:
+					break;
+				case 2:
+					break;
+				case 3:
+					break;
+			}
+			break;
+		case 2://Options menu
+			if(DrawButton(renderer, "Wow cool!", VerticalRectList(2, 0, buttonSize, origin, spacing))){}
+			if(DrawButton(renderer, "Back", VerticalRectList(2, 1, buttonSize, origin, spacing))){
 				submenuIndex = 0;
 			}
-
 			break;
-
-		case 2:
-			if(DrawButton(renderer, "There", VerticalRectList(5, 0, size, origin, spacing))){}
-			if(DrawButton(renderer, "Are", VerticalRectList(5, 1, size, origin, spacing))){}
-			if(DrawButton(renderer, "Five", VerticalRectList(5, 2, size, origin, spacing))){}
-			if(DrawButton(renderer, "Here", VerticalRectList(5, 3, size, origin, spacing))){}
-			if(DrawButton(renderer, "Back", VerticalRectList(5, 4, size, origin, spacing))){submenuIndex = 0;}
+		case 3:
+			if(DrawButton(renderer, "Mod Folder", VerticalRectList(2, 0, buttonSize, origin, spacing))){
+				#ifdef _WIN32
+					system("explorer scripts");//Open the scripts folder in windows explorer
+				#endif
+			}
+			if(DrawButton(renderer, "Back", VerticalRectList(2, 1, buttonSize, origin, spacing))){
+				submenuIndex = 0;
+			}
 			break;
-
 		default://Default start menu
-			// AddToRenderQueue(renderer, &debugSheet, 5, orig, 255, 1000);
-			// int numItems = 5;
-			if(DrawButton(renderer, "Start", VerticalRectList(4, 0, size, origin, spacing))){
+			if(DrawButton(renderer, "Start", VerticalRectList(5, 0, buttonSize, origin, spacing))){
 				levelLoaded = true;
 			}
-			if(DrawButton(renderer, "Options", VerticalRectList(4, 1, size, origin, spacing))){
+			if(DrawButton(renderer, "Options", VerticalRectList(5, 1, buttonSize, origin, spacing))){
 				submenuIndex = 1;
 			}
-			if(DrawButton(renderer, "Exit", VerticalRectList(4, 2, size, origin, spacing))){
+			if(DrawButton(renderer, "Temp1", VerticalRectList(5, 2, buttonSize, origin, spacing))){submenuIndex = 2;}
+			if(DrawButton(renderer, "Mods", VerticalRectList(5, 3, buttonSize, origin, spacing))){submenuIndex = 3;}
+			if(DrawButton(renderer, "Exit", VerticalRectList(5, 4, buttonSize, origin, spacing))){
 				quit = true;
 			}
-			if(DrawButton(renderer, "Temp1", VerticalRectList(4, 3, size, origin, spacing))){submenuIndex = 2;}
-			// if(DrawButton(renderer, "Temp2", VerticalRectList(numItems, 4, size, origin, spacing))){}
 			break;
 	}
 

@@ -28,7 +28,7 @@ itmcell_t invArray[INV_HEIGHT * INV_WIDTH];
 
 int selectedHotbar = 0;
 
-const int INV_spacing = 16;
+const int INV_spacing = 14;
 const int maxStack = 99;
 
 Vector2 numOffset = {-2, 16};

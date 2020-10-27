@@ -23,6 +23,7 @@ extern int tilePixelSize;
 extern const int tileStretchSize;
 
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect);
+void DrawCheckbox(SDL_Renderer *renderer, bool *value, char *label, SDL_Rect rect);
 
 void RenderPauseMenu();
 

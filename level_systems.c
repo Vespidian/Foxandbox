@@ -273,7 +273,7 @@ void RenderCursor(){// Highlight the tile the mouse is currently on
 	if(SDL_PointInRect(&cursor, &mapRect) && !uiInteractMode){
 		if((abs(character.transform.tilePos.x - mouseTransform.tilePos.x) <= reachDistance && abs(character.transform.tilePos.y - mouseTransform.tilePos.y) <= reachDistance) || !reachLimit){
 		//Determine wether or not the user can reach infinitely
-			AddToRenderQueue(renderer, find_tilesheet("ui"), 4, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
+			AddToRenderQueue(renderer, find_tilesheet("ui"), 3, (SDL_Rect){cursor.x, cursor.y, 64, 64}, -1, RNDRLYR_UI - 10);
 			
 			//MouseText
 			if(showDebugInfo){
