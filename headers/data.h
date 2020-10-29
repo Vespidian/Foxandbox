@@ -53,6 +53,9 @@ extern int reachDistance;
 extern int inputMode;
 const int particleCap;
 
+extern bool levelLoaded;
+extern bool gamePaused;
+
 Vector2 modVector2(Vector2 pos, int multiple);
 
 #endif

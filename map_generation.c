@@ -43,12 +43,12 @@ void InitializeBlankLevel(LevelComponent *level, Vector2 size){
 	}
 	level->map_size = (Vector2)size;
 
-	level->terrain = malloc((size.y + 1) * sizeof(RenderTileComponent));
-	level->features = malloc((size.y + 1) * sizeof(RenderTileComponent));
-	level->collision = malloc((size.y + 1) * sizeof(uint64_t));
+	level->terrain = malloc((size.y) * sizeof(RenderTileComponent));
+	level->features = malloc((size.y) * sizeof(RenderTileComponent));
+	level->collision = malloc((size.y) * sizeof(uint64_t));
 	for(int y = 0; y < size.y; y++){
-		level->terrain[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
-		level->features[y] = malloc((size.x + 1) * sizeof(RenderTileComponent));
+		level->terrain[y] = malloc((size.x) * sizeof(RenderTileComponent));
+		level->features[y] = malloc((size.x) * sizeof(RenderTileComponent));
 
 		for(int x = 0; x < size.x; x++){
 			level->terrain[y][x].block = find_block("air");
@@ -66,9 +66,15 @@ int GetSurroundCount(LevelComponent *level, Vector2 tile, BlockComponent *type){
 	int surroundCount = 0;
 	for(int y = tile.y - 1; y <= tile.y + 1; y++){
 		for(int x = tile.x - 1; x <= tile.x + 1; x++){
-			if(x >= 0 && x < level->map_size.x && y >= 0 && y < level->map_size.y){
+			if(x >= 0 && x <= level->map_size.x && y >= 0 && y <= level->map_size.y){
+				BlockComponent *block;
+				if(x == level->map_size.x || y == level->map_size.y){
+					block = find_block("air");
+				}else{
+					block = level->terrain[y][x].block;
+				}
 				if(x != tile.x || y != tile.y){
-					if(&level->terrain[y][x].block->item->name == &type->item->name){
+					if(&block->item->name == &type->item->name){
 						surroundCount++;
 					}
 				}
@@ -120,7 +126,7 @@ void RandomMap(LevelComponent *level, char *layer, int ratioPercent, BlockCompon
 	// timeinfo = localtime(&rawTime);
 	// int worldSeed = timeinfo->tm_sec;
 	unsigned long seed;
-	seed = 831130583115427;
+	seed = 4238345;
 	// seed = worldSeed;
 	// seed = SDL_GetTicks() * worldSeed;
 	SeedLehmer(seed, 0, 0);

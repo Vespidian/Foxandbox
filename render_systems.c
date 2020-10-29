@@ -25,6 +25,7 @@ TilesheetComponent fontSheet;
 int InitializeRenderer(SDL_Renderer *renderer){
 	undefinedSheet = (TilesheetComponent){"undefined", IMG_LoadTexture(renderer, "images/undefined.png"), 16, 1, 1};
 	fontSheet = (TilesheetComponent){"font", IMG_LoadTexture(renderer, "fonts/font.png"), 16, 12, 8};
+	return 0;
 }
 
 void ResetRenderFrame(){//Clear and allocate render buffer + reset render counter
@@ -221,6 +222,43 @@ void RenderParticleSystem(ParticleSystem system){
 	}
 }
 
+SDL_Rect VerticalRectList(int numItems, int itemIndex, Vector2 size, Vector2 origin, int spacing){
+	SDL_Rect rect = {0, 0, size.x, size.y};
+	int yOffset = 0;
+	if(numItems % 2 == 0){//Even number of elements
+		rect.x = origin.x - size.x / 2;
+		if(itemIndex < numItems / 2){//Top half
+			yOffset = (numItems / 2 - itemIndex);
+			rect.y = origin.y - (spacing / 2 + size.y * yOffset + spacing * (yOffset - 1));
+		}else{//Bottom half
+			yOffset = (itemIndex - numItems / 2);
+			rect.y = origin.y + (spacing / 2 + size.y * yOffset + spacing * yOffset);
+		}
+	}else{//Odd number of elements
+		rect.x = origin.x - size.x / 2;
+		if(itemIndex < numItems / 2){//top half
+			yOffset = (numItems / 2 - itemIndex);
+			rect.y = origin.y - (size.y / 2 + size.y * yOffset + spacing * yOffset);
+		}else if(itemIndex == (numItems + 1) / 2 - 1){//Middle element
+			rect.y = origin.y - (size.y / 2);
+		}else{//Bottom half
+			yOffset = (itemIndex - 1 - numItems / 2);
+			rect.y = origin.y + (size.y / 2 + size.y * yOffset + spacing * (yOffset	+ 1));
+		}
+	}
+	return rect;
+}
+
+void DrawVRectListBackround(int numItems, Vector2 itemSize, Vector2 origin, int spacing, uint8_t opacity){
+	int padding = 8;
+	SDL_Rect rect;
+	rect.w = itemSize.x + padding * 2;
+	rect.h = numItems * itemSize.y + (numItems + 1) * padding;
+	rect.x = WIDTH / 2 - rect.w / 2;
+	rect.y = HEIGHT / 2 - rect.h / 2;
+	AddToRenderQueue(renderer, find_tilesheet("ui"), 0, rect, opacity, RNDRLYR_UI - 1);
+}
+
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 	bool isClicked = false;
 	
@@ -234,6 +272,12 @@ bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect){
 		rect.y -= 2;
 		rect.w += 4;
 		rect.h += 4;
+		if(mouseHeld){
+			rect.x += 2;
+			rect.y += 2;
+			rect.w -= 4;
+			rect.h -= 4;
+		}
 		if(mouseClicked){
 			isClicked = true;
 		}
@@ -269,15 +313,4 @@ void DrawCheckbox(SDL_Renderer *renderer, bool *value, char *label, SDL_Rect rec
 	}
 	AddToRenderQueue(renderer, find_tilesheet("ui"), !*value + 10, checkbox, 255, RNDRLYR_UI);
 	RenderText_d(renderer, label, rect.x + 14, rect.y + 8);
-}
-
-void RenderPauseMenu(){
-	// SDL_Rect tmp1 = {WIDTH / 2 - 64, HEIGHT / 2 - 16, 128, 32};
-	// SDL_Rect tmp2 = {WIDTH / 2 - 32, 336, 128, 32};
-	// if(DrawButton(renderer, "Button 1", tmp1)){
-	// 	printf("wow 1\n");
-	// }
-	// if(DrawButton(renderer, "Button 2", tmp2)){
-	// 	printf("wow 2\n");
-	// }
 }

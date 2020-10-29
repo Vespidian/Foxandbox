@@ -22,6 +22,8 @@ extern int renderItemIndex;
 extern int tilePixelSize;
 extern const int tileStretchSize;
 
+SDL_Rect VerticalRectList(int numItems, int itemIndex, Vector2 size, Vector2 origin, int spacing);
+void DrawVRectListBackround(int numItems, Vector2 itemSize, Vector2 origin, int spacing, uint8_t opacity);
 bool DrawButton(SDL_Renderer *renderer, char *text, SDL_Rect rect);
 void DrawCheckbox(SDL_Renderer *renderer, bool *value, char *label, SDL_Rect rect);
 
