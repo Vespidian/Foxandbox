@@ -1,0 +1,84 @@
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 22:24:36: [ERROR]: no error here.. it works!
+2020-10-22 22:24:39: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 22:47:12: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 22:53:11: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 22:58:58: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 23:53:35: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-22 23:55:17: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-23 15:34:10: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-23 19:44:12: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-23 19:59:18: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-24 14:50:50: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-10-26 14:34:9: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+2020-11-1 21:3:37: [ACTION]: Shutting down!
+
+---------------
+SEPARATOR
+---------------
+
+
+---------------
+SEPARATOR
+---------------
+
+2020-11-1 21:59:43: [ACTION]: Shutting down!
