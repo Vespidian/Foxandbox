@@ -1,0 +1,29 @@
+#include "../global.h"
+#include "item.h"
+
+ItemObject *items;
+unsigned int numItems = 0;
+
+ItemObject undefinedItem;
+
+void InitItems(){
+    undefinedItem = (ItemObject){"undefined", &undefinedTilesheet, 0, false};
+    DebugLog(D_ACT, "Initialized item subsystem");
+}
+
+void CreateItem(char *name, TilesheetObject *tilesheet, int tileIndex){
+    items = realloc(items, sizeof(ItemObject) * (numItems + 1));
+    items[numItems].name = malloc(sizeof(char) * strlen(name));
+    items[numItems] = (ItemObject){name, tilesheet, tileIndex, false};
+    DebugLog(D_ACT, "Created item id '%d' with name '%s'", numItems, name);
+    numItems++;
+}
+
+ItemObject *FindItem(char *name){
+    for(int i = 0; i < numItems; i++){
+        if(strcmp(items[i].name, name) == 0){
+            return &items[i];
+        }
+    }
+    return &undefinedItem;
+}
