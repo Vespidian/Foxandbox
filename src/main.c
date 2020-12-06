@@ -5,6 +5,7 @@
 #include "entities/item.h"
 #include "entities/block.h"
 #include "render/renderer.h"
+#include "render/render_text.h"
 
 int loopStartTicks = 0;
 float deltatime = 0;
@@ -20,9 +21,11 @@ void Setup(){
 	InitTilesheets();
 	InitItems();
 	InitBlocks();
+	InitFonts();
 
 	LoadTexture(renderer, "../images/testingTemp/tmpTilesheet.png", "tmp");
 	CreateTilesheet("tmp", FindTexture("tmp"), (Vector2){16, 16});
+    // printf("%s\n", fonts[0].tilesheet.name);
 }
 
 void SetupSDL(){
@@ -50,20 +53,16 @@ void Quit(){
 
 SDL_Rect src = {0, 0, 128, 128};
 SDL_Rect dst = {0, 0, 512, 512};
-SDL_Rect tileDst = {0, 0, 64, 64};
+SDL_Rect tileDst = {0, 64	, 64, 64};
 void GameLoop(){
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
-	PushRenderEx(renderer, FindTexture("tmp"), src, dst, 0, 1, 255, (SDL_Color){255, 255, 255});
-	// tileDst.x = 0;
-	// PushRender_TilesheetEx(renderer, FindTilesheet("tmp"), 1, tileDst, 0, 0, 255, (SDL_Color){255, 255, 255});
-	// tileDst.x += 64;
-	// PushRender_TilesheetEx(renderer, FindTilesheet("tmp"), 1, tileDst, 0, 90, 255, (SDL_Color){255, 255, 255});
-	// tileDst.x += 64;
-	// PushRender_TilesheetEx(renderer, FindTilesheet("tmp"), 1, tileDst, 0, 180, 255, (SDL_Color){255, 255, 255});
-	// tileDst.x += 64;
-	// PushRender_TilesheetEx(renderer, FindTilesheet("tmp"), 1, tileDst, 0, 45, 255, (SDL_Color){255, 255, 255});
+	PushRenderEx(renderer, FindTexture("tmp"), src, dst, 0, 0, 255, (SDL_Color){255, 255, 255});
+	// RenderText(renderer, FindFont("default_font"), 1, 100, 100, "testing 1234 . %d", 77314159);
+	RenderText(renderer, FindFont("default_font"), 2, 100, 100, "the quick brown fox jumped over the lazy dog\nTHE QUICK BROWN FOX JUMPED OVER THE LAZY DOG\n,./;'[]-=\\<>?:{}|_+!@#$%^&*()`~1234567890");
+	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize);
+	// PushRender_Tilesheet(renderer, FindTilesheet("default_font"), 1, tileDst, 0);
 
 	RenderQueue();
 	SDL_RenderPresent(renderer);
@@ -77,7 +76,7 @@ int main(int argc, char *argv[]){
 	SetupDebug();
 	SetupSDL();
 	Setup();
-	
+
 	while(running){
 		loopStartTicks = SDL_GetTicks();
 		FastEvents();

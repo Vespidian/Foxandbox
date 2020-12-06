@@ -47,19 +47,19 @@ void PushRender_RawTilesheet(SDL_Renderer *renderer, TextureObject *texture, Vec
 
 void PushRender_TilesheetEx(SDL_Renderer *renderer, TilesheetObject *tilesheet, int index, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color){
 	CreateQueueSlot();
-	if(index > tilesheet->tileSize.x * tilesheet->tileSize.y - 1){
+	if(index > (tilesheet->tileSize).x * tilesheet->tileSize.y - 1){
 		index = 0;
 		tilesheet = &undefinedTilesheet;
 	}
 	SDL_Rect srcRect = {
-		(index % tilesheet->texture->w) * tilesheet->tileSize.x,
-		(index / tilesheet->texture->w) * tilesheet->tileSize.y,
+		(index % (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.x,
+		(index / (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.y,
 		tilesheet->tileSize.x,
 		tilesheet->tileSize.y,
 	};
 	renderQueue[renderQueueSize - 1] = (RenderObject){
 		renderer,
-		tilesheet->texture,
+		IDFindTexture(tilesheet->texture)->id,
 		srcRect,
 		dst,
 		zPos,
@@ -77,7 +77,7 @@ void PushRenderEx(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, 
 	CreateQueueSlot();
 	renderQueue[renderQueueSize - 1] = (RenderObject){
 		renderer,
-		texture,
+		texture->id,
 		src,
 		dst,
 		zPos,
@@ -98,12 +98,12 @@ void SortRenderQueue(){
 void RenderQueue(){
 	SortRenderQueue();
 	for(int i = 0; i < renderQueueSize; i++){
-		if(renderQueue[i].texture == NULL){
-			renderQueue[i].texture = &undefinedTexture;
+		if(renderQueue[i].texture == undefinedTexture.id){
+			IDFindTexture(renderQueue[i].texture)->texture = undefinedTexture.texture;
 		}
-		SDL_SetTextureAlphaMod(renderQueue[i].texture->texture, renderQueue[i].alpha);
-		SDL_SetTextureColorMod(renderQueue[i].texture->texture, renderQueue[i].colorMod.r, renderQueue[i].colorMod.g, renderQueue[i].colorMod.b);
-		SDL_RenderCopyEx(renderQueue[i].renderer, renderQueue[i].texture->texture, &renderQueue[i].src, &renderQueue[i].dst, renderQueue[i].rotation, NULL, SDL_FLIP_NONE);
+		SDL_SetTextureAlphaMod(IDFindTexture(renderQueue[i].texture)->texture, renderQueue[i].alpha);
+		SDL_SetTextureColorMod(IDFindTexture(renderQueue[i].texture)->texture, renderQueue[i].colorMod.r, renderQueue[i].colorMod.g, renderQueue[i].colorMod.b);
+		SDL_RenderCopyEx(renderQueue[i].renderer, IDFindTexture(renderQueue[i].texture)->texture, &renderQueue[i].src, &renderQueue[i].dst, renderQueue[i].rotation, NULL, SDL_FLIP_NONE);
 	}
 	ResetRenderQueue();
 }

@@ -6,7 +6,7 @@
 
 typedef struct RenderObject{
 	SDL_Renderer *renderer;
-	TextureObject *texture;
+	unsigned int texture;
 	SDL_Rect src;
 	SDL_Rect dst;
 	int zPos;
@@ -21,6 +21,7 @@ extern SDL_Renderer *renderer;
 extern int SCREEN_WIDTH;
 extern int SCREEN_HEIGHT;
 
+extern unsigned int renderQueueSize;
 
 bool InitRenderer();
 

@@ -5,7 +5,8 @@
 
 typedef struct ItemObject{
     char *name;
-    TilesheetObject *tilesheet;
+    unsigned int id;
+    unsigned int tilesheet;
     int tileIndex;
     bool isBlock;
 }ItemObject;
@@ -18,5 +19,6 @@ extern ItemObject undefinedItem;
 void InitItems();
 void CreateItem(char *name, TilesheetObject *tilesheet, int tileIndex);
 ItemObject *FindItem(char *name);
+ItemObject *IDFindItem(unsigned int id);
 
 #endif

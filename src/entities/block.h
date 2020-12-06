@@ -4,9 +4,10 @@
 #include "item.h"
 
 typedef struct BlockObject{
-    ItemObject *item;
-    ItemObject *breakItem;
-    TilesheetObject *tilesheet;
+    unsigned int id;
+    unsigned int item;
+    unsigned int breakItem;
+    unsigned int tilesheet;
     int tileIndex;
     bool allowRotation;
 }BlockObject;
@@ -19,5 +20,6 @@ extern BlockObject undefinedBlock;
 void InitBlocks();
 void CreateBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation);
 BlockObject *FindBlock(char *name);
+BlockObject *IDFindBlock(unsigned int id);
 
 #endif

@@ -7,8 +7,8 @@
 
 #include "global.h"
 
-SDL_Rect GetWindowRect(SDL_Window *window){
-    SDL_Rect tmp = {0, 0, 0, 0};
+SDL_Rect *GetWindowRect(SDL_Window *window){
+    static SDL_Rect tmp = {0, 0, 0, 0};
     SDL_GetWindowSize(window, &tmp.w, &tmp.h);
-    return tmp;
+    return &tmp;
 }

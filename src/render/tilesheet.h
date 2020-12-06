@@ -6,7 +6,8 @@
 
 typedef struct TilesheetObject{
 	char *name;
-	TextureObject *texture;
+	unsigned int id;
+	unsigned int texture;
 	Vector2 tileSize;
 }TilesheetObject;
 
@@ -16,7 +17,9 @@ extern TilesheetObject undefinedTilesheet;
 
 
 void InitTilesheets();
-void CreateTilesheet(char *name, TextureObject *texture, Vector2 tileSize);
+TilesheetObject *CreateTilesheet(char *name, TextureObject *texture, Vector2 tileSize);
+TilesheetObject *CreateRawTilesheet(char *name, char *path, Vector2 tileSize);
 TilesheetObject *FindTilesheet(char *name);
+TilesheetObject *IDFindTilesheet(unsigned int id);
 
 #endif
