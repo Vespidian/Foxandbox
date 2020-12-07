@@ -65,12 +65,11 @@ void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xP
 
         if(charValue >= 0){
             if(SDL_HasIntersection(&dst, GetWindowRect(window))){
-                PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, 0);
+                PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
             }
             dst.x += padding.x * 1.7f * fontSize;
         }else{
             switch(charValue){
-                    break;
                 case -22: // NEWLINE (\n)
                     dst.y += (charSize.y + padding.y) * fontSize;
                     dst.x = xPos;

@@ -29,7 +29,7 @@ void ResetRenderQueue(){
 	if(renderQueueSize > 0){
 		free(renderQueue);
 	}
-	renderQueue = malloc(sizeof(RenderObject) * 1);
+	renderQueue = malloc(sizeof(RenderObject));
 	renderQueueSize = 0;
 }
 
@@ -90,12 +90,24 @@ void PushRender(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, SD
 	PushRenderEx(renderer, texture, src, dst, zPos, 0, 255, (SDL_Color){255, 255, 255});
 }
 
-
 void SortRenderQueue(){
-	
+	int key, j;
+	RenderObject tmpRenderObject;
+	for(int i = 1; i < renderQueueSize; i++){
+		tmpRenderObject = renderQueue[i];
+		key = renderQueue[i].zPos;
+		j = i - 1;
+
+		while(j >= 0 && renderQueue[j].zPos > key){
+			renderQueue[j + 1] = renderQueue[j];
+			j--;
+		}
+		renderQueue[j + 1] = tmpRenderObject;
+	}
 }
 
 void RenderQueue(){
+	// RadixSortRenderQueue();
 	SortRenderQueue();
 	for(int i = 0; i < renderQueueSize; i++){
 		if(renderQueue[i].texture == undefinedTexture.id){

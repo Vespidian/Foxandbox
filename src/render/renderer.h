@@ -4,6 +4,8 @@
 #include "../textures.h"
 #include "tilesheet.h"
 
+enum renderLayers {RNDR_BACKGROUND = 0, RNDR_LEVEL = 5, RNDR_ENTITY = 20, RNDR_UI = 30, RNDR_TEXT = 40};
+
 typedef struct RenderObject{
 	SDL_Renderer *renderer;
 	unsigned int texture;

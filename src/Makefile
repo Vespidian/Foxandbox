@@ -20,3 +20,4 @@ clean:
 	rm -rf *.o
 	rm -rf */*.o
 	rm ../log.txt
+	rm ../bin/main.exe
