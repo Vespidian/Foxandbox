@@ -14,7 +14,7 @@ void InitTilesheets(){
     DebugLog(D_ACT, "Initialized tilesheet subsystem");
 }
 
-TilesheetObject *CreateTilesheet(char *name, TextureObject *texture, Vector2 tileSize){
+TilesheetObject *NewTilesheet(char *name, TextureObject *texture, Vector2 tileSize){
     tilesheets = realloc(tilesheets, sizeof(TilesheetObject) * (numTilesheets + 1));
     tilesheets[numTilesheets].name = malloc(sizeof(char) * (strlen(name) + 1));
     tilesheets[numTilesheets] = (TilesheetObject){name, nextID, texture->id, tileSize};
@@ -24,8 +24,8 @@ TilesheetObject *CreateTilesheet(char *name, TextureObject *texture, Vector2 til
     return &tilesheets[numTilesheets - 1];
 }
 
-TilesheetObject *CreateRawTilesheet(char *name, char *path, Vector2 tileSize){
-    return CreateTilesheet(name, LoadTexture(renderer, path, name), tileSize);
+TilesheetObject *NewRawTilesheet(char *name, char *path, Vector2 tileSize){
+    return NewTilesheet(name, LoadTexture(renderer, path, name), tileSize);
 }
 
 TilesheetObject *FindTilesheet(char *name){

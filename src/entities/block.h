@@ -18,7 +18,7 @@ extern BlockObject undefinedBlock;
 
 
 void InitBlocks();
-void CreateBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation);
+void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation);
 BlockObject *FindBlock(char *name);
 BlockObject *IDFindBlock(unsigned int id);
 

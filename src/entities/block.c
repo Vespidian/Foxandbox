@@ -12,7 +12,7 @@ void InitBlocks(){
     DebugLog(D_ACT, "Initialized block subsystem");
 }
 
-void CreateBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation){
+void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation){
     blocks = realloc(blocks, sizeof(BlockObject) * (numBlocks + 1));
     if(breakItem == NULL){
         breakItem = item;

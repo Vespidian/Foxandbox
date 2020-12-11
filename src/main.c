@@ -6,6 +6,8 @@
 #include "entities/block.h"
 #include "render/renderer.h"
 #include "render/render_text.h"
+#include "level/level.h"
+#include "level/level_generation.h"
 
 int loopStartTicks = 0;
 float deltatime = 0;
@@ -15,6 +17,14 @@ bool running = true;
 
 void Quit();
 
+void LoadBuiltinResources(){
+	NewRawTilesheet("default_tilesheet", "../images/default_tilesheet.png", (Vector2){16, 16});
+	NewRawTilesheet("builtin", "../images/builtin.png", (Vector2){16, 16});
+
+	LoadTexture(renderer, "../images/testingTemp/tmpTilesheet.png", "tmp");
+	NewTilesheet("tmp", FindTexture("tmp"), (Vector2){16, 16});
+}
+
 void Setup(){
 	InitTextures();
 	InitRenderer();
@@ -22,9 +32,9 @@ void Setup(){
 	InitItems();
 	InitBlocks();
 	InitFonts();
+	InitLevels();
 
-	LoadTexture(renderer, "../images/testingTemp/tmpTilesheet.png", "tmp");
-	CreateTilesheet("tmp", FindTexture("tmp"), (Vector2){16, 16});
+	LoadBuiltinResources();
     // printf("%s\n", fonts[0].tilesheet.name);
 }
 
@@ -58,11 +68,12 @@ void GameLoop(){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
-	PushRenderEx(renderer, FindTexture("tmp"), src, dst, 0, 0, 255, (SDL_Color){255, 255, 255});
+	// PushRenderEx(renderer, FindTexture("tmp"), src, dst, 0, 0, 255, (SDL_Color){255, 255, 255});
 	// RenderText(renderer, FindFont("default_font"), 1, 100, 100, "testing 1234 . %d", 77314159);
-	RenderText(renderer, FindFont("default_font"), 2, 100, 100, "the quick brown fox jumped over the lazy dog\nTHE QUICK BROWN FOX JUMPED OVER THE LAZY DOG\n,./;'[]-=\\<>?:{}|_+!@#$%^&*()`~1234567890");
-	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize);
+	// RenderText(renderer, FindFont("default_font"), 2, 100, 100, "the quick brown fox jumped over the lazy dog\nTHE QUICK BROWN FOX JUMPED OVER THE LAZY DOG\n,./;'[]-=\\<>?:{}|_+!@#$%^&*()`~1234567890");
+	// RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	// PushRender_Tilesheet(renderer, FindTilesheet("default_font"), 1, tileDst, 0);
+	RenderLevel();
 
 	RenderQueue();
 	SDL_RenderPresent(renderer);
@@ -77,13 +88,22 @@ int main(int argc, char *argv[]){
 	SetupSDL();
 	Setup();
 
+	NewLevel("test", (Vector2){12, 12});
+	SetActiveLevel(FindLevel("test"));
+
+	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
+	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+	FillLevelLayer(&activeLevel, activeLevel.terrain, FindBlock("grass"));
+	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
+	PlaceBlock(activeLevel.terrain, FindBlock("water"), (Vector2){0, 2}, 0);
+	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
+
 	while(running){
 		loopStartTicks = SDL_GetTicks();
 		FastEvents();
 		while(SDL_PollEvent(&e) != 0){
 			EventManager(&e);
 		}
-		
 		GameLoop();
 
 		SDL_Delay(1000 / targetFramerate);

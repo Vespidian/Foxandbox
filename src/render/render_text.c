@@ -13,11 +13,11 @@ Vector2 charSize = {6, 12};
 Vector2 padding = {5, 2};
 
 void InitFonts(){
-    defaultFont = *CreateRawFont("default_font", "../images/fonts/default_font.png", (Vector2){6, 12}, (Vector2){5, 2});
+    defaultFont = *NewRawFont("default_font", "../images/fonts/default_font.png", (Vector2){6, 12}, (Vector2){5, 2});
     DebugLog(D_ACT, "Initialized font subsystem");
 }
 
-FontObject *CreateFont(char *name, TilesheetObject *tilesheet, Vector2 charSize, Vector2 padding){
+FontObject *NewFont(char *name, TilesheetObject *tilesheet, Vector2 charSize, Vector2 padding){
     fonts = realloc(fonts, sizeof(FontObject) * (numFonts + 1));
     fonts[numFonts].name = malloc(sizeof(char) * strlen(name));
     fonts[numFonts] = (FontObject){name, nextID, tilesheet->id, charSize, padding};
@@ -27,8 +27,8 @@ FontObject *CreateFont(char *name, TilesheetObject *tilesheet, Vector2 charSize,
     return &fonts[numFonts - 1];
 }
 
-FontObject *CreateRawFont(char *name, char *path, Vector2 charSize, Vector2 padding){
-    return CreateFont(name, CreateRawTilesheet(name, path, (Vector2){charSize.x + padding.x * 2, charSize.y + padding.y * 2}), charSize, padding);
+FontObject *NewRawFont(char *name, char *path, Vector2 charSize, Vector2 padding){
+    return NewFont(name, NewRawTilesheet(name, path, (Vector2){charSize.x + padding.x * 2, charSize.y + padding.y * 2}), charSize, padding);
 }
 
 FontObject *FindFont(char *name){
@@ -64,9 +64,7 @@ void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xP
         charValue = (int)formattedText[i] - (int)' ';
 
         if(charValue >= 0){
-            if(SDL_HasIntersection(&dst, GetWindowRect(window))){
-                PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
-            }
+            PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
             dst.x += padding.x * 1.7f * fontSize;
         }else{
             switch(charValue){

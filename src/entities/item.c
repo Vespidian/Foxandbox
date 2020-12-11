@@ -12,13 +12,14 @@ void InitItems(){
     DebugLog(D_ACT, "Initialized item subsystem");
 }
 
-void CreateItem(char *name, TilesheetObject *tilesheet, int tileIndex){
+ItemObject *NewItem(char *name, TilesheetObject *tilesheet, int tileIndex){
     items = realloc(items, sizeof(ItemObject) * (numItems + 1));
     items[numItems].name = malloc(sizeof(char) * strlen(name));
     items[numItems] = (ItemObject){name, nextID, tilesheet->id, tileIndex, false};
     DebugLog(D_ACT, "Created item id '%d' with name '%s'", nextID, name);
     numItems++;
     nextID++;
+    return &items[numItems - 1];
 }
 
 ItemObject *FindItem(char *name){

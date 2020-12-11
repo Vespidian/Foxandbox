@@ -3,6 +3,7 @@
 #include "../textures.h"
 #include "renderer.h"
 #include "../debug.h"
+#include "../utility.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -33,40 +34,44 @@ void ResetRenderQueue(){
 	renderQueueSize = 0;
 }
 
-void CreateQueueSlot(){
+void NewQueueSlot(){
 	renderQueueSize++;
 	renderQueue = realloc(renderQueue, sizeof(RenderObject) * (renderQueueSize + 1));
 }
 
 void PushRender_RawTilesheetEx(SDL_Renderer *renderer, TextureObject *texture, Vector2 tileSize, int index, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color){
-	
+	if(SDL_HasIntersection(&dst, GetWindowRect(window))){
+
+	}
 }
-void PushRender_RawTilesheet(SDL_Renderer *renderer, TextureObject *texture, Vector2 tileSize, int index, SDL_Rect dst, int zPos){//Creates a tilesheet of arbitrary size in texture
+void PushRender_RawTilesheet(SDL_Renderer *renderer, TextureObject *texture, Vector2 tileSize, int index, SDL_Rect dst, int zPos){//News a tilesheet of arbitrary size in texture
 	
 }
 
 void PushRender_TilesheetEx(SDL_Renderer *renderer, TilesheetObject *tilesheet, int index, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color){
-	CreateQueueSlot();
-	if(index > (tilesheet->tileSize).x * tilesheet->tileSize.y - 1){
-		index = 0;
-		tilesheet = &undefinedTilesheet;
+	if(SDL_HasIntersection(&dst, GetWindowRect(window))){
+		NewQueueSlot();
+		if(index > (tilesheet->tileSize).x * tilesheet->tileSize.y - 1){
+			index = 0;
+			tilesheet = &undefinedTilesheet;
+		}
+		SDL_Rect srcRect = {
+			(index % (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.x,
+			(index / (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.y,
+			tilesheet->tileSize.x,
+			tilesheet->tileSize.y,
+		};
+		renderQueue[renderQueueSize - 1] = (RenderObject){
+			renderer,
+			IDFindTexture(tilesheet->texture)->id,
+			srcRect,
+			dst,
+			zPos,
+			rotation,
+			alpha,
+			color,
+		};
 	}
-	SDL_Rect srcRect = {
-		(index % (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.x,
-		(index / (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.y,
-		tilesheet->tileSize.x,
-		tilesheet->tileSize.y,
-	};
-	renderQueue[renderQueueSize - 1] = (RenderObject){
-		renderer,
-		IDFindTexture(tilesheet->texture)->id,
-		srcRect,
-		dst,
-		zPos,
-		rotation,
-		alpha,
-		color,
-	};
 }
 void PushRender_Tilesheet(SDL_Renderer *renderer, TilesheetObject *tilesheet, int index, SDL_Rect dst, int zPos){//Uses tilesheet component to render index of tilesheet
 	PushRender_TilesheetEx(renderer, tilesheet, index, dst, zPos, 0, 255, (SDL_Color){255, 255, 255});
@@ -74,17 +79,19 @@ void PushRender_Tilesheet(SDL_Renderer *renderer, TilesheetObject *tilesheet, in
 
 
 void PushRenderEx(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color){
-	CreateQueueSlot();
-	renderQueue[renderQueueSize - 1] = (RenderObject){
-		renderer,
-		texture->id,
-		src,
-		dst,
-		zPos,
-		rotation,
-		alpha,
-		color,
-	};
+	if(SDL_HasIntersection(&dst, GetWindowRect(window))){
+		NewQueueSlot();
+		renderQueue[renderQueueSize - 1] = (RenderObject){
+			renderer,
+			texture->id,
+			src,
+			dst,
+			zPos,
+			rotation,
+			alpha,
+			color,
+		};
+	}
 }
 void PushRender(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, SDL_Rect dst, int zPos){//Pushes texture from specific coordinate
 	PushRenderEx(renderer, texture, src, dst, zPos, 0, 255, (SDL_Color){255, 255, 255});
@@ -107,7 +114,6 @@ void SortRenderQueue(){
 }
 
 void RenderQueue(){
-	// RadixSortRenderQueue();
 	SortRenderQueue();
 	for(int i = 0; i < renderQueueSize; i++){
 		if(renderQueue[i].texture == undefinedTexture.id){

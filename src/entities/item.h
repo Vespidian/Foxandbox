@@ -17,7 +17,7 @@ extern ItemObject undefinedItem;
 
 
 void InitItems();
-void CreateItem(char *name, TilesheetObject *tilesheet, int tileIndex);
+ItemObject *NewItem(char *name, TilesheetObject *tilesheet, int tileIndex);
 ItemObject *FindItem(char *name);
 ItemObject *IDFindItem(unsigned int id);
 
