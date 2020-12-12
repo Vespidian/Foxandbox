@@ -7,6 +7,7 @@
 #include "render/renderer.h"
 #include "render/render_text.h"
 #include "level/level.h"
+
 #include "level/level_generation.h"
 
 int loopStartTicks = 0;
@@ -74,7 +75,7 @@ void GameLoop(){
 	// RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	// PushRender_Tilesheet(renderer, FindTilesheet("default_font"), 1, tileDst, 0);
 	RenderLevel();
-
+	// printf("%d\n", sizeof(TileObject));
 	RenderQueue();
 	SDL_RenderPresent(renderer);
 }
@@ -100,10 +101,8 @@ int main(int argc, char *argv[]){
 
 	while(running){
 		loopStartTicks = SDL_GetTicks();
-		FastEvents();
-		while(SDL_PollEvent(&e) != 0){
-			EventManager(&e);
-		}
+		EventManager(&e);
+		
 		GameLoop();
 
 		SDL_Delay(1000 / targetFramerate);

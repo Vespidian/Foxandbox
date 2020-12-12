@@ -8,6 +8,7 @@
 #include "../global.h"
 #include "../entities/block.h"
 #include "../render/renderer.h"
+#include "../event.h"
 #include "level.h"
 
 const int MAXLEVELSIZE = 512;
@@ -16,10 +17,13 @@ LevelObject *levels;
 unsigned int numLevels = 0;
 static unsigned int nextID = 0;
 LevelObject activeLevel;
+Vector2 mouseTilePos;
 
 
 Vector2 globalCoordinates = {0, 0};
 int tileRenderSize = 64;
+
+void RenderCursor();
 
 void InitLevels(){
     NewBlock(NewItem("air", FindTilesheet("default_tilesheet"), 0), FindItem("air"), FindTilesheet("default_tilesheet"), 0, false);
@@ -75,7 +79,7 @@ void SetActiveLevel(LevelObject *level){
 
 void RenderLevel(){ // Renders 'activeLevel'
     if(activeLevel.name != NULL){
-        SDL_Rect levelRect = {globalCoordinates.x, globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
+        SDL_Rect levelRect = {-globalCoordinates.x, -globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 0, levelRect, RNDR_LEVEL - 1);
 
         SDL_Rect tile = {0, 0, tileRenderSize, tileRenderSize};
@@ -102,6 +106,7 @@ void RenderLevel(){ // Renders 'activeLevel'
                 }
             }
         }
+        RenderCursor();
     }
 }
 
@@ -138,4 +143,20 @@ BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
         return IDFindBlock(tmpBlock);
     }
     return &undefinedBlock;
+}
+
+void RenderCursor(){
+    SDL_Rect levelRect = {globalCoordinates.x, globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
+    if(SDL_PointInRect((SDL_Point*)&mousePos, &levelRect)){
+        mouseTilePos.x = (mousePos.x + globalCoordinates.x) / tileRenderSize;
+        mouseTilePos.y = (mousePos.y + globalCoordinates.y) / tileRenderSize;
+        SDL_Rect cursor = {(mouseTilePos.x * 64) - globalCoordinates.x, (mouseTilePos.y * 64) - globalCoordinates.y, tileRenderSize, tileRenderSize};
+        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 1, cursor, RNDR_UI);
+    }
+}
+
+void LevelMouseInteraction(){
+    if(mouseHeld){
+        PlaceBlock(activeLevel.terrain, FindBlock("water"), mouseTilePos, 0);
+	}
 }
