@@ -24,9 +24,16 @@ Vector2 globalCoordinates = {0, 0};
 int tileRenderSize = 64;
 
 void RenderCursor();
+void LevelMouseInteraction();
+void LevelMovement();
+
 
 void InitLevels(){
     NewBlock(NewItem("air", FindTilesheet("default_tilesheet"), 0), FindItem("air"), FindTilesheet("default_tilesheet"), 0, false);
+    
+    NewEvent(EV_QUICK, SDL_MOUSEBUTTONDOWN, LevelMouseInteraction);
+    NewEvent(EV_QUICK, SDL_KEYDOWN, LevelMovement);
+    
     DebugLog(D_ACT, "Initialized level subsystem");
 }
 
@@ -146,7 +153,7 @@ BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
 }
 
 void RenderCursor(){
-    SDL_Rect levelRect = {globalCoordinates.x, globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
+    SDL_Rect levelRect = {-globalCoordinates.x, -globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
     if(SDL_PointInRect((SDL_Point*)&mousePos, &levelRect)){
         mouseTilePos.x = (mousePos.x + globalCoordinates.x) / tileRenderSize;
         mouseTilePos.y = (mousePos.y + globalCoordinates.y) / tileRenderSize;
@@ -155,8 +162,23 @@ void RenderCursor(){
     }
 }
 
-void LevelMouseInteraction(){
+void LevelMouseInteraction(EventData event){
     if(mouseHeld){
         PlaceBlock(activeLevel.terrain, FindBlock("water"), mouseTilePos, 0);
+	}
+}
+
+void LevelMovement(EventData event){
+    if(event.keyStates[SDL_SCANCODE_W]){
+		globalCoordinates.y -= 1;
+	}
+	if(event.keyStates[SDL_SCANCODE_S]){
+		globalCoordinates.y += 1;
+	}
+	if(event.keyStates[SDL_SCANCODE_A]){
+		globalCoordinates.x -= 1;
+	}
+	if(event.keyStates[SDL_SCANCODE_D]){
+		globalCoordinates.x += 1;
 	}
 }

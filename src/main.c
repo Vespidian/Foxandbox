@@ -33,10 +33,10 @@ void Setup(){
 	InitItems();
 	InitBlocks();
 	InitFonts();
+	InitEvents();
 	InitLevels();
 
 	LoadBuiltinResources();
-    // printf("%s\n", fonts[0].tilesheet.name);
 }
 
 void SetupSDL(){
@@ -69,13 +69,9 @@ void GameLoop(){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
-	// PushRenderEx(renderer, FindTexture("tmp"), src, dst, 0, 0, 255, (SDL_Color){255, 255, 255});
-	// RenderText(renderer, FindFont("default_font"), 1, 100, 100, "testing 1234 . %d", 77314159);
-	// RenderText(renderer, FindFont("default_font"), 2, 100, 100, "the quick brown fox jumped over the lazy dog\nTHE QUICK BROWN FOX JUMPED OVER THE LAZY DOG\n,./;'[]-=\\<>?:{}|_+!@#$%^&*()`~1234567890");
-	// RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
-	// PushRender_Tilesheet(renderer, FindTilesheet("default_font"), 1, tileDst, 0);
 	RenderLevel();
-	// printf("%d\n", sizeof(TileObject));
+	
+	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	RenderQueue();
 	SDL_RenderPresent(renderer);
 }
