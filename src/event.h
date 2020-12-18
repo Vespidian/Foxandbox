@@ -14,9 +14,14 @@ typedef struct InputEvent{
 	int pollType;
 	Uint32 eventType;
 	EV_Function function;
+	bool isKeyPress;
+	char keyCode;
+	Uint8 scanCode;
 }InputEvent;
 
 void NewEvent(int pollType, Uint32 eventType, EV_Function function);
+void BindQuickKeyEvent(EV_Function function, Uint8 scanCode);
+void BindKeyEvent(EV_Function function, char key, Uint32 keyPressType);
 
 extern SDL_Event e;
 extern Vector2 mousePos;

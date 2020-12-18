@@ -5,22 +5,24 @@
 SDL_Event e;
 Vector2 mousePos = {0, 0};
 
-bool mouseHeld = false;
-bool mouseClicked = false;
-
 InputEvent *events;
 int numEvents = 0;
 
+bool mouseHeld = false;
+bool mouseClicked = false;
+
+//Event predefinitions
 void MouseClicked();
 void KeyEvents_quick();
 void WindowResize();
 void SDLQuitEvent();
 
+//Event management
 void InitEvents(){
 	events = malloc(sizeof(InputEvent));
 
 	NewEvent(EV_ACCURATE, SDL_MOUSEBUTTONDOWN, MouseClicked);
-	NewEvent(EV_QUICK, SDL_KEYDOWN, KeyEvents_quick);
+	BindKeyEvent(SDLQuitEvent, 0x1B, SDL_KEYDOWN);//escape
 	NewEvent(EV_ACCURATE, SDL_WINDOWEVENT, WindowResize);
 	NewEvent(EV_ACCURATE, SDL_QUIT, SDLQuitEvent);
 
@@ -29,7 +31,7 @@ void InitEvents(){
 
 void NewEvent(int pollType, Uint32 eventType, EV_Function function){
 	events = realloc(events, sizeof(InputEvent) * (numEvents + 1));
-	events[numEvents] = (InputEvent){pollType, eventType, function};
+	events[numEvents] = (InputEvent){pollType, eventType, function, false, 0x00};
 	numEvents++;
 }
 
@@ -41,14 +43,26 @@ void PollEvents(){
 	}
 	for(int i = 0; i < numEvents; i++){
 		if(events[i].pollType == EV_QUICK){
-			events[i].function((EventData){NULL, keyStates, &mouseState});
+			if(events[i].isKeyPress){
+				if(keyStates[events[i].scanCode]){
+					events[i].function((EventData){NULL, keyStates, &mouseState});
+				}
+			}else{
+				events[i].function((EventData){NULL, keyStates, &mouseState});
+			}
 		}
 	}
 	while(SDL_PollEvent(&e) != 0){
 		for(int i = 0; i < numEvents; i++){
 			if(events[i].pollType == EV_ACCURATE){
 				if(events[i].eventType == e.type){
-					events[i].function((EventData){&e, NULL, NULL});
+					if(events[i].isKeyPress){
+						if(e.key.keysym.sym == events[i].keyCode){
+							events[i].function((EventData){&e, keyStates, &mouseState});
+						}
+					}else{
+						events[i].function((EventData){&e, keyStates, &mouseState});
+					}
 				}
 			}
 		}
@@ -61,6 +75,19 @@ void EventManager(SDL_Event *e){
 	PollEvents();
 }
 
+void BindQuickKeyEvent(EV_Function function, Uint8 scanCode){
+	NewEvent(EV_QUICK, SDL_KEYDOWN, function);
+	events[numEvents - 1] = (InputEvent){EV_QUICK, SDL_KEYDOWN, function, true, 0x00, scanCode};
+}
+
+void BindKeyEvent(EV_Function function, char keyCode, Uint32 keyPressType){
+	//Make sure keypresstype is keydown or keyup
+	if(keyPressType != SDL_KEYDOWN || keyPressType != SDL_KEYUP){
+		keyPressType = SDL_KEYDOWN;
+	}
+	NewEvent(EV_ACCURATE, keyPressType, function);
+	events[numEvents - 1] = (InputEvent){EV_ACCURATE, keyPressType, function, true, keyCode};
+}
 
 //Events
 

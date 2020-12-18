@@ -36,6 +36,4 @@ void RenderLevel();
 BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation);
 BlockObject *RemoveBlock(TileObject **layer, Vector2 pos);
 
-// void LevelMouseInteraction();
-
 #endif
