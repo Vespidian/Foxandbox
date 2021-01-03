@@ -1,31 +1,33 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-
-#include <SDL2/SDL.h>
-
 #include "../global.h"
-#include "../entities/block.h"
+#include "block.h"
 #include "../render/renderer.h"
 #include "../event.h"
+#include "../utility.h"
 #include "level.h"
 
 const int MAXLEVELSIZE = 512;
+int tileRenderSize = 64;
+const int chunkSize = 4;
+const int chunkLayers = 2;
 
-LevelObject *levels;
-unsigned int numLevels = 0;
-static unsigned int nextID = 0;
-LevelObject activeLevel;
+// LevelObject *levels;
+// unsigned int numLevels = 0;
+// static unsigned int nextID = 0;
+// LevelObject activeLevel;
 Vector2 mouseTilePos;
 
 
+fVector2 globalOffset = {0, 0};
 Vector2 globalCoordinates = {0, 0};
-int tileRenderSize = 64;
+
+SandboxObject *sandboxes;
+SandboxObject activeSandbox;
+
 
 void RenderCursor();
 void LevelMouseInteraction();
 void LevelMovement();
+void KeyUp(EventData event);
 
 
 void InitLevels(){
@@ -33,100 +35,99 @@ void InitLevels(){
     
     NewEvent(EV_QUICK, SDL_MOUSEBUTTONDOWN, LevelMouseInteraction);
     NewEvent(EV_QUICK, SDL_KEYDOWN, LevelMovement);
+    NewEvent(EV_ACCURATE, SDL_KEYUP, KeyUp);
     
     DebugLog(D_ACT, "Initialized level subsystem");
 }
 
-LevelObject *NewLevel(char *name, Vector2 size){
-    if(size.x > MAXLEVELSIZE){
-        size.x = MAXLEVELSIZE;
-    }
-    if(size.y > MAXLEVELSIZE){
-        size.y = MAXLEVELSIZE;
-    }
 
-    levels = realloc(levels, sizeof(LevelObject) * (numLevels + 1));
-    levels[numLevels].name = malloc(sizeof(char) * (strlen(name) + 1));
-    levels[numLevels] = (LevelObject){.name = name, .id = nextID, .seed = 0, .mapSize = (Vector2)size};
+void RenderSandbox(){
 
-    levels[numLevels].terrain = malloc(sizeof(TileObject) * (size.y + 1));
-    levels[numLevels].features = malloc(sizeof(TileObject) * (size.y + 1));
-    levels[numLevels].collision = malloc(sizeof(int) * (size.y + 1));
-
-    TileObject templateTile = {FindBlock("air")->id, 0, 0, 255, (SDL_Color){255, 255, 255}};
-    for(int y = 0; y < size.y; y++){
-        levels[numLevels].terrain[y] = malloc(sizeof(TileObject) * (size.x + 1));
-        levels[numLevels].features[y] = malloc(sizeof(TileObject) * (size.x + 1));
-        levels[numLevels].collision[y] = malloc(sizeof(int) * (size.x + 1));
-
-        memset(levels[numLevels].collision[y], -1, sizeof(int) * (size.x));
-
-        for(int x = 0; x < size.x; x++){
-            levels[numLevels].terrain[y][x] = (TileObject)templateTile;
-            levels[numLevels].features[y][x] = (TileObject)templateTile;
-        }
-    }
-    numLevels++;
-    nextID++;
-    return &levels[numLevels - 1];
+    // RenderCursor();
 }
 
-LevelObject *FindLevel(char *name){
-    for(int i = 0; i < numLevels; i++){
-        if(strcmp(levels[i].name, name) == 0){
-            return &levels[i];
-        }
-    }
+ChunkObject *FindChunk(Vector2 coordinate){
     return NULL;
 }
 
-void SetActiveLevel(LevelObject *level){
-    activeLevel = *level;
-}
+void RenderChunk(ChunkObject *chunk, Vector2 position){
+    SDL_Rect chunkRect = {-position.x, -position.y, chunkSize * tileRenderSize, chunkSize * tileRenderSize};
 
-void RenderLevel(){ // Renders 'activeLevel'
-    if(activeLevel.name != NULL){
-        SDL_Rect levelRect = {-globalCoordinates.x, -globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
-        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 0, levelRect, RNDR_LEVEL - 1);
+    if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
+        SDL_Rect tileRect = {0, 0, tileRenderSize, tileRenderSize};
 
-        SDL_Rect tile = {0, 0, tileRenderSize, tileRenderSize};
-        //Start render loop at top of window unless at level top edge. Loop until bottom of window unless at bottom level edge
-        for(int y = (globalCoordinates.y / tileRenderSize - 1) * ((globalCoordinates.y / tileRenderSize - 1) > 0); y < ((globalCoordinates.y + SCREEN_HEIGHT) / tileRenderSize + 1) && y < activeLevel.mapSize.y; y++){
-            for(int x = (globalCoordinates.x / tileRenderSize - 1) * ((globalCoordinates.x / tileRenderSize - 1) > 0); x < ((globalCoordinates.x + SCREEN_WIDTH) / tileRenderSize + 1) && x < activeLevel.mapSize.x; x++){
-                tile.x = (x * tileRenderSize) - globalCoordinates.x;
-                tile.y = (y * tileRenderSize) - globalCoordinates.y;
-                BlockObject *terrainBlock = IDFindBlock(activeLevel.terrain[y][x].block);
-                BlockObject *featureBlock = IDFindBlock(activeLevel.features[y][x].block);
-                if(activeLevel.terrain[y][x].block != FindBlock("air")->id){
-                    PushRender_TilesheetEx(renderer, IDFindTilesheet(terrainBlock->tilesheet), terrainBlock->tileIndex, tile, activeLevel.terrain[y][x].zPos, activeLevel.terrain[y][x].rotation * 90, activeLevel.terrain[y][x].alpha, activeLevel.terrain[y][x].color);
-                    activeLevel.terrain[y][x].zPos = RNDR_LEVEL + 1;
-                    activeLevel.terrain[y][x].rotation = 0;
-                    activeLevel.terrain[y][x].alpha = 255;
-                    activeLevel.terrain[y][x].color = (SDL_Color){255, 255, 255};
-                }
-                if(activeLevel.features[y][x].block != FindBlock("air")->id){
-                    PushRender_TilesheetEx(renderer, IDFindTilesheet(featureBlock->tilesheet), featureBlock->tileIndex, tile, activeLevel.features[y][x].zPos, activeLevel.features[y][x].rotation * 90, activeLevel.features[y][x].alpha, activeLevel.features[y][x].color);
-                    activeLevel.features[y][x].zPos = RNDR_LEVEL + 1;
-                    activeLevel.features[y][x].rotation = 0;
-                    activeLevel.features[y][x].alpha = 255;
-                    activeLevel.features[y][x].color = (SDL_Color){255, 255, 255};
+        for(int y = (position.y / -tileRenderSize - 1) * (position.y / -tileRenderSize - 1 > 0);  y < ((position.y + SCREEN_HEIGHT) / tileRenderSize + 1) && y < chunkSize; y++){
+            for(int x = (position.x / -tileRenderSize - 1) * (position.x / -tileRenderSize - 1 > 0);  x < ((position.x + SCREEN_HEIGHT) / tileRenderSize + 1) && x < chunkSize; x++){
+                tileRect.x = (x * tileRenderSize) - position.x;
+                tileRect.y = (y * tileRenderSize) - position.y;
+                for(int z = 0; z < chunkLayers; z++){
+                    BlockObject *terrainBlock = IDFindBlock(chunk->tile[z][y][x].block);
+                    if(chunk->tile[z][y][x].block != FindBlock("air")->id){
+                        PushRender_TilesheetEx(
+                            renderer, 
+                            IDFindTilesheet(terrainBlock->tilesheet), 
+                            terrainBlock->tileIndex, 
+                            tileRect, 
+                            chunk->tile[z][y][x].zPos, 
+                            chunk->tile[z][y][x].rotation * 90, 
+                            chunk->tile[z][y][x].alpha, 
+                            chunk->tile[z][y][x].color
+                        );
+                        chunk->tile[z][y][x].zPos = RNDR_LEVEL + 1;
+                        chunk->tile[z][y][x].rotation = 0;
+                        chunk->tile[z][y][x].alpha = 255;
+                        chunk->tile[z][y][x].color = (SDL_Color){255, 255, 255};
+                    }
                 }
             }
         }
-        RenderCursor();
     }
 }
 
-void LoadLevel(char *path){
+ChunkObject *NewChunk(Vector2 position){
+    activeSandbox.chunkBuffer = realloc(activeSandbox.chunkBuffer, sizeof(ChunkObject) * activeSandbox.chunkBufferSize);
+    ChunkObject *chunk = &activeSandbox.chunkBuffer[activeSandbox.chunkBufferSize];
+    
+    TileObject templateTile = {FindBlock("air")->id, 0, 0, 255, (SDL_Color){255, 255, 255}};
+    for(int y = 0; y < chunkSize; y++){
+        memset(chunk->collision[y], -1, sizeof(int) * (chunkSize));
+        for(int x = 0; x < chunkSize; x++){
+            for(int z = 0; z < chunkLayers; z++){
+                chunk->tile[z][y][x] = (TileObject)templateTile;
+            }
+        }
+    }
+    activeSandbox.chunkBufferSize++;
+    return chunk;
+}
+
+void WriteChunk(ChunkObject *chunk, Vector2 position){
+    char name[48];
+    snprintf(name, 48, "%d,%d", position.x, position.y);
+    // FILE *chunkFile = fopen(name, "w");
 
 }
 
-void SaveLevel(LevelObject *level, char *path){
+ChunkObject *ReadChunk(Vector2 position){
+    char name[48];
+    snprintf(name, 48, "%d,%d", position.x, position.y);
+    FILE *chunkFile = fopen(name, "r");
+    ChunkObject *chunk = NewChunk(position);
 
+    if(chunkFile != NULL){
+        
+    }else{
+        WriteChunk(chunk, position);
+    }
+
+
+    return chunk;
 }
+
+
 
 // Level Interaction
-BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation){//Returns whether or not the block was placed
+/*BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation){//Returns whether or not the block was placed
     // int layer = 0;
     // while(activeLevel.layer[layer][pos.y][pos.x].block = FindBlock("air")->id){
         
@@ -150,35 +151,54 @@ BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
         return IDFindBlock(tmpBlock);
     }
     return &undefinedBlock;
-}
+}*/
 
-void RenderCursor(){
-    SDL_Rect levelRect = {-globalCoordinates.x, -globalCoordinates.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
+/*void RenderCursor(){
+    SDL_Rect levelRect = {-globalOffset.x, -globalOffset.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
     if(SDL_PointInRect((SDL_Point*)&mousePos, &levelRect)){
-        mouseTilePos.x = (mousePos.x + globalCoordinates.x) / tileRenderSize;
-        mouseTilePos.y = (mousePos.y + globalCoordinates.y) / tileRenderSize;
-        SDL_Rect cursor = {(mouseTilePos.x * 64) - globalCoordinates.x, (mouseTilePos.y * 64) - globalCoordinates.y, tileRenderSize, tileRenderSize};
-        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 1, cursor, RNDR_UI);
+        mouseTilePos.x = (mousePos.x + globalOffset.x) / tileRenderSize;
+        mouseTilePos.y = (mousePos.y + globalOffset.y) / tileRenderSize;
+        SDL_Rect cursor = {(mouseTilePos.x * 64) - globalOffset.x, (mouseTilePos.y * 64) - globalOffset.y, tileRenderSize, tileRenderSize};
+        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
     }
-}
+}*/
 
 void LevelMouseInteraction(EventData event){
     if(mouseHeld){
-        PlaceBlock(activeLevel.terrain, FindBlock("water"), mouseTilePos, 0);
+        // PlaceBlock(activeLevel.terrain, FindBlock("water"), mouseTilePos, 0);
 	}
 }
 
 void LevelMovement(EventData event){
     if(event.keyStates[SDL_SCANCODE_W]){
-		globalCoordinates.y -= 1;
+		globalOffset.y -= 1 * deltatime;
 	}
 	if(event.keyStates[SDL_SCANCODE_S]){
-		globalCoordinates.y += 1;
+		globalOffset.y += 1 * deltatime;
 	}
 	if(event.keyStates[SDL_SCANCODE_A]){
-		globalCoordinates.x -= 1;
+		globalOffset.x -= 1 * deltatime;
 	}
 	if(event.keyStates[SDL_SCANCODE_D]){
-		globalCoordinates.x += 1;
+		globalOffset.x += 1 * deltatime;
 	}
+
+    if(abs((int)globalOffset.x % tileRenderSize) > tileRenderSize / 2){
+        globalCoordinates.x += ((globalOffset.x) < 0) ? -1 : 1;
+        globalOffset.x = (int)globalOffset.x % (tileRenderSize / 2);
+    }
+    if(abs((int)globalOffset.y % tileRenderSize) > tileRenderSize / 2){
+        globalCoordinates.y += ((globalOffset.y) < 0) ? -1 : 1;
+        globalOffset.y = (int)globalOffset.y % (tileRenderSize / 2);
+    }
+}
+
+void KeyUp(EventData event){
+    Vector2 pixelPerfectOffset = {(int)globalOffset.x % 4, (int)globalOffset.y % 4};
+    if(pixelPerfectOffset.x != 0){
+        globalOffset.x += pixelPerfectOffset.x >= 3 ? pixelPerfectOffset.x : -(pixelPerfectOffset.x);
+    }
+    if(pixelPerfectOffset.y != 0){
+        globalOffset.y += pixelPerfectOffset.y >= 3 ? pixelPerfectOffset.y : -(pixelPerfectOffset.y);
+    }
 }

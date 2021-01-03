@@ -8,6 +8,8 @@ Vector2 mousePos = {0, 0};
 InputEvent *events;
 int numEvents = 0;
 
+bool enableInput = true;
+
 bool mouseHeld = false;
 bool mouseClicked = false;
 
@@ -72,7 +74,9 @@ void PollEvents(){
 void EventManager(SDL_Event *e){
 	mouseClicked = false;
 	mouseHeld = false;
-	PollEvents();
+	if(enableInput){
+		PollEvents();
+	}
 }
 
 void BindQuickKeyEvent(EV_Function function, Uint8 scanCode){

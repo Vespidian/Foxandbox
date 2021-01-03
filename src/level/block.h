@@ -1,7 +1,7 @@
 #ifndef BLOCK_H_
 #define BLOCK_H_
 
-#include "item.h"
+#include "../entities/item.h"
 
 typedef struct BlockObject{
     unsigned int id;

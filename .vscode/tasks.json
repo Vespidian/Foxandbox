@@ -8,7 +8,7 @@
         {
             "label": "run_make",
             "type": "shell",
-            "command": "cd src && cls && mingw32-make",
+            "command": "cd src | cls | mingw32-make",
             "problemMatcher": [],
             "group": {
                 "kind": "build",

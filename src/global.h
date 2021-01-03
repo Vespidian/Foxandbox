@@ -16,6 +16,11 @@ typedef struct Vector2{
 	int y;
 }Vector2;
 
+typedef struct fVector2{
+	float x;
+	float y;
+}fVector2;
+
 extern bool running;
 extern float deltatime;
 extern int targetFramerate;

@@ -3,10 +3,14 @@
 #include "textures.h"
 #include "render/tilesheet.h"
 #include "entities/item.h"
-#include "entities/block.h"
+#include "level/block.h"
 #include "render/renderer.h"
 #include "render/render_text.h"
 #include "level/level.h"
+
+
+#include "animation/animation.h"
+#include "ui/load_screen.h"
 
 #include "level/level_generation.h"
 
@@ -21,6 +25,7 @@ void Quit();
 void LoadBuiltinResources(){
 	NewRawTilesheet("default_tilesheet", "../images/default_tilesheet.png", (Vector2){16, 16});
 	NewRawTilesheet("builtin", "../images/builtin.png", (Vector2){16, 16});
+	LoadTexture(renderer, "../images/loadScreen.png", "loadscreen");
 
 	LoadTexture(renderer, "../images/testingTemp/tmpTilesheet.png", "tmp");
 	NewTilesheet("tmp", FindTexture("tmp"), (Vector2){16, 16});
@@ -63,15 +68,19 @@ void Quit(){
 }
 
 SDL_Rect src = {0, 0, 128, 128};
-SDL_Rect dst = {0, 0, 512, 512};
-SDL_Rect tileDst = {0, 64	, 64, 64};
+SDL_Rect dst = {0, 128, 0, 64};
+SDL_Rect tileDst = {0, 64, 64, 64};
 void GameLoop(){
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
-	RenderLevel();
-	
+	// dst.x += IntegerLerp(dst.x, 736, 10000);
+	dst.w += IntegerLerp(dst.w, 64, 10000);
+	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
+	// RenderLevel();
+
 	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
+	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
 	RenderQueue();
 	SDL_RenderPresent(renderer);
 }
@@ -85,24 +94,24 @@ int main(int argc, char *argv[]){
 	SetupSDL();
 	Setup();
 
-	NewLevel("test", (Vector2){12, 12});
-	SetActiveLevel(FindLevel("test"));
+	// NewLevel("test", (Vector2){12, 12});
+	// SetActiveLevel(FindLevel("test"));
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
-	FillLevelLayer(&activeLevel, activeLevel.terrain, FindBlock("grass"));
+	// FillLevelLayer(&activeLevel, activeLevel.terrain, FindBlock("grass"));
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
-	PlaceBlock(activeLevel.terrain, FindBlock("water"), (Vector2){0, 2}, 0);
+	// PlaceBlock(activeLevel.terrain, FindBlock("water"), (Vector2){0, 2}, 0);
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
 
 	while(running){
 		loopStartTicks = SDL_GetTicks();
 		EventManager(&e);
-		
+		Load();
 		GameLoop();
-
+		
 		SDL_Delay(1000 / targetFramerate);
-		deltatime = SDL_GetTicks() - loopStartTicks / 10;
+		deltatime = (SDL_GetTicks() - loopStartTicks) / 10;
 	}
 	Quit();
 	return 0;
