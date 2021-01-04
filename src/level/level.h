@@ -21,24 +21,29 @@ typedef struct SandboxObject{
     char *name;
     unsigned int id;
     unsigned long seed;
-    const char *path;
-    ChunkObject chunk[2][2];//Number of chunks loaded to be changed depending on screen size and via settings
-    ChunkObject *chunkBuffer;
+    char *path;
+    // ChunkObject chunk[3][3];
+    ChunkObject *chunkBuffer;//Number of chunks loaded to be changed depending on screen size and via settings
     int chunkBufferSize;
 }SandboxObject;
 
 extern int tileRenderSize;
 extern fVector2 globalOffset;
-// extern LevelObject activeLevel;
+extern SandboxObject activeSandbox;
 extern Vector2 mouseTilePos;
 
 void InitLevels();
-// LevelObject *NewLevel(char *name, Vector2 size);
-// LevelObject *FindLevel(char *name);
 // void SetActiveLevel(LevelObject *level);
-void RenderLevel();
+// void RenderLevel();
+void RenderSandbox();
 
 BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation);
 BlockObject *RemoveBlock(TileObject **layer, Vector2 pos);
+
+
+//TMP
+void RenderChunk(ChunkObject *chunk, Vector2 position);
+ChunkObject *FindChunk(Vector2 coordinate);
+void FillChunk(Vector2 coordinate);
 
 #endif

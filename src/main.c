@@ -77,7 +77,10 @@ void GameLoop(){
 	// dst.x += IntegerLerp(dst.x, 736, 10000);
 	dst.w += IntegerLerp(dst.w, 64, 10000);
 	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
+	// RenderChunk(FindChunk((Vector2){0, 0}), (Vector2){0, 0});
+	RenderSandbox();
 	// RenderLevel();
+	// printf("%s\n", IDFindItem(IDFindBlock(FindChunk((Vector2){0, 0})->tile[1][1][0].block)->item)->name);
 
 	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
@@ -99,6 +102,10 @@ int main(int argc, char *argv[]){
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+	// FindChunk((Vector2){0, 0})->tile[1][0][0].block = FindBlock("grass")->id;
+	FindChunk((Vector2){0, 0});
+	FillChunk((Vector2){0, 0});
+
 	// FillLevelLayer(&activeLevel, activeLevel.terrain, FindBlock("grass"));
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
 	// PlaceBlock(activeLevel.terrain, FindBlock("water"), (Vector2){0, 2}, 0);

@@ -1,6 +1,8 @@
-::terrain
+::layers
+->0
 
-::features
+->1
 
 ::entities
 
+::drops
