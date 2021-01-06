@@ -65,7 +65,7 @@ ChunkObject *NewChunk(Vector2 position){
     }
     chunk->position = position;
     activeSandbox.chunkBufferSize++;
-    // FillChunk(position);
+    FillChunk(position);
     return chunk;
 }
 
@@ -94,7 +94,7 @@ ChunkObject *ReadChunk(Vector2 position){
         lineBuffer = malloc(sizeof(char) * lineLength);
         while(fgets(lineBuffer, lineLength, chunkFile)){
             if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){// Check for heading
-                strshft_l(lineBuffer, 0, 2);
+                strshft_l(lineBuffer, 0, 2);// Remove '::' identifiers
                 strcpy(header, lineBuffer);
 
             }
@@ -102,8 +102,8 @@ ChunkObject *ReadChunk(Vector2 position){
                 char *subhead = strchr(lineBuffer, '-');// Check for subheading (in this case which layer we are reading)
                 
                 if(*subhead == '-' && *(subhead + 1) == '>'){
-                    chunkLayer = *(subhead + 2) - '0';
-                    layerY = 0;
+                    chunkLayer = *(subhead + 2) - '0';// Convert character to int
+                    layerY = 0;// Reset y value
 
                 }else{
                     char tile[128];
@@ -149,14 +149,6 @@ ChunkObject *FindChunk(Vector2 coordinate){
             return &activeSandbox.chunkBuffer[i];
         }
     }
-    //Check currently rendered chunks
-    // for(int y = 0; y < 2; y++){
-    //     for(int x = 0; x < 2; x++){
-    //         if(CompareVector2(activeSandbox.chunk[y][x].position, coordinate)){
-    //             return &activeSandbox.chunk[y][x];
-    //         }
-    //     }
-    // }
     //Check sandbox folder
     return ReadChunk(coordinate);
 }
@@ -214,6 +206,22 @@ void RenderSandbox(){
     // RenderCursor();
 }
 
+void LoadWorld(char *path){
+
+}
+
+void UnloadWorld(){
+
+}
+
+void FillChunk(Vector2 coordinate){
+    for(int y = 0; y < chunkSize; y++){
+        for(int x = 0; x < chunkSize; x++){
+            FindChunk(coordinate)->tile[0][y][x].block = FindBlock("grass")->id;
+        }
+    }
+}
+
 // Level Interaction
 /*BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation){//Returns whether or not the block was placed
     // int layer = 0;
@@ -250,14 +258,6 @@ BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
     }
 }*/
-
-void FillChunk(Vector2 coordinate){
-    for(int y = 0; y < chunkSize; y++){
-        for(int x = 0; x < chunkSize; x++){
-            FindChunk(coordinate)->tile[0][y][x].block = FindBlock("grass")->id;
-        }
-    }
-}
 
 void LevelMouseInteraction(EventData event){
     if(mouseHeld){

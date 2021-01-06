@@ -7,6 +7,8 @@
 #include "render/renderer.h"
 #include "render/render_text.h"
 #include "level/level.h"
+#include "ui/ui.h"
+#include "ui/ui_elements.h"
 
 
 #include "animation/animation.h"
@@ -40,6 +42,7 @@ void Setup(){
 	InitFonts();
 	InitEvents();
 	InitLevels();
+	InitUI();
 
 	LoadBuiltinResources();
 }
@@ -62,11 +65,13 @@ void SetupSDL(){
 
 void Quit(){
 	DebugLog(D_ACT, "Shutting down!");
+	running = false;
 	
 	SDL_Quit();
 	QuitDebug();
 }
 
+bool tmp = false;
 SDL_Rect src = {0, 0, 128, 128};
 SDL_Rect dst = {0, 128, 0, 64};
 SDL_Rect tileDst = {0, 64, 64, 64};
@@ -79,8 +84,8 @@ void GameLoop(){
 	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
 	// RenderChunk(FindChunk((Vector2){0, 0}), (Vector2){0, 0});
 	RenderSandbox();
-	// RenderLevel();
-	// printf("%s\n", IDFindItem(IDFindBlock(FindChunk((Vector2){0, 0})->tile[1][1][0].block)->item)->name);
+	Button_function(renderer, (Vector2){200, 200}, "QUIT!", Quit);
+	Checkbox(renderer, &tmp, "testing123", (Vector2){200, 400});
 
 	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
@@ -96,9 +101,6 @@ int main(int argc, char *argv[]){
 	SetupDebug();
 	SetupSDL();
 	Setup();
-
-	// NewLevel("test", (Vector2){12, 12});
-	// SetActiveLevel(FindLevel("test"));
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
