@@ -21,3 +21,6 @@ clean:
 	rm -rf */*.o
 	rm ../log.txt
 	rm ../bin/*.exe
+
+wipe_levels:
+	cd ../ && find . -name "*,*" -type f -delete

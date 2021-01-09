@@ -13,7 +13,7 @@ typedef struct TileObject{
 
 typedef struct ChunkObject{// Chunk size is hard coded
     Vector2 position;
-    TileObject tile[2][4][4];// A chunk is a 32x32 section of map with 8 layers and a collision map
+    TileObject tile[4][4][4];// A chunk is a 32x32 section of map with 8 layers and a collision map
     int collision[4][4];
 }ChunkObject;
 

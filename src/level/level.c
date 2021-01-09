@@ -12,7 +12,7 @@
 
 const int MAXLEVELSIZE = 512;
 const int chunkSize = 4;
-const int chunkLayers = 2;
+const int chunkLayers = 4;
 
 int chunkLoadRadius = 1;
 int tileRenderSize = 64;
@@ -65,15 +65,32 @@ ChunkObject *NewChunk(Vector2 position){
     }
     chunk->position = position;
     activeSandbox.chunkBufferSize++;
-    FillChunk(position);
+    // FillChunk(position);
     return chunk;
 }
 
 void WriteChunk(ChunkObject *chunk, Vector2 position){
     char name[260];
     snprintf(name, 260, "%s/sandbox/%d,%d", activeSandbox.path, position.x, position.y);
-    // FILE *chunkFile = fopen(name, "w");
+    FILE *chunkFile = fopen(name, "w");
 
+    fprintf(chunkFile, "::layers\n");
+    for(int z = 0; z < chunkLayers; z++){
+        fprintf(chunkFile, "->%d\n", z);
+        for(int y = 0; y < chunkSize; y++){
+            for(int x = 0; x < chunkSize; x++){
+                fprintf(chunkFile, "%s,", IDFindItem(IDFindBlock(chunk->tile[z][y][x].block)->item)->name);
+                if(chunk->tile[z][y][x].rotation > 0){
+                    fprintf(chunkFile, "~%d", chunk->tile[z][y][x].rotation);
+                }
+            }
+            fprintf(chunkFile, "\n");
+        }
+    }
+    fprintf(chunkFile, "::entities\n");
+    fprintf(chunkFile, "::drops\n");
+    fprintf(chunkFile, "\n");
+    fclose(chunkFile);
 }
 
 ChunkObject *ReadChunk(Vector2 position){
@@ -83,29 +100,21 @@ ChunkObject *ReadChunk(Vector2 position){
     ChunkObject *chunk = NewChunk(position);
 
     if(chunkFile != NULL){
-        char header[64];
+        char header[128];
         char *lineBuffer;
         int lineLength = GetLineLength(chunkFile);
         int line = 0;
 
         int layerY = 0;
-        int chunkLayer = 0;
+        int chunkLayer = -1;
 
         lineBuffer = malloc(sizeof(char) * lineLength);
         while(fgets(lineBuffer, lineLength, chunkFile)){
-            if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){// Check for heading
-                strshft_l(lineBuffer, 0, 2);// Remove '::' identifiers
-                strcpy(header, lineBuffer);
-
-            }
             if(strcmp(header, "layers") == 0){// Reading chunk layers
-                char *subhead = strchr(lineBuffer, '-');// Check for subheading (in this case which layer we are reading)
-                
-                if(*subhead == '-' && *(subhead + 1) == '>'){
-                    chunkLayer = *(subhead + 2) - '0';// Convert character to int
+                if(lineBuffer[0] == '-' && lineBuffer[1] == '>'){
+                    chunkLayer++;// Convert character to int
                     layerY = 0;// Reset y value
-
-                }else{
+                }else if(layerY < chunkSize){
                     char tile[128];
                     strcpy(tile, strtok(lineBuffer, ","));
                     for(int x = 0; x < chunkSize; x++){// Iterate through line to read 'chunkSize' tiles
@@ -115,7 +124,7 @@ ChunkObject *ReadChunk(Vector2 position){
                             rotation = strtol(strchr(tile, '~'), NULL, 10);// Extract tile rotation
                             *(strchr(tile, '~')) = '\0';//Leave behind only the tile name
                         }
-
+                        // chunk->tile[chunkLayer][layerY][x] = (TileObject){FindBlock(tile)->id, 0, rotation, 255, (SDL_Color){255, 255, 255}};
                         chunk->tile[chunkLayer][layerY][x].rotation = rotation;// Assign rotation value
                         chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile)->id;// Assign block based on tile name
 
@@ -130,8 +139,16 @@ ChunkObject *ReadChunk(Vector2 position){
                     layerY++;// Increment layer 'layerY' position for next line read
                 }
             }
-            if(strcmp(header, "entities") == 0){}
+            // if(strcmp(header, "entities") == 0){}
+            // if(strcmp(header, "drops") == 0){}
 
+            if(lineBuffer[0] == ':' && lineBuffer[1] == ':'){// Check for heading
+                strshft_l(lineBuffer, 0, 2);// Remove '::' identifiers
+                strcpy(header, lineBuffer);
+                header[strlen(header) - 1] = '\0';
+            }
+            lineLength = GetLineLength(chunkFile);
+            lineBuffer = malloc(sizeof(char) * lineLength);
             line++;
         }
         free(lineBuffer);
@@ -159,8 +176,10 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 3, chunkRect, RNDR_LEVEL - 1);
         SDL_Rect tileRect = {0, 0, tileRenderSize, tileRenderSize};
-        for(int y = (chunkSize - (position.y / tileRenderSize)) * ((position.y / tileRenderSize - 1) > 0); y * tileRenderSize + position.y < SCREEN_HEIGHT && y < chunkSize; y++){
-            for(int x = (chunkSize - (position.x / tileRenderSize)) * ((position.x / tileRenderSize - 1) > 0); x * tileRenderSize + position.x < SCREEN_WIDTH && x < chunkSize; x++){
+        // for(int y = (chunkSize - (position.y / tileRenderSize)) * ((position.y / tileRenderSize - 1) > 0); position.y + (y * tileRenderSize) < SCREEN_HEIGHT && y < chunkSize; y++){
+            // for(int x = (chunkSize - (position.x / tileRenderSize)) * ((position.x / tileRenderSize - 1) > 0); position.x + (x * tileRenderSize) < SCREEN_WIDTH && x < chunkSize; x++){
+        for(int y = 0; y < chunkSize; y++){
+            for(int x = 0; x < chunkSize; x++){
                 tileRect.x = (x * tileRenderSize) - position.x;
                 tileRect.y = (y * tileRenderSize) - position.y;
                 for(int z = 0; z < chunkLayers; z++){
@@ -184,6 +203,7 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
                 }
             }
         }
+        // printf("%d\n", (chunkSize - (position.x / tileRenderSize)));
     }
 }
 

@@ -71,7 +71,8 @@ void Quit(){
 	QuitDebug();
 }
 
-bool tmp = false;
+bool tmp = true;
+Vector2 startupTime = {0, 0};
 SDL_Rect src = {0, 0, 128, 128};
 SDL_Rect dst = {0, 128, 0, 64};
 SDL_Rect tileDst = {0, 64, 64, 64};
@@ -91,6 +92,11 @@ void GameLoop(){
 	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
 	RenderQueue();
 	SDL_RenderPresent(renderer);
+	if(tmp){
+		startupTime.y = SDL_GetTicks();
+		printf("%d milliseconds to first render\n", startupTime.y - startupTime.x);
+		tmp = false;
+	}
 }
 
 void MenuLoop(){
@@ -100,6 +106,7 @@ void MenuLoop(){
 int main(int argc, char *argv[]){
 	SetupDebug();
 	SetupSDL();
+	startupTime.x = SDL_GetTicks();
 	Setup();
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
