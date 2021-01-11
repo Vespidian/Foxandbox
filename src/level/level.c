@@ -89,7 +89,6 @@ void WriteChunk(ChunkObject *chunk, Vector2 position){
     }
     fprintf(chunkFile, "::entities\n");
     fprintf(chunkFile, "::drops\n");
-    fprintf(chunkFile, "\n");
     fclose(chunkFile);
 }
 
