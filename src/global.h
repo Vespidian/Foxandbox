@@ -25,4 +25,6 @@ extern bool running;
 extern float deltatime;
 extern int targetFramerate;
 
+void Quit();
+
 #endif

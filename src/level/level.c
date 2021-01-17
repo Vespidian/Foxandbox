@@ -22,6 +22,7 @@ int tileRenderSize = 64;
 // static unsigned int nextID = 0;
 // LevelObject activeLevel;
 Vector2 mouseTilePos;
+Vector2 mouseGlobalTilePos;
 
 
 fVector2 globalOffset = {0, 0};
@@ -123,10 +124,8 @@ ChunkObject *ReadChunk(Vector2 position){
                             rotation = strtol(strchr(tile, '~'), NULL, 10);// Extract tile rotation
                             *(strchr(tile, '~')) = '\0';//Leave behind only the tile name
                         }
-                        // chunk->tile[chunkLayer][layerY][x] = (TileObject){FindBlock(tile)->id, 0, rotation, 255, (SDL_Color){255, 255, 255}};
                         chunk->tile[chunkLayer][layerY][x].rotation = rotation;// Assign rotation value
                         chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile)->id;// Assign block based on tile name
-
                         char *tmp = strtok(NULL, ",");// Read next tile
                         if(tmp != NULL){// Make sure tile is read correctly
                             strcpy(tile, tmp);
@@ -170,7 +169,7 @@ ChunkObject *FindChunk(Vector2 coordinate){
 }
 
 void RenderChunk(ChunkObject *chunk, Vector2 position){
-    SDL_Rect chunkRect = {-position.x, -position.y, chunkSize * tileRenderSize, chunkSize * tileRenderSize};
+    SDL_Rect chunkRect = {position.x, position.y, chunkSize * tileRenderSize, chunkSize * tileRenderSize};
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 3, chunkRect, RNDR_LEVEL - 1);
@@ -179,8 +178,8 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
             // for(int x = (chunkSize - (position.x / tileRenderSize)) * ((position.x / tileRenderSize - 1) > 0); position.x + (x * tileRenderSize) < SCREEN_WIDTH && x < chunkSize; x++){
         for(int y = 0; y < chunkSize; y++){
             for(int x = 0; x < chunkSize; x++){
-                tileRect.x = (x * tileRenderSize) - position.x;
-                tileRect.y = (y * tileRenderSize) - position.y;
+                tileRect.x = (x * tileRenderSize) + position.x;
+                tileRect.y = (y * tileRenderSize) + position.y;
                 for(int z = 0; z < chunkLayers; z++){
                     BlockObject *terrainBlock = IDFindBlock(chunk->tile[z][y][x].block);
                     if(chunk->tile[z][y][x].block != FindBlock("air")->id){
@@ -202,18 +201,20 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
                 }
             }
         }
-        // printf("%d\n", (chunkSize - (position.x / tileRenderSize)));
     }
 }
 
 void RenderSandbox(){
-    for(int y = -chunkLoadRadius; y <= chunkLoadRadius; y++){
-        for(int x = -chunkLoadRadius; x <= chunkLoadRadius; x++){
+    Vector2 chunkP = {0, 0};
+    for(int y = 0; y <= chunkLoadRadius * 2; y++){
+        for(int x = 0; x <= chunkLoadRadius * 2; x++){
+            chunkP = (Vector2){((globalCoordinates.x) / chunkSize) + x - 1, ((globalCoordinates.y) / chunkSize) + y - 1};
+            // RenderText(renderer, FindFont("default_font"), 1, (globalCoordinates.x % chunkSize) - (globalOffset.x) + x * chunkSize * tileRenderSize + 16, (globalCoordinates.y % chunkSize) - (globalOffset.y) + y * chunkSize * tileRenderSize + 16, "%d, %d", chunkP.x, chunkP.y);
             RenderChunk(
-                FindChunk((Vector2){(-globalCoordinates.x / chunkSize) + x, (-globalCoordinates.y / chunkSize) + y}), 
-                (Vector2){//THIS MUST BE FIXED / CLEANED UP
-                    (-(chunkLoadRadius * chunkSize * tileRenderSize) + (x * chunkSize * tileRenderSize) + (globalCoordinates.x % chunkSize) * tileRenderSize) + globalOffset.x - (SCREEN_WIDTH / 2) + (((chunkLoadRadius * 2 + 1) * chunkSize * tileRenderSize) / 2),
-                    (-(chunkLoadRadius * chunkSize * tileRenderSize) + (y * chunkSize * tileRenderSize) + (globalCoordinates.y % chunkSize) * tileRenderSize) + globalOffset.y - (SCREEN_HEIGHT / 2) + (((chunkLoadRadius * 2 + 1) * chunkSize * tileRenderSize) / 2)
+                FindChunk(chunkP), 
+                (Vector2){
+                    (x * chunkSize * tileRenderSize) + (-globalCoordinates.x % chunkSize) * tileRenderSize - globalOffset.x - (chunkSize * tileRenderSize),
+                    (y * chunkSize * tileRenderSize) + (-globalCoordinates.y % chunkSize) * tileRenderSize - globalOffset.y - (chunkSize * tileRenderSize)
                 }
             );
         }
@@ -222,7 +223,7 @@ void RenderSandbox(){
     // RenderText(renderer, FindFont("default"), 1, 100, 100, "%d, %d", (globalCoordinates.x / chunkSize), (globalCoordinates.y / chunkSize));
     // RenderText(renderer, FindFont("default"), 1, 100, 120, "%f, %f", globalOffset.x, globalOffset.y);
     // RenderText(renderer, FindFont("default"), 1, 100, 140, "%d, %d", globalCoordinates.x, globalCoordinates.y);
-    // RenderCursor();
+    RenderCursor();
 }
 
 void LoadWorld(char *path){
@@ -230,7 +231,10 @@ void LoadWorld(char *path){
 }
 
 void UnloadWorld(){
-
+    for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
+        WriteChunk(&activeSandbox.chunkBuffer[i], activeSandbox.chunkBuffer[i].position);
+        // printf("wrote chunk %d, %d\n", activeSandbox.chunkBuffer[i].position.x, activeSandbox.chunkBuffer[i].position.y);
+    }
 }
 
 void FillChunk(Vector2 coordinate){
@@ -242,24 +246,38 @@ void FillChunk(Vector2 coordinate){
 }
 
 // Level Interaction
-/*BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation){//Returns whether or not the block was placed
-    // int layer = 0;
-    // while(activeLevel.layer[layer][pos.y][pos.x].block = FindBlock("air")->id){
-        
-    // }
-    if(pos.x > activeLevel.mapSize.x){
-        pos.x = activeLevel.mapSize.x;
+Vector2 chunkOffset;
+Vector2 chunkCoord;
+BlockObject *PlaceBlock(BlockObject *block, Vector2 position, int layer, int rotation){//Returns whether or not the block was placed
+
+    chunkOffset = (Vector2){position.x % chunkSize, position.y % chunkSize};
+    chunkCoord = (Vector2){position.x / chunkSize, position.y / chunkSize};
+    //Negative position
+    if(position.x < 0){
+        chunkOffset.x = (position.x + 1) % chunkSize + chunkSize - 1;
+        chunkCoord.x = (position.x + 1) / chunkSize - 1;
     }
-    if(pos.y > activeLevel.mapSize.y){
-        pos.y = activeLevel.mapSize.y;
+    if(position.y < 0){
+        chunkOffset.y = (position.y + 1) % chunkSize + chunkSize - 1;
+        chunkCoord.y = (position.y + 1) / chunkSize - 1;
     }
-    int tmpBlock = layer[pos.y][pos.x].block;
-    layer[pos.y][pos.x].block = block->id;
-    layer[pos.y][pos.x].rotation = rotation;
+    chunkCoord.x++;
+    chunkCoord.y++;
+    int tmpBlock = FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].block;
+    FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].block = block->id;
+    FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].rotation = rotation;
+    // printf("placed block in chunk: %d, %d offset: %d, %d\n global coordinate: %d, %d\n\n", 
+    //     chunkCoord.x,
+    //     chunkCoord.y,
+    //     chunkOffset.x,
+    //     chunkOffset.y,
+    //     position.x,
+    //     position.y
+    // );
     return IDFindBlock(tmpBlock);
 }
 
-BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
+/*BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
     int tmpBlock = layer[pos.y][pos.x].block;
     if(tmpBlock != undefinedBlock.id && tmpBlock != FindBlock("air")->id){
         layer[pos.y][pos.x].block = FindBlock("air")->id;
@@ -268,19 +286,28 @@ BlockObject *RemoveBlock(TileObject **layer, Vector2 pos){
     return &undefinedBlock;
 }*/
 
-/*void RenderCursor(){
-    SDL_Rect levelRect = {-globalOffset.x, -globalOffset.y, activeLevel.mapSize.x * tileRenderSize, activeLevel.mapSize.y * tileRenderSize};
-    if(SDL_PointInRect((SDL_Point*)&mousePos, &levelRect)){
-        mouseTilePos.x = (mousePos.x + globalOffset.x) / tileRenderSize;
-        mouseTilePos.y = (mousePos.y + globalOffset.y) / tileRenderSize;
-        SDL_Rect cursor = {(mouseTilePos.x * 64) - globalOffset.x, (mouseTilePos.y * 64) - globalOffset.y, tileRenderSize, tileRenderSize};
-        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
-    }
-}*/
+void RenderCursor(){
+    mouseTilePos.x = (globalOffset.x + mousePos.x) / tileRenderSize;
+    mouseTilePos.y = (globalOffset.y + mousePos.y) / tileRenderSize;
+    SDL_Rect cursor = {(mouseTilePos.x * tileRenderSize) - globalOffset.x, mouseTilePos.y * tileRenderSize - globalOffset.y, tileRenderSize, tileRenderSize};
+    PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
+
+    mouseGlobalTilePos = (Vector2){mouseTilePos.x + globalCoordinates.x - chunkSize, mouseTilePos.y + globalCoordinates.y - chunkSize};
+    Vector2 infoGroup = {100, 0};
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y, "mouseTilePos: %d, %d", mouseTilePos.x, mouseTilePos.y);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 20, "mouseGlobalTilePos: %d, %d", mouseGlobalTilePos.x, mouseGlobalTilePos.y);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 40, "chunkOffset: %d, %d", chunkOffset.x, chunkOffset.y);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 60, "chunkCoord: %d, %d", chunkCoord.x, chunkCoord.y);
+}
 
 void LevelMouseInteraction(EventData event){
     if(mouseHeld){
-        // PlaceBlock(activeLevel.terrain, FindBlock("water"), mouseTilePos, 0);
+        if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+            PlaceBlock(FindBlock("water"), mouseGlobalTilePos, 0, 0);
+        }
+        if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)){
+            PlaceBlock(FindBlock("air"), mouseGlobalTilePos, 0, 0);
+        }
 	}
 }
 

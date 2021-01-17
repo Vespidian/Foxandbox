@@ -17,16 +17,16 @@ bool mouseClicked = false;
 void MouseClicked();
 void KeyEvents_quick();
 void WindowResize();
-void SDLQuitEvent();
+// void SDLQuitEvent();
 
 //Event management
 void InitEvents(){
 	events = malloc(sizeof(InputEvent));
 
 	NewEvent(EV_ACCURATE, SDL_MOUSEBUTTONDOWN, MouseClicked);
-	BindKeyEvent(SDLQuitEvent, 0x1B, SDL_KEYDOWN);//escape
+	BindKeyEvent(Quit, 0x1B, SDL_KEYDOWN);//escape
 	NewEvent(EV_ACCURATE, SDL_WINDOWEVENT, WindowResize);
-	NewEvent(EV_ACCURATE, SDL_QUIT, SDLQuitEvent);
+	NewEvent(EV_ACCURATE, SDL_QUIT, Quit);
 
 	DebugLog(D_ACT, "Initialized event subsystem");
 }
@@ -105,10 +105,6 @@ void WindowResize(EventData event){
 	if(event.e->window.event == SDL_WINDOWEVENT_RESIZED){
 		SDL_GetWindowSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
 	}
-}
-
-void SDLQuitEvent(){
-	running = false;
 }
 
 void KeyEvents_quick(EventData event){

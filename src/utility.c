@@ -27,7 +27,7 @@ int ListDirectory(const char *path, char *dst){
 
 int GetLineLength(FILE *file){
 	int lineLength = 0;
-	while(fgetc(file) != '\n' && feof(file)){
+	while(fgetc(file) != '\n' && !feof(file)){
 		lineLength++;
 	}
 	fseek(file, -lineLength - 2, SEEK_CUR);

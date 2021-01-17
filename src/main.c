@@ -65,6 +65,7 @@ void SetupSDL(){
 
 void Quit(){
 	DebugLog(D_ACT, "Shutting down!");
+	UnloadWorld();
 	running = false;
 	
 	SDL_Quit();
@@ -112,8 +113,8 @@ int main(int argc, char *argv[]){
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
 	// FindChunk((Vector2){0, 0})->tile[1][0][0].block = FindBlock("grass")->id;
-	FindChunk((Vector2){0, 0});
-	FillChunk((Vector2){0, 0});
+	// FindChunk((Vector2){0, 0});
+	// FillChunk((Vector2){0, 0});
 
 	// FillLevelLayer(&activeLevel, activeLevel.terrain, FindBlock("grass"));
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});

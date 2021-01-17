@@ -37,8 +37,10 @@ void InitLevels();
 // void RenderLevel();
 void RenderSandbox();
 
-BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation);
+// BlockObject *PlaceBlock(TileObject **layer, BlockObject *block, Vector2 pos, int rotation);
+BlockObject *PlaceBlock(BlockObject *block, Vector2 position, int layer, int rotation);
 BlockObject *RemoveBlock(TileObject **layer, Vector2 pos);
+void UnloadWorld();
 
 
 //TMP
