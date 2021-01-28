@@ -104,6 +104,7 @@ void MouseClicked(EventData event){
 void WindowResize(EventData event){
 	if(event.e->window.event == SDL_WINDOWEVENT_RESIZED){
 		SDL_GetWindowSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
+		DebugLog(D_ACT, "Window resolution set to %dx%d", SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
 }
 

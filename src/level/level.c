@@ -10,6 +10,8 @@
 
 #include "../render/render_text.h"
 
+Vector2 previousWindowSize;
+
 const int MAXLEVELSIZE = 512;
 const int chunkSize = 4;
 const int chunkLayers = 4;
@@ -36,6 +38,7 @@ void RenderCursor();
 void LevelMouseInteraction();
 void LevelMovement();
 void KeyUp(EventData event);
+void ResizedWindow(EventData event);
 
 
 void InitLevels(){
@@ -44,7 +47,9 @@ void InitLevels(){
     NewEvent(EV_QUICK, SDL_MOUSEBUTTONDOWN, LevelMouseInteraction);
     NewEvent(EV_QUICK, SDL_KEYDOWN, LevelMovement);
     NewEvent(EV_ACCURATE, SDL_KEYUP, KeyUp);
-    
+    NewEvent(EV_ACCURATE, SDL_WINDOWEVENT, ResizedWindow);
+    previousWindowSize = (Vector2){SCREEN_WIDTH, SCREEN_HEIGHT};
+
     DebugLog(D_ACT, "Initialized level subsystem");
 
     activeSandbox.path = malloc(sizeof(char) * 256);
@@ -205,24 +210,21 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
 }
 
 void RenderSandbox(){
-    Vector2 chunkP = {0, 0};
+    Vector2 chunk = {0, 0};
+    Vector2 chunkOffset = {0, 0};
     for(int y = 0; y <= chunkLoadRadius * 2; y++){
         for(int x = 0; x <= chunkLoadRadius * 2; x++){
-            chunkP = (Vector2){((globalCoordinates.x) / chunkSize) + x - 1, ((globalCoordinates.y) / chunkSize) + y - 1};
-            // RenderText(renderer, FindFont("default_font"), 1, (globalCoordinates.x % chunkSize) - (globalOffset.x) + x * chunkSize * tileRenderSize + 16, (globalCoordinates.y % chunkSize) - (globalOffset.y) + y * chunkSize * tileRenderSize + 16, "%d, %d", chunkP.x, chunkP.y);
-            RenderChunk(
-                FindChunk(chunkP), 
-                (Vector2){
-                    (x * chunkSize * tileRenderSize) + (-globalCoordinates.x % chunkSize) * tileRenderSize - globalOffset.x - (chunkSize * tileRenderSize),
-                    (y * chunkSize * tileRenderSize) + (-globalCoordinates.y % chunkSize) * tileRenderSize - globalOffset.y - (chunkSize * tileRenderSize)
-                }
-            );
+            chunk = (Vector2){((globalCoordinates.x) / chunkSize) + x - 1, ((globalCoordinates.y) / chunkSize) + y - 1};
+            chunkOffset.x = (x * chunkSize * tileRenderSize) + (-globalCoordinates.x % chunkSize) * tileRenderSize - globalOffset.x;
+            chunkOffset.y = (y * chunkSize * tileRenderSize) + (-globalCoordinates.y % chunkSize) * tileRenderSize - globalOffset.y;
+            
+            chunkOffset.x += (SCREEN_WIDTH / 2) - (chunkSize * tileRenderSize * chunkLoadRadius) - tileRenderSize / 2;
+            chunkOffset.y += (SCREEN_HEIGHT / 2) - (chunkSize * tileRenderSize * chunkLoadRadius) - tileRenderSize / 2;
+
+            RenderChunk(FindChunk(chunk), chunkOffset);
         }
     }
 
-    // RenderText(renderer, FindFont("default"), 1, 100, 100, "%d, %d", (globalCoordinates.x / chunkSize), (globalCoordinates.y / chunkSize));
-    // RenderText(renderer, FindFont("default"), 1, 100, 120, "%f, %f", globalOffset.x, globalOffset.y);
-    // RenderText(renderer, FindFont("default"), 1, 100, 140, "%d, %d", globalCoordinates.x, globalCoordinates.y);
     RenderCursor();
 }
 
@@ -261,19 +263,9 @@ BlockObject *PlaceBlock(BlockObject *block, Vector2 position, int layer, int rot
         chunkOffset.y = (position.y + 1) % chunkSize + chunkSize - 1;
         chunkCoord.y = (position.y + 1) / chunkSize - 1;
     }
-    chunkCoord.x++;
-    chunkCoord.y++;
     int tmpBlock = FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].block;
     FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].block = block->id;
     FindChunk(chunkCoord)->tile[layer][chunkOffset.y][chunkOffset.x].rotation = rotation;
-    // printf("placed block in chunk: %d, %d offset: %d, %d\n global coordinate: %d, %d\n\n", 
-    //     chunkCoord.x,
-    //     chunkCoord.y,
-    //     chunkOffset.x,
-    //     chunkOffset.y,
-    //     position.x,
-    //     position.y
-    // );
     return IDFindBlock(tmpBlock);
 }
 
@@ -287,17 +279,32 @@ BlockObject *PlaceBlock(BlockObject *block, Vector2 position, int layer, int rot
 }*/
 
 void RenderCursor(){
-    mouseTilePos.x = (globalOffset.x + mousePos.x) / tileRenderSize;
-    mouseTilePos.y = (globalOffset.y + mousePos.y) / tileRenderSize;
-    SDL_Rect cursor = {(mouseTilePos.x * tileRenderSize) - globalOffset.x, mouseTilePos.y * tileRenderSize - globalOffset.y, tileRenderSize, tileRenderSize};
+    Vector2 chunkCenterOffset = {
+        (SCREEN_WIDTH / 2) - (chunkSize * tileRenderSize * chunkLoadRadius) - tileRenderSize / 2,
+        (SCREEN_HEIGHT / 2) - (chunkSize * tileRenderSize * chunkLoadRadius) - tileRenderSize / 2
+    };
+
+    mouseTilePos.x = (globalOffset.x + mousePos.x - chunkCenterOffset.x % tileRenderSize) / tileRenderSize;
+    mouseTilePos.y = (globalOffset.y + mousePos.y - chunkCenterOffset.y % tileRenderSize) / tileRenderSize;
+    SDL_Rect cursor = {
+        mouseTilePos.x * tileRenderSize + chunkCenterOffset.x % tileRenderSize - globalOffset.x, 
+        mouseTilePos.y * tileRenderSize + chunkCenterOffset.y % tileRenderSize - globalOffset.y, 
+        tileRenderSize, 
+        tileRenderSize
+    };
+
     PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
 
-    mouseGlobalTilePos = (Vector2){mouseTilePos.x + globalCoordinates.x - chunkSize, mouseTilePos.y + globalCoordinates.y - chunkSize};
+    mouseGlobalTilePos = (Vector2){
+        mouseTilePos.x + globalCoordinates.x - chunkCenterOffset.x / tileRenderSize - chunkSize, 
+        mouseTilePos.y + globalCoordinates.y - chunkCenterOffset.y / tileRenderSize - chunkSize
+    };
+    
     Vector2 infoGroup = {100, 0};
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y, "mouseTilePos: %d, %d", mouseTilePos.x, mouseTilePos.y);
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 20, "mouseGlobalTilePos: %d, %d", mouseGlobalTilePos.x, mouseGlobalTilePos.y);
-    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 40, "chunkOffset: %d, %d", chunkOffset.x, chunkOffset.y);
-    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 60, "chunkCoord: %d, %d", chunkCoord.x, chunkCoord.y);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 40, "globalOffset: %f, %f", globalOffset.x, globalOffset.y);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 60, "globalCoordinates: %d, %d", globalCoordinates.x, globalCoordinates.y);
 }
 
 void LevelMouseInteraction(EventData event){
@@ -332,12 +339,12 @@ void LevelMovement(EventData event){
 	}
 
     if(abs((int)globalOffset.x) + 1 > tileRenderSize / 2){
-        globalCoordinates.x += ((globalOffset.x) < 0) ? -1 : 1;
-        globalOffset.x = -fmodf(globalOffset.x, tileRenderSize) + x;
+        globalCoordinates.x += (globalOffset.x / (tileRenderSize / 2));
+        globalOffset.x = (-((int)globalOffset.x % tileRenderSize) + x) % (tileRenderSize / 2);
     }
     if(abs((int)globalOffset.y) + 1 > tileRenderSize / 2){
-        globalCoordinates.y += ((globalOffset.y) < 0) ? -1 : 1;
-        globalOffset.y = -fmodf(globalOffset.y, tileRenderSize) + y;
+        globalCoordinates.y += (globalOffset.y / (tileRenderSize / 2));
+        globalOffset.y = (-((int)globalOffset.y % tileRenderSize) + y) % (tileRenderSize / 2);
     }
 }
 
@@ -349,4 +356,32 @@ void KeyUp(EventData event){
     // if(pixelPerfectOffset.y != 0){
     //     globalOffset.y += pixelPerfectOffset.y >= 3 ? pixelPerfectOffset.y : -(pixelPerfectOffset.y);
     // }
+}
+
+void ResizedWindow(EventData event){
+    if(event.e->window.event == SDL_WINDOWEVENT_RESIZED){
+        //offset * new windowsize / current windowsize
+        // Vector2 diff = {(SCREEN_WIDTH - previousWindowSize.x) / 2, (SCREEN_HEIGHT - previousWindowSize.y) / 2};
+        Vector2 diff = {(SCREEN_WIDTH - previousWindowSize.x), (SCREEN_HEIGHT - previousWindowSize.y)};
+        // printf("called\n");
+
+        // globalOffset.x -= (diff.x) % (tileRenderSize / 2);
+        // globalOffset.y -= (diff.y) % (tileRenderSize / 2);
+        // globalCoordinates.x -= (diff.x) / (tileRenderSize);
+        // globalCoordinates.y -= (diff.y) / (tileRenderSize);
+
+        // globalOffset.x = globalOffset.x * -SCREEN_WIDTH / -previousWindowSize.x;
+        // globalCoordinates.x = globalCoordinates.x * -SCREEN_WIDTH / -previousWindowSize.x;
+        // globalOffset.x -= diff.x / 2;
+        // globalOffset.y -= diff.y / 2;
+
+        printf("shifting by %f,%f, and %d,%d\n", 
+            globalOffset.x,
+            globalOffset.y,
+            globalCoordinates.x,
+            globalCoordinates.y
+        );
+        printf("%d\n", diff.x / 2);
+        previousWindowSize = (Vector2){SCREEN_WIDTH, SCREEN_HEIGHT};
+    }
 }

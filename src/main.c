@@ -91,6 +91,9 @@ void GameLoop(){
 
 	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
 	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
+
+	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 4, (SDL_Rect){SCREEN_WIDTH / 2 - 32, SCREEN_HEIGHT / 2 - 32, 64, 64}, 10000);
+
 	RenderQueue();
 	SDL_RenderPresent(renderer);
 	if(tmp){
