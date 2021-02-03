@@ -3,10 +3,10 @@
 #include "textures.h"
 #include "render/tilesheet.h"
 #include "entities/item.h"
-#include "level/block.h"
+#include "world/block.h"
 #include "render/renderer.h"
 #include "render/render_text.h"
-#include "level/level.h"
+#include "world/sandbox.h"
 #include "ui/ui.h"
 #include "ui/ui_elements.h"
 
@@ -14,7 +14,7 @@
 #include "animation/animation.h"
 #include "ui/load_screen.h"
 
-#include "level/level_generation.h"
+#include "world/sandbox_generation.h"
 
 int loopStartTicks = 0;
 float deltatime = 0;
@@ -41,7 +41,7 @@ void Setup(){
 	InitBlocks();
 	InitFonts();
 	InitEvents();
-	InitLevels();
+	InitSandboxes();
 	InitUI();
 
 	LoadBuiltinResources();
@@ -60,12 +60,11 @@ void SetupSDL(){
 			DebugLog(D_ERR, "SDL renderer could not be created: %s", SDL_GetError());
 		}
 	}
-	
 }
 
 void Quit(){
 	DebugLog(D_ACT, "Shutting down!");
-	UnloadWorld();
+	UnloadSandbox();
 	running = false;
 	
 	SDL_Quit();
@@ -115,6 +114,8 @@ int main(int argc, char *argv[]){
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+	// NewSandbox("terst", 334);
+	ReadSandbox("terst");
 	// FindChunk((Vector2){0, 0})->tile[1][0][0].block = FindBlock("grass")->id;
 	// FindChunk((Vector2){0, 0});
 	// FillChunk((Vector2){0, 0});
@@ -128,7 +129,11 @@ int main(int argc, char *argv[]){
 		loopStartTicks = SDL_GetTicks();
 		EventManager(&e);
 		Load();
-		GameLoop();
+		if(activeSandbox.isActive){
+			GameLoop();
+		}else{
+			MenuLoop();
+		}
 		
 		SDL_Delay(1000 / targetFramerate);
 		deltatime = (SDL_GetTicks() - loopStartTicks) / 10;

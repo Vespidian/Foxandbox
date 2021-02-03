@@ -19,8 +19,8 @@ OBJ = $(C_SOURCES:.c=.o)
 clean:
 	rm -rf *.o
 	rm -rf */*.o
-	rm ../log.txt
-	rm ../bin/*.exe
+	rm log.txt
+	rm ../*.exe
 
 wipe_levels:
 	cd ../ && find . -name "*,*" -type f -delete

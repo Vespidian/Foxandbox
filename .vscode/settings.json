@@ -3,5 +3,11 @@
     "problems.decorations.enabled": false,
     "C_Cpp.dimInactiveRegions": true,
     "explorer.sortOrder": "type",
-    "C_Cpp.default.includePath": ["C:/Program Files (x86)/tcc/include/**"],
+    "C_Cpp.default.includePath": [
+        "S:/c_libs/include",
+        "C:/MinGW/include"
+    ],
+    "files.associations": {
+        "*.tcc": "c"
+    },
 }
