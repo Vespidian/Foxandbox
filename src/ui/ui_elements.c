@@ -5,13 +5,14 @@
 #include "ui.h"
 #include "ui_elements.h"
 
-bool Button(SDL_Renderer *renderer, Vector2 position, char *text){
+bool Button(SDL_Renderer *renderer, SDL_Rect rect, char *text){
 	bool isClicked = false;
 
 	SDL_Point mouse;
 	SDL_GetMouseState(&mouse.x, &mouse.y);
 
-	SDL_Rect rect = {position.x, position.y, 200, 32};
+	// SDL_Rect rect = {position.x, position.y, 200, 32};
+	// rect = (SDL_Rect){position.x, position.y, 200, 32};
 
 	if(SDL_PointInRect(&mouse, &rect)){
 		rect.x -= 2;
@@ -19,10 +20,10 @@ bool Button(SDL_Renderer *renderer, Vector2 position, char *text){
 		rect.w += 4;
 		rect.h += 4;
 		if(mouseHeld){
-			rect.x += 2;
-			rect.y += 2;
-			rect.w -= 4;
-			rect.h -= 4;
+			rect.x += 1;
+			rect.y += 1;
+			rect.w -= 3;
+			rect.h -= 3;
 		}
 		if(mouseClicked){
 			isClicked = true;
@@ -37,8 +38,20 @@ bool Button(SDL_Renderer *renderer, Vector2 position, char *text){
 	return isClicked;
 }
 
-void Button_function(SDL_Renderer *renderer, Vector2 position, char *text, ButtonFunction function){
-	if(Button(renderer, position, text)){
+bool Button_format(SDL_Renderer *renderer, SDL_Rect rect, const char *text, ...){
+	va_list vaFormat;
+	
+	//Use var args to create formatted text
+	va_start(vaFormat, text);
+	char *formattedText = malloc((strlen(text) + 64) * sizeof(char));
+	vsprintf(formattedText, text, vaFormat);
+	va_end(vaFormat);
+
+	return Button(renderer, rect, formattedText);
+}
+
+void Button_function(SDL_Renderer *renderer, SDL_Rect rect, char *text, ButtonFunction function){
+	if(Button(renderer, rect, text)){
 		function();
 	}
 }

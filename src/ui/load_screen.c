@@ -11,7 +11,7 @@ int loadAmount = 0;
 int duration = 40000;
 
 
-void Load(){
+void LoadScreen(){
 	if(loadAmount == LOADBARSIZE){
 		loading = false;
 		enableInput = true;

@@ -1,14 +1,15 @@
 #include "global.h"
 #include "event.h"
 #include "textures.h"
-#include "render/tilesheet.h"
 #include "entities/item.h"
 #include "world/block.h"
+#include "world/sandbox.h"
+#include "render/tilesheet.h"
 #include "render/renderer.h"
 #include "render/render_text.h"
-#include "world/sandbox.h"
 #include "ui/ui.h"
-#include "ui/ui_elements.h"
+// #include "ui/ui_elements.h"
+#include "ui/start_screen.h"
 
 
 #include "animation/animation.h"
@@ -71,8 +72,8 @@ void Quit(){
 	QuitDebug();
 }
 
-bool tmp = true;
-Vector2 startupTime = {0, 0};
+// bool tmp = true;
+// Vector2 startupTime = {0, 0};
 SDL_Rect src = {0, 0, 128, 128};
 SDL_Rect dst = {0, 128, 0, 64};
 SDL_Rect tileDst = {0, 64, 64, 64};
@@ -81,41 +82,42 @@ void GameLoop(){
 	SDL_RenderClear(renderer);
 
 	// dst.x += IntegerLerp(dst.x, 736, 10000);
-	dst.w += IntegerLerp(dst.w, 64, 10000);
-	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
+	// dst.w += IntegerLerp(dst.w, 64, 10000);
+	// PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
 	// RenderChunk(FindChunk((Vector2){0, 0}), (Vector2){0, 0});
 	RenderSandbox();
-	Button_function(renderer, (Vector2){200, 200}, "QUIT!", Quit);
-	Checkbox(renderer, &tmp, "testing123", (Vector2){200, 400});
 
-	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 150, 0, "Render calls: %d", renderQueueSize + 15);
-	RenderText(renderer, FindFont("default_font"), 1, 0, 0, "dst coord: %d", dst.x);
-
-	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 4, (SDL_Rect){SCREEN_WIDTH / 2 - 32, SCREEN_HEIGHT / 2 - 32, 64, 64}, 10000);
+	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 200, 0, "Render calls: %d", renderQueueSize + 15);
+	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 5, (SDL_Rect){SCREEN_WIDTH - 15, 0, 15, deltatime * 2 + 10}, RNDR_UI);
 
 	RenderQueue();
 	SDL_RenderPresent(renderer);
-	if(tmp){
-		startupTime.y = SDL_GetTicks();
-		printf("%d milliseconds to first render\n", startupTime.y - startupTime.x);
-		tmp = false;
-	}
+	// if(tmp){
+	// 	startupTime.y = SDL_GetTicks();
+	// 	printf("%d milliseconds to first render\n", startupTime.y - startupTime.x);
+	// 	DebugLog(D_VERBOSE_ACT, "Time to end of first render: %ums", startupTime.y - startupTime.x);
+	// 	tmp = false;
+	// }
 }
 
 void MenuLoop(){
 	
 }
 
+void LoadSUND(){
+	ReadSandbox("terst");
+}
+
 int main(int argc, char *argv[]){
 	SetupDebug();
 	SetupSDL();
-	startupTime.x = SDL_GetTicks();
+	// startupTime.x = SDL_GetTicks();
 	Setup();
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
 	// NewSandbox("terst", 334);
-	ReadSandbox("terst");
+	// ReadSandbox("terst");
 	// FindChunk((Vector2){0, 0})->tile[1][0][0].block = FindBlock("grass")->id;
 	// FindChunk((Vector2){0, 0});
 	// FillChunk((Vector2){0, 0});
@@ -124,15 +126,17 @@ int main(int argc, char *argv[]){
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
 	// PlaceBlock(activeLevel.terrain, FindBlock("water"), (Vector2){0, 2}, 0);
 	// RemoveBlock(activeLevel.terrain, (Vector2){0, 2});
+	BindKeyEvent(LoadSUND, 'g', SDL_KEYDOWN);
 
 	while(running){
 		loopStartTicks = SDL_GetTicks();
-		EventManager(&e);
-		Load();
+		EventListener();
+		LoadScreen();
 		if(activeSandbox.isActive){
 			GameLoop();
 		}else{
-			MenuLoop();
+			// MenuLoop();
+			RenderStartScreen();
 		}
 		
 		SDL_Delay(1000 / targetFramerate);

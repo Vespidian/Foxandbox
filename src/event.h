@@ -31,6 +31,6 @@ extern bool mouseClicked;
 
 void InitEvents();
 void FastEvents();
-void EventManager(SDL_Event *e);
+void EventListener();
 
 #endif

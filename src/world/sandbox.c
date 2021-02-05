@@ -126,8 +126,9 @@ void WriteSandbox(char *name){
         for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
             WriteChunk(&activeSandbox.chunkBuffer[i], activeSandbox.chunkBuffer[i].position);
         }
+        DebugLog(D_VERBOSE_ACT, "Wrote sandbox '%s'", name);
     }else{
-        DebugLog(D_ERR, "Tried to write to sandbox '%s' when no sandbox loaded", name);
+        DebugLog(D_WARN, "Tried to write to sandbox '%s' when no sandbox loaded", name);
     }
 }
 
@@ -155,16 +156,17 @@ void ReadSandbox(char *name){
 void UnloadSandbox(){
     /**
      *  Call WriteSandbox()
-     *  Unload all loaded chunks
+     *  Free chunkbuffer and set buffersize to 0
      */
+    unsigned int start = SDL_GetTicks();
     if(activeSandbox.isActive){
         DebugLog(D_ACT, "Unloading sandbox with name '%s'", activeSandbox.name);
         WriteSandbox(activeSandbox.name);
-        for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
-            UnloadChunk(activeSandbox.chunkBuffer[activeSandbox.chunkBufferSize - i].position);
-        }
+        activeSandbox.chunkBufferSize = 0;
+        free(activeSandbox.chunkBuffer);
+        DebugLog(D_ACT, "Unloaded sandbox with name '%s', took %ums", activeSandbox.name, SDL_GetTicks() - start);
     }else{
-        DebugLog(D_ERR, "Tried to unload sandbox when no sandbox loaded");
+        DebugLog(D_WARN, "Tried to unload sandbox when no sandbox loaded");
     }
     activeSandbox = undefinedSandbox;
 }
@@ -242,7 +244,7 @@ void RenderCursor(){
 }
 
 void LevelMouseInteraction(EventData event){
-    if(mouseHeld){
+    if(mouseHeld && activeSandbox.isActive){
         if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
             PlaceBlock(FindBlock("water"), mouseGlobalTilePos, 0, 0);
         }

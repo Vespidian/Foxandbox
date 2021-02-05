@@ -2,7 +2,7 @@
 #include "render/renderer.h"
 #include "event.h"
 
-SDL_Event e;
+SDL_Event event;
 Vector2 mousePos = {0, 0};
 
 InputEvent *events;
@@ -43,6 +43,22 @@ void PollEvents(){
 	if(mouseState){
 		mouseHeld = true;
 	}
+	while(SDL_PollEvent(&event)){
+	// SDL_PollEvent(&event);
+		for(int i = 0; i < numEvents; i++){
+			if(events[i].pollType == EV_ACCURATE){
+				if(events[i].eventType == event.type){
+					if(events[i].isKeyPress){
+						if(event.key.keysym.sym == events[i].keyCode){
+							events[i].function((EventData){&event, keyStates, &mouseState});
+						}
+					}else{
+						events[i].function((EventData){&event, keyStates, &mouseState});
+					}
+				}
+			}
+		}
+	}
 	for(int i = 0; i < numEvents; i++){
 		if(events[i].pollType == EV_QUICK){
 			if(events[i].isKeyPress){
@@ -54,24 +70,9 @@ void PollEvents(){
 			}
 		}
 	}
-	while(SDL_PollEvent(&e) != 0){
-		for(int i = 0; i < numEvents; i++){
-			if(events[i].pollType == EV_ACCURATE){
-				if(events[i].eventType == e.type){
-					if(events[i].isKeyPress){
-						if(e.key.keysym.sym == events[i].keyCode){
-							events[i].function((EventData){&e, keyStates, &mouseState});
-						}
-					}else{
-						events[i].function((EventData){&e, keyStates, &mouseState});
-					}
-				}
-			}
-		}
-	}
 }
 
-void EventManager(SDL_Event *e){
+void EventListener(){
 	mouseClicked = false;
 	mouseHeld = false;
 	if(enableInput){
