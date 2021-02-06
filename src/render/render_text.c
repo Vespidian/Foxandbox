@@ -57,6 +57,20 @@ void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xP
     vsprintf(formattedText, text, vaFormat);
     va_end(vaFormat);
 
+    RenderTextEx(renderer, font, fontSize, xPos, yPos, (SDL_Color){255, 255, 255}, -1, formattedText);
+}
+
+void RenderTextEx(SDL_Renderer *renderer, FontObject *font, float fontSize, int xPos, int yPos, SDL_Color color, int numCharacters, char *text, ...){
+    va_list vaFormat;
+
+    va_start(vaFormat, text);
+    char formattedText[256];
+    vsprintf(formattedText, text, vaFormat);
+    va_end(vaFormat);
+
+    if(numCharacters != -1){
+        formattedText[numCharacters] = '\0';
+    }
 
     SDL_Rect dst = {xPos, yPos, IDFindTilesheet(font->tilesheet)->tileSize.x * fontSize, IDFindTilesheet(font->tilesheet)->tileSize.y * fontSize};
     int charValue = 0;
@@ -64,7 +78,8 @@ void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xP
         charValue = (int)formattedText[i] - (int)' ';
 
         if(charValue >= 0){
-            PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
+            // PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
+            PushRender_TilesheetEx(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT, 0, 255, color);
             dst.x += padding.x * 1.7f * fontSize;
         }else{
             switch(charValue){

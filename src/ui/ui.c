@@ -1,10 +1,17 @@
 #include "../global.h"
 #include "../render/tilesheet.h"
 #include "../render/renderer.h"
+
+//UI Elements
+#include "resizable_rect.h"
+
 #include "ui.h"
 
 void InitUI(){
 	NewRawTilesheet("ui", "../images/ui/ui.png", (Vector2){16, 16});
+
+	InitResizableRect();
+
 	DebugLog(D_ACT, "Initialized UI subsystem");
 }
 

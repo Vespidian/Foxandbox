@@ -1,9 +1,11 @@
 #include "global.h"
 #include "render/renderer.h"
+#include "text_event.h"
+
 #include "event.h"
 
-SDL_Event event;
-Vector2 mousePos = {0, 0};
+SDL_Event e;
+SDL_Point mousePos = {0, 0};
 
 InputEvent *events;
 int numEvents = 0;
@@ -12,22 +14,25 @@ bool enableInput = true;
 
 bool mouseHeld = false;
 bool mouseClicked = false;
+Vector2 mouse = {0, 0};
 
 //Event predefinitions
 void MouseClicked();
 void KeyEvents_quick();
 void WindowResize();
-// void SDLQuitEvent();
 
 //Event management
 void InitEvents(){
 	events = malloc(sizeof(InputEvent));
 
+	if(isDebug){
+		BindKeyEvent(Quit, 0x1B, SDL_KEYDOWN);//escape
+	}
 	NewEvent(EV_ACCURATE, SDL_MOUSEBUTTONDOWN, MouseClicked);
-	BindKeyEvent(Quit, 0x1B, SDL_KEYDOWN);//escape
 	NewEvent(EV_ACCURATE, SDL_WINDOWEVENT, WindowResize);
 	NewEvent(EV_ACCURATE, SDL_QUIT, Quit);
 
+	InitTextEvent();
 	DebugLog(D_ACT, "Initialized event subsystem");
 }
 
@@ -43,17 +48,19 @@ void PollEvents(){
 	if(mouseState){
 		mouseHeld = true;
 	}
-	while(SDL_PollEvent(&event)){
-	// SDL_PollEvent(&event);
+	while(SDL_PollEvent(&e)){
+		if(textInput){
+			PollText(&e);
+		}
 		for(int i = 0; i < numEvents; i++){
 			if(events[i].pollType == EV_ACCURATE){
-				if(events[i].eventType == event.type){
+				if(events[i].eventType == e.type){
 					if(events[i].isKeyPress){
-						if(event.key.keysym.sym == events[i].keyCode){
-							events[i].function((EventData){&event, keyStates, &mouseState});
+						if(e.key.keysym.sym == events[i].keyCode){
+							events[i].function((EventData){&e, keyStates, &mouseState});
 						}
 					}else{
-						events[i].function((EventData){&event, keyStates, &mouseState});
+						events[i].function((EventData){&e, keyStates, &mouseState});
 					}
 				}
 			}

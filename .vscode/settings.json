@@ -8,6 +8,17 @@
         "C:/MinGW/include"
     ],
     "files.associations": {
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "button.h": "c",
+        "ui_elements.h": "c",
+        "event.h": "c",
+        "render_text.h": "c",
+        "sandbox.h": "c",
+        "start_screen.h": "c",
+        "renderer.h": "c",
+        "text_event.h": "c",
+        "resizable_rect.h": "c",
+        "global.h": "c",
+        "tilesheet.h": "c"
     },
 }

@@ -25,6 +25,7 @@ extern bool running;
 extern float deltatime;
 extern int targetFramerate;
 
+bool isDebug;
 void Quit();
 
 #endif

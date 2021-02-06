@@ -22,5 +22,6 @@ FontObject *NewRawFont(char *name, char *path, Vector2 charSize, Vector2 padding
 FontObject *FindFont(char *name);
 FontObject *IDFindFont(unsigned int id);
 void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xPos, int yPos, char *text, ...);
+void RenderTextEx(SDL_Renderer *renderer, FontObject *font, float fontSize, int xPos, int yPos, SDL_Color color, int numCharacters, char *text, ...);
 
 #endif

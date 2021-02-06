@@ -2,8 +2,10 @@
 #include "block.h"
 #include "../render/renderer.h"
 #include "../utility.h"
-#include "chunk.h"
 #include "sandbox.h"
+#include "../ui/resizable_rect.h"
+
+#include "chunk.h"
 
 const int chunkSize = 32;
 const int chunkLayers = 4;
@@ -142,7 +144,7 @@ ChunkObject *ReadChunk(Vector2 position){
         WriteChunk(chunk, position);
     }
     chunk->lastAccess = SDL_GetTicks();
-    DebugLog(D_VERBOSE_ACT, "Read from chunk '%d, %d' in sandbox '%s'", position.x, position.y, name);
+    DebugLog(D_VERBOSE_ACT, "Read from chunk '%d,%d' in sandbox '%s'", position.x, position.y, name);
     return chunk;
 }
 
@@ -163,6 +165,7 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 3, chunkRect, RNDR_LEVEL - 1);
+        // ResizableRect(chunkRect, 5);
         SDL_Rect tileRect = {0, 0, tileRenderSize, tileRenderSize};
         // for(int y = (chunkSize - (position.y / tileRenderSize)) * ((position.y / tileRenderSize - 1) > 0); position.y + (y * tileRenderSize) < SCREEN_HEIGHT && y < chunkSize; y++){
             // for(int x = (chunkSize - (position.x / tileRenderSize)) * ((position.x / tileRenderSize - 1) > 0); position.x + (x * tileRenderSize) < SCREEN_WIDTH && x < chunkSize; x++){

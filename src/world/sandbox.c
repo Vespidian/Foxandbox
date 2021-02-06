@@ -87,6 +87,11 @@ void ReadPlayerInfo(){
         }
         fclose(pInfo);
         free(buffer);
+    }else{
+        globalCoordinates.x = 0;
+        globalCoordinates.y = 0;
+        globalOffset.x = 0;
+        globalOffset.y = 0;
     }
 }
 
