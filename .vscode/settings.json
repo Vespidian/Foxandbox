@@ -19,6 +19,7 @@
         "text_event.h": "c",
         "resizable_rect.h": "c",
         "global.h": "c",
-        "tilesheet.h": "c"
+        "tilesheet.h": "c",
+        "unistd.h": "c"
     },
 }

@@ -1,12 +1,15 @@
+#include <unistd.h>
+
 #include "../global.h"
 #include "../utility.h"
 #include "../render/renderer.h"
 #include "../render/render_text.h"
 #include "../event.h"
 #include "chunk.h"
+
 #include "sandbox.h"
 
-#include <unistd.h>
+int chunkLoadRadius = 2;
 
 SandboxObject activeSandbox;
 SandboxObject undefinedSandbox;
@@ -179,8 +182,8 @@ void UnloadSandbox(){
 void RenderSandbox(){
     Vector2 chunk = {0, 0};
     Vector2 chunkOffset = {0, 0};
-    for(int y = 0; y <= chunkLoadRadius * 2; y++){
-        for(int x = 0; x <= chunkLoadRadius * 2; x++){
+    for(int y = 0; y <= chunkLoadRadius * 2 - 1; y++){
+        for(int x = 0; x <= chunkLoadRadius * 2 - 1; x++){
             chunk = (Vector2){((globalCoordinates.x) / chunkSize) + x - 1, ((globalCoordinates.y) / chunkSize) + y - 1};
             chunkOffset.x = (x * chunkSize * tileRenderSize) + (-globalCoordinates.x % chunkSize) * tileRenderSize - globalOffset.x;
             chunkOffset.y = (y * chunkSize * tileRenderSize) + (-globalCoordinates.y % chunkSize) * tileRenderSize - globalOffset.y;
@@ -241,7 +244,7 @@ void RenderCursor(){
         mouseTilePos.y + globalCoordinates.y - chunkCenterOffset.y / tileRenderSize - chunkSize
     };
     
-    Vector2 infoGroup = {100, 0};
+    Vector2 infoGroup = {0, 0};
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y, "mouseTilePos: %d, %d", mouseTilePos.x, mouseTilePos.y);
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 20, "mouseGlobalTilePos: %d, %d", mouseGlobalTilePos.x, mouseGlobalTilePos.y);
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 40, "globalOffset: %d, %d", globalOffset.x, globalOffset.y);

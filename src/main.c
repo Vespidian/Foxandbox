@@ -67,7 +67,7 @@ void SetupSDL(){
 
 void Quit(){
 	DebugLog(D_ACT, "Shutting down!");
-	UnloadSandbox();
+	// UnloadSandbox();
 	running = false;
 	
 	SDL_Quit();
@@ -118,6 +118,8 @@ int main(int argc, char *argv[]){
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+
+	ReadSandbox("testing444");
 
 	while(running){
 		loopStartTicks = SDL_GetTicks();

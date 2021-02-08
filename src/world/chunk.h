@@ -21,7 +21,6 @@ typedef struct ChunkObject{// Chunk size is hard coded
 extern const int chunkSize;
 extern const int chunkLayers;
 
-extern int chunkLoadRadius;
 extern int tileRenderSize;
 extern int chunkTimeoutLimit;
 

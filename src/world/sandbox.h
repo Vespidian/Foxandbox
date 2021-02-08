@@ -11,6 +11,8 @@ typedef struct SandboxObject{
     int chunkBufferSize;
 }SandboxObject;
 
+extern int chunkLoadRadius;
+
 extern SandboxObject activeSandbox;
 extern SandboxObject undefinedSandbox;
 

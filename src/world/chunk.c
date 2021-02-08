@@ -10,9 +10,17 @@
 const int chunkSize = 32;
 const int chunkLayers = 4;
 
-int chunkLoadRadius = 1;
 int tileRenderSize = 64;
 int chunkTimeoutLimit = 5000;
+
+void FillChunk(Vector2 position){
+    for(int y = 0; y < chunkSize; y++){
+        for(int x = 0; x < chunkSize; x++){
+            // printf("here\n");
+            FindChunk(position)->tile[0][y][x].block = FindBlock("grass")->id;
+        }
+    }
+}
 
 ChunkObject *NewChunk(Vector2 position){
     activeSandbox.chunkBuffer = realloc(activeSandbox.chunkBuffer, sizeof(ChunkObject) * (activeSandbox.chunkBufferSize + 1));
@@ -30,7 +38,7 @@ ChunkObject *NewChunk(Vector2 position){
     chunk->position = position;
     chunk->lastAccess = SDL_GetTicks();
     activeSandbox.chunkBufferSize++;
-    // FillChunk(position);
+    FillChunk(position);
     return chunk;
 }
 
@@ -42,7 +50,7 @@ void UnloadChunk(Vector2 coordinate){
         }
     }
     if(offset > -1){
-        for(int j = offset; j < activeSandbox.chunkBufferSize; j++){
+        for(int j = offset; j < activeSandbox.chunkBufferSize - 1; j++){
             activeSandbox.chunkBuffer[j] = activeSandbox.chunkBuffer[j + 1];
         }
     }
@@ -165,12 +173,10 @@ void RenderChunk(ChunkObject *chunk, Vector2 position){
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
         PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 3, chunkRect, RNDR_LEVEL - 1);
-        // ResizableRect(chunkRect, 5);
+        ResizableRect(chunkRect, 5);
         SDL_Rect tileRect = {0, 0, tileRenderSize, tileRenderSize};
-        // for(int y = (chunkSize - (position.y / tileRenderSize)) * ((position.y / tileRenderSize - 1) > 0); position.y + (y * tileRenderSize) < SCREEN_HEIGHT && y < chunkSize; y++){
-            // for(int x = (chunkSize - (position.x / tileRenderSize)) * ((position.x / tileRenderSize - 1) > 0); position.x + (x * tileRenderSize) < SCREEN_WIDTH && x < chunkSize; x++){
-        for(int y = 0; y < chunkSize; y++){
-            for(int x = 0; x < chunkSize; x++){
+        for(int y = (-position.y / tileRenderSize) * (position.y < 0); y < ((-position.y + SCREEN_HEIGHT) / tileRenderSize + 1) && y < chunkSize; y++){
+            for(int x = (-position.x / tileRenderSize) * (position.x < 0); x < ((-position.x + SCREEN_WIDTH) / tileRenderSize + 1) && x < chunkSize; x++){
                 tileRect.x = (x * tileRenderSize) + position.x;
                 tileRect.y = (y * tileRenderSize) + position.y;
                 for(int z = 0; z < chunkLayers; z++){
