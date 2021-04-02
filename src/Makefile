@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Werror -Wall -lmingw32 -llua54 -lSDL2main -lSDL2 -lSDL2_image -g
+CFLAGS = -Werror -Wall -lmingw32 -llua54 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_gpu -g
 
 INCLUDE = -isystem C:/c_libs/include/ -LC:/c_libs/lib/
 

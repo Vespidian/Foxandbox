@@ -6,6 +6,7 @@
 #include "../render/render_text.h"
 #include "../event.h"
 #include "chunk.h"
+#include "sandbox_generation.h"
 
 #include "sandbox.h"
 
@@ -25,7 +26,11 @@ Vector2 mouseGlobalTilePos;
 
 //Character position
 Vector2 globalOffset = {0, 0};
-Vector2 globalCoordinates = {10000, 0};
+Vector2 globalPosition = {0, 0};
+// Vector2 globalCoordinates = {-52, -57};
+Vector2 globalCoordinates = {0, 0};
+// Vector2 globalCoordinates = {-20, -25};
+// Vector2 globalCoordinates = {13, 8};
 
 const char savePath[] = "saves/";
 
@@ -37,6 +42,7 @@ void InitSandboxes(){
 
     undefinedSandbox.isActive = false;
     activeSandbox = undefinedSandbox;
+
 
     DebugLog(D_ACT, "Initialized level subsystem");
 }
@@ -91,10 +97,10 @@ void ReadPlayerInfo(){
         fclose(pInfo);
         free(buffer);
     }else{
-        globalCoordinates.x = 0;
-        globalCoordinates.y = 0;
-        globalOffset.x = 0;
-        globalOffset.y = 0;
+        // globalCoordinates.x = 0;
+        // globalCoordinates.y = 0;
+        // globalOffset.x = 0;
+        // globalOffset.y = 0;
     }
 }
 
@@ -196,6 +202,7 @@ void RenderSandbox(){
     }
     UnloadOldChunks();
     RenderCursor();
+    CheckBufferGeneration();
 }
 
 
@@ -249,6 +256,10 @@ void RenderCursor(){
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 20, "mouseGlobalTilePos: %d, %d", mouseGlobalTilePos.x, mouseGlobalTilePos.y);
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 40, "globalOffset: %d, %d", globalOffset.x, globalOffset.y);
     RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 60, "globalCoordinates: %d, %d", globalCoordinates.x, globalCoordinates.y);
+    Vector2 chunkOut = {0, 0};
+    Vector2 chunkOffset = {0, 0};
+    CoordinateConvert(mouseGlobalTilePos, &chunkOut, &chunkOffset);
+    RenderText(renderer, FindFont("default_font"), 1, infoGroup.x, infoGroup.y + 80, "chunk: %d, %d", chunkOut.x, chunkOut.y);
 }
 
 void LevelMouseInteraction(EventData event){
@@ -263,31 +274,37 @@ void LevelMouseInteraction(EventData event){
 }
 
 void LevelMovement(EventData event){
-    int x = 0;
-    int y = 0;
+    // int x = 0;
+    // int y = 0;
+    int speed = 3;
     if(event.keyStates[SDL_SCANCODE_W]){
-		globalOffset.y -= 1 * deltatime;
-        y = -1;
+		globalPosition.y -= speed * deltatime;
+        // y = -1;
 	}
 	if(event.keyStates[SDL_SCANCODE_S]){
-		globalOffset.y += 1 * deltatime;
-        y = 1;
+		globalPosition.y += speed * deltatime;
+        // y = 1;
 	}
 	if(event.keyStates[SDL_SCANCODE_A]){
-		globalOffset.x -= 1 * deltatime;
-        x = -1;
+		globalPosition.x -= speed * deltatime;
+        // x = -1;
 	}
 	if(event.keyStates[SDL_SCANCODE_D]){
-		globalOffset.x += 1 * deltatime;
-        x = 1;
+		globalPosition.x += speed * deltatime;
+        // x = 1;
 	}
 
-    if(abs((int)globalOffset.x) + 1 > tileRenderSize / 2){
-        globalCoordinates.x += (globalOffset.x / (tileRenderSize / 2));
-        globalOffset.x = (-((int)globalOffset.x % tileRenderSize) + x) % (tileRenderSize / 2);
-    }
-    if(abs((int)globalOffset.y) + 1 > tileRenderSize / 2){
-        globalCoordinates.y += (globalOffset.y / (tileRenderSize / 2));
-        globalOffset.y = (-((int)globalOffset.y % tileRenderSize) + y) % (tileRenderSize / 2);
-    }
+    // if(abs((int)globalOffset.x) + 1 > tileRenderSize / 2){
+    //     globalCoordinates.x += (globalOffset.x / (tileRenderSize / 2));
+    //     // globalOffset.x = (-((int)globalOffset.x % tileRenderSize) + x) % (tileRenderSize / 2);
+    //     globalOffset.x = (-(((int)globalOffset.x >> 5) & 1) + x) % (tileRenderSize / 2);
+    // }
+    // if(abs((int)globalOffset.y) + 1 > tileRenderSize / 2){
+    //     globalCoordinates.y += (globalOffset.y / (tileRenderSize / 2));
+    //     globalOffset.y = (-((int)globalOffset.y % tileRenderSize) + y) % (tileRenderSize / 2);
+    // }
+    globalOffset.x = globalPosition.x % tileRenderSize;
+    globalOffset.y = globalPosition.y % tileRenderSize;
+    globalCoordinates.y = globalPosition.y / tileRenderSize;
+    globalCoordinates.x = globalPosition.x / tileRenderSize;
 }

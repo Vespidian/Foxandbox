@@ -4,7 +4,7 @@
     "C_Cpp.dimInactiveRegions": true,
     "explorer.sortOrder": "type",
     "C_Cpp.default.includePath": [
-        "S:/c_libs/include",
+        "C:/c_libs/include",
         "C:/MinGW/include"
     ],
     "files.associations": {
@@ -20,6 +20,7 @@
         "resizable_rect.h": "c",
         "global.h": "c",
         "tilesheet.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "chunk.h": "c"
     },
 }

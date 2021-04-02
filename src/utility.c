@@ -53,3 +53,23 @@ bool CompareVector2(Vector2 v1, Vector2 v2){
 	}
 	return false;
 }
+
+uint32_t nLehmer = 0;
+uint32_t Lehmer32(){
+	nLehmer += 0xe120fc15;
+	uint32_t tmp;
+	tmp = (uint64_t)nLehmer * 0x4a39b70d;
+	uint32_t m1 = (tmp >> 16) ^ tmp;
+	tmp = (uint64_t)m1 * 0x12fad5c9;
+	uint32_t m2 = (tmp >> 16) ^ tmp;
+	return m2;
+}
+
+int Rand(int min, int max){
+	return(Lehmer32() % (max - min)) + min;
+}
+int worldSeed = 0;
+int WhiteNoise(int x, int y){
+	nLehmer = (((x & 0xffff) ^ (worldSeed << 4)) << 16 | ((y & 0xffff) | (worldSeed >> 8)));
+	return Rand(0, 255);
+}

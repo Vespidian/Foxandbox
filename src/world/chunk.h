@@ -9,6 +9,8 @@ typedef struct TileObject{
     int rotation;
     int alpha;
     SDL_Color color;
+    uint8_t autotile_value;
+    uint8_t autotile_value_uncompressed;
 }TileObject;
 
 typedef struct ChunkObject{// Chunk size is hard coded
@@ -16,6 +18,7 @@ typedef struct ChunkObject{// Chunk size is hard coded
     unsigned int lastAccess;
     TileObject tile[4][32][32];// A chunk is a 32x32 section of map with 8 layers and a collision map
     int collision[32][32];
+    bool isGenerated;
 }ChunkObject;
 
 extern const int chunkSize;
@@ -25,6 +28,7 @@ extern int tileRenderSize;
 extern int chunkTimeoutLimit;
 
 ChunkObject *FindChunk(Vector2 coordinate);
+bool CheckChunkExists(Vector2 chunk);
 void WriteChunk(ChunkObject *chunk, Vector2 position);
 void UnloadChunk(Vector2 coordinate);
 void UnloadOldChunks();

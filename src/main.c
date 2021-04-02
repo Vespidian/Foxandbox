@@ -8,7 +8,6 @@
 #include "render/renderer.h"
 #include "render/render_text.h"
 #include "ui/ui.h"
-// #include "ui/ui_elements.h"
 #include "ui/start_screen.h"
 
 
@@ -16,6 +15,11 @@
 #include "ui/load_screen.h"
 
 #include "world/sandbox_generation.h"
+
+
+
+#include "procedural_testing.h"
+#include <SDL_gpu.h>
 
 int loopStartTicks = 0;
 float deltatime = 0;
@@ -87,6 +91,7 @@ void GameLoop(){
 	// dst.w += IntegerLerp(dst.w, 64, 10000);
 	// PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
 	// RenderChunk(FindChunk((Vector2){0, 0}), (Vector2){0, 0});
+	
 	RenderSandbox();
 
 	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 200, 0, "Render calls: %d", renderQueueSize + 15);
@@ -102,12 +107,33 @@ void GameLoop(){
 	// }
 }
 
-void MenuLoop(){
-	
-}
-
 void LoadSUND(){
 	ReadSandbox("terst");
+}
+
+
+
+void Func(){
+	// IterateCellularAutomata((Vector2){-1, -1});
+	// 	for(int i = 0; i < 7; i++){
+			// IterateCellularAutomata(activeSandbox.chunkBuffer->position);
+	// for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
+		// IterateCellularAutomata(activeSandbox.chunkBuffer[i].position);
+	// }
+	
+	// 	}
+	// 	printf("ran\n");
+	// for(int y = -2; y < 4; y++){
+		// for(int x = -2; x < 4; x++){
+			// IterateCellularAutomata((Vector2){x, y});
+		// }
+	// }
+	// FillArrayRandom1D();
+	// GeneratePerlin1D();
+	// IterateCellularAutomata((Vector2){-1, -1});
+	// IterateCellularAutomata((Vector2){-2, -1});
+	// IterateCellularAutomata((Vector2){1, 1});
+	// IterateCellularAutomata((Vector2){0, 0});
 }
 
 int main(int argc, char *argv[]){
@@ -118,9 +144,20 @@ int main(int argc, char *argv[]){
 
 	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+	NewBlock(NewItem("sand", FindTilesheet("tmp"), 3), NULL, FindTilesheet("tmp"), 3, false);
 
 	ReadSandbox("testing444");
-
+	// RandomFill((Vector2){0, 0}, 50);
+	// for(int i = 0; i < 7; i++){
+		// IterateCellularAutomata((Vector2){-1, -1});
+		// IterateCellularAutomata((Vector2){-1, -1});
+		// IterateCellularAutomata((Vector2){-2, -1});
+	// }
+	// SetupProcedural();
+	BindKeyEvent(Func, 'h', SDL_KEYDOWN);
+	// activeSandbox.isActive = false;
+	// FillArrayRandom1D();
+	// GeneratePerlin1D();
 	while(running){
 		loopStartTicks = SDL_GetTicks();
 		EventListener();
@@ -131,6 +168,8 @@ int main(int argc, char *argv[]){
 			// MenuLoop();
 			RenderStartScreen();
 		}
+		// ProceduralTesting();
+
 		
 		SDL_Delay(1000 / targetFramerate);
 		deltatime = (SDL_GetTicks() - loopStartTicks) / 10;

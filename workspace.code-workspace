@@ -1,0 +1,38 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"problems.decorations.enabled": false,
+		"explorer.sortOrder": "type",
+		"files.associations": {
+			"*.tcc": "c",
+			"button.h": "c",
+			"ui_elements.h": "c",
+			"event.h": "c",
+			"render_text.h": "c",
+			"sandbox.h": "c",
+			"start_screen.h": "c",
+			"renderer.h": "c",
+			"text_event.h": "c",
+			"resizable_rect.h": "c",
+			"global.h": "c",
+			"tilesheet.h": "c",
+			"unistd.h": "c",
+			"chunk.h": "c",
+			"textures.h": "c",
+			"item.h": "c",
+			"sandbox_generation.h": "c",
+			"procedural_testing.h": "c",
+			"perlin.h": "c",
+			"stdio.h": "c",
+			"string.h": "c",
+			"sdl_image.h": "c",
+			"sdl.h": "c",
+			"sdl_gpu.h": "c",
+			"stdlib.h": "c"
+		}
+	}
+}

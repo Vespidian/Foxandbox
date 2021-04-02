@@ -9,7 +9,8 @@ typedef struct BlockObject{
     unsigned int breakItem;
     unsigned int tilesheet;
     int tileIndex;
-    bool allowRotation;
+    bool allow_rotation;
+    bool allow_autotile;
 }BlockObject;
 
 
@@ -18,7 +19,7 @@ extern BlockObject undefinedBlock;
 
 
 void InitBlocks();
-void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation);
+void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allow_rotation);
 BlockObject *FindBlock(char *name);
 BlockObject *IDFindBlock(unsigned int id);
 

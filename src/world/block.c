@@ -8,16 +8,16 @@ static unsigned int nextID = 0;
 BlockObject undefinedBlock;
 
 void InitBlocks(){
-    undefinedBlock = (BlockObject){-1, undefinedItem.id, undefinedItem.id, undefinedTilesheet.id, 0, false};
+    undefinedBlock = (BlockObject){-1, undefinedItem.id, undefinedItem.id, undefinedTilesheet.id, 0, false, false};
     DebugLog(D_ACT, "Initialized block subsystem");
 }
 
-void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allowRotation){
+void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tilesheet, int tileIndex, bool allow_rotation){
     blocks = realloc(blocks, sizeof(BlockObject) * (numBlocks + 1));
     if(breakItem == NULL){
         breakItem = item;
     }
-    blocks[numBlocks] = (BlockObject){nextID, item->id, breakItem == NULL ? -1 : breakItem->id, tilesheet->id, tileIndex, allowRotation};
+    blocks[numBlocks] = (BlockObject){nextID, item->id, breakItem == NULL ? -1 : breakItem->id, tilesheet->id, tileIndex, allow_rotation, false};
     DebugLog(D_ACT, "Created block id '%d' with item name '%s'", numBlocks, item->name);
     numBlocks++;
     nextID++;

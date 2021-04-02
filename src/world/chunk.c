@@ -3,6 +3,7 @@
 #include "../render/renderer.h"
 #include "../utility.h"
 #include "sandbox.h"
+#include "sandbox_generation.h"
 #include "../ui/resizable_rect.h"
 
 #include "chunk.h"
@@ -12,15 +13,6 @@ const int chunkLayers = 4;
 
 int tileRenderSize = 64;
 int chunkTimeoutLimit = 5000;
-
-void FillChunk(Vector2 position){
-    for(int y = 0; y < chunkSize; y++){
-        for(int x = 0; x < chunkSize; x++){
-            // printf("here\n");
-            FindChunk(position)->tile[0][y][x].block = FindBlock("grass")->id;
-        }
-    }
-}
 
 ChunkObject *NewChunk(Vector2 position){
     activeSandbox.chunkBuffer = realloc(activeSandbox.chunkBuffer, sizeof(ChunkObject) * (activeSandbox.chunkBufferSize + 1));
@@ -37,8 +29,14 @@ ChunkObject *NewChunk(Vector2 position){
     }
     chunk->position = position;
     chunk->lastAccess = SDL_GetTicks();
+    chunk->isGenerated = false;
     activeSandbox.chunkBufferSize++;
-    FillChunk(position);
+
+
+    // RandomFill(position, 50);
+	// IterateCellularAutomata(chunk);
+	// IterateCellularAutomata(chunk->position);
+    // FillChunk(position);
     return chunk;
 }
 
@@ -166,6 +164,23 @@ ChunkObject *FindChunk(Vector2 coordinate){
     }
     //Check sandbox folder
     return ReadChunk(coordinate);
+}
+
+bool CheckChunkExists(Vector2 chunk){
+    for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
+        if(CompareVector2(activeSandbox.chunkBuffer[i].position, chunk)){
+            return true;
+        }
+    }
+    char chunk_name[32];
+    snprintf(chunk_name, 32, "%d %d", chunk.x, chunk.y);
+    FILE *chunk_file;
+    if((chunk_file = fopen(chunk_name, "r")) != NULL){
+        fclose(chunk_file);
+        return true;
+    }
+
+    return false;
 }
 
 void RenderChunk(ChunkObject *chunk, Vector2 position){

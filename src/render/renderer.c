@@ -1,9 +1,9 @@
 #include "../global.h"
 #include "../utility.h"
 #include "../textures.h"
-#include "renderer.h"
 #include "../debug.h"
-#include "../utility.h"
+
+#include "renderer.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;

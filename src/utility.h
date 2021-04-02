@@ -27,4 +27,8 @@ int strshft_l(char *stringShift, int startIndex, int shiftBy);
 **/
 bool CompareVector2(Vector2 v1, Vector2 v2);
 
+int Rand(int min, int max);
+
+int WhiteNoise(int x, int y);
+
 #endif
