@@ -1,5 +1,5 @@
 #include "../global.h"
-#include "../render/renderer.h"
+#include "../renderer/renderer.h"
 
 #include "resizable_rect.h"
 

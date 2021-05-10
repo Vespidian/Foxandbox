@@ -1,6 +1,6 @@
 #include "../global.h"
 #include "animation.h"
-#include "../render/tilesheet.h"
+#include "../renderer/tilesheet.h"
 
 enum AnimType{ANIM_FRAME};
 

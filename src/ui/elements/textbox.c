@@ -1,6 +1,6 @@
 #include "../../global.h"
-#include "../../render/renderer.h"
-#include "../../render/render_text.h"
+#include "../../renderer/renderer.h"
+#include "../../renderer/render_text.h"
 #include "../../event.h"
 #include "../../text_event.h"
 #include "../resizable_rect.h"
@@ -8,9 +8,9 @@
 #include "textbox.h"
 
 void Textbox_f(Textbox_t *box){
-    if(mouseClicked){
+    if(mouse_clicked){
         //if mouse hovered over and clicked, textbox is selected 
-        if(SDL_PointInRect(&mousePos, &box->pos)){
+        if(SDL_PointInRect(&mouse_pos, &box->pos)){
             if(box->text == NULL){
                 box->text = malloc(sizeof(char) * 2);
                 box->text[0] = '\0';

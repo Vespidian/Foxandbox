@@ -1,7 +1,7 @@
 #ifndef ITEM_H_
 #define ITEM_H_
 
-#include "../render/tilesheet.h"
+#include "../renderer/tilesheet.h"
 
 typedef struct ItemObject{
     char *name;
@@ -13,7 +13,7 @@ typedef struct ItemObject{
 
 
 extern ItemObject *items;
-extern ItemObject undefinedItem;
+extern ItemObject undefined_item;
 
 
 void InitItems();

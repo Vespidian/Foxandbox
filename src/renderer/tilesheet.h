@@ -8,12 +8,15 @@ typedef struct TilesheetObject{
 	char *name;
 	unsigned int id;
 	unsigned int texture;
+	// unsigned int tile_w;
+	// unsigned int tile_h;
 	Vector2 tileSize;
+
 }TilesheetObject;
 
 
 extern TilesheetObject *tilesheets;
-extern TilesheetObject undefinedTilesheet;
+extern TilesheetObject undefined_tilesheet;
 
 
 void InitTilesheets();

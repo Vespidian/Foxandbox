@@ -1,6 +1,6 @@
 #include "../../global.h"
-#include "../../render/renderer.h"
-#include "../../render/render_text.h"
+#include "../../renderer/renderer.h"
+#include "../../renderer/render_text.h"
 #include "../../event.h"
 
 #include "checkbox.h"
@@ -13,7 +13,7 @@ void Checkbox(SDL_Renderer *renderer, bool *value, char *label, Vector2 position
 	SDL_Rect hitbox = {checkbox.x + 8, checkbox.y + 8, checkbox.w - 16, checkbox.h - 16};
 
 	if(SDL_PointInRect(&mouse, &hitbox)){
-		if(mouseClicked){
+		if(mouse_clicked){
 			*value = !*value;
 		}
 	}

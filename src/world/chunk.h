@@ -21,11 +21,11 @@ typedef struct ChunkObject{// Chunk size is hard coded
     bool isGenerated;
 }ChunkObject;
 
-extern const int chunkSize;
-extern const int chunkLayers;
+extern const int chunk_size;
+extern const int num_chunk_layers;
 
-extern int tileRenderSize;
-extern int chunkTimeoutLimit;
+extern int tile_render_size;
+extern int chunk_buffer_timeout;
 
 ChunkObject *FindChunk(Vector2 coordinate);
 bool CheckChunkExists(Vector2 chunk);

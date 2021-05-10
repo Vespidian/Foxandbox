@@ -11,6 +11,8 @@
 
 #include "debug.h"
 
+#define DEBUG_BUILD
+
 typedef struct Vector2{
 	int x;
 	int y;
@@ -23,9 +25,8 @@ typedef struct fVector2{
 
 extern bool running;
 extern float deltatime;
-extern int targetFramerate;
+extern int target_framerate;
 
-bool isDebug;
 void Quit();
 
 #endif

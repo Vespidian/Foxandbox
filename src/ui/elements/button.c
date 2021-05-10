@@ -1,6 +1,6 @@
 #include "../../global.h"
-#include "../../render/renderer.h"
-#include "../../render/render_text.h"
+#include "../../renderer/renderer.h"
+#include "../../renderer/render_text.h"
 #include "../../event.h"
 #include "../resizable_rect.h"
 
@@ -17,13 +17,13 @@ bool Button(SDL_Renderer *renderer, SDL_Rect rect, char *text){
 		rect.y -= 2;
 		rect.w += 4;
 		rect.h += 4;
-		if(mouseHeld){
+		if(mouse_held){
 			rect.x += 1;
 			rect.y += 1;
 			rect.w -= 3;
 			rect.h -= 3;
 		}
-		if(mouseClicked){
+		if(mouse_clicked){
 			isClicked = true;
 		}
 	}

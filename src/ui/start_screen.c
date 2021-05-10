@@ -1,7 +1,7 @@
 #include <dirent.h>
 
 #include "../global.h"
-#include "../render/renderer.h"
+#include "../renderer/renderer.h"
 #include "../world/sandbox.h"
 #include "ui.h"
 #include "elements/button.h"

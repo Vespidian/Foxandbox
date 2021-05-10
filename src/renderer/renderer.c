@@ -53,7 +53,7 @@ void PushRender_TilesheetEx(SDL_Renderer *renderer, TilesheetObject *tilesheet, 
 		NewQueueSlot();
 		if(index > (tilesheet->tileSize).x * tilesheet->tileSize.y - 1){
 			index = 0;
-			tilesheet = &undefinedTilesheet;
+			tilesheet = &undefined_tilesheet;
 		}
 		SDL_Rect srcRect = {
 			(index % (IDFindTexture(tilesheet->texture)->w / tilesheet->tileSize.x)) * tilesheet->tileSize.x,
@@ -116,8 +116,8 @@ void SortRenderQueue(){
 void RenderQueue(){
 	SortRenderQueue();
 	for(int i = 0; i < renderQueueSize; i++){
-		if(renderQueue[i].texture == undefinedTexture.id){
-			IDFindTexture(renderQueue[i].texture)->texture = undefinedTexture.texture;
+		if(renderQueue[i].texture == undefined_texture.id){
+			IDFindTexture(renderQueue[i].texture)->texture = undefined_texture.texture;
 		}
 		SDL_SetTextureAlphaMod(IDFindTexture(renderQueue[i].texture)->texture, renderQueue[i].alpha);
 		SDL_SetTextureColorMod(IDFindTexture(renderQueue[i].texture)->texture, renderQueue[i].colorMod.r, renderQueue[i].colorMod.g, renderQueue[i].colorMod.b);

@@ -4,9 +4,9 @@
 #include "entities/item.h"
 #include "world/block.h"
 #include "world/sandbox.h"
-#include "render/tilesheet.h"
-#include "render/renderer.h"
-#include "render/render_text.h"
+#include "renderer/tilesheet.h"
+#include "renderer/renderer.h"
+#include "renderer/render_text.h"
 #include "ui/ui.h"
 #include "ui/start_screen.h"
 
@@ -19,15 +19,12 @@
 
 
 #include "procedural_testing.h"
-#include <SDL_gpu.h>
 
-int loopStartTicks = 0;
+int loop_start_ticks = 0;
 float deltatime = 0;
-int targetFramerate = 60;
+int target_framerate = 60;
 
 bool running = true;
-
-bool isDebug = true;
 
 void Quit();
 
@@ -116,9 +113,9 @@ void LoadSUND(){
 void Func(){
 	// IterateCellularAutomata((Vector2){-1, -1});
 	// 	for(int i = 0; i < 7; i++){
-			// IterateCellularAutomata(activeSandbox.chunkBuffer->position);
-	// for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
-		// IterateCellularAutomata(activeSandbox.chunkBuffer[i].position);
+			// IterateCellularAutomata(active_sandbox.chunkBuffer->position);
+	// for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
+		// IterateCellularAutomata(active_sandbox.chunkBuffer[i].position);
 	// }
 	
 	// 	}
@@ -155,15 +152,15 @@ int main(int argc, char *argv[]){
 	// }
 	// SetupProcedural();
 	BindKeyEvent(Func, 'h', SDL_KEYDOWN);
-	// activeSandbox.isActive = false;
+	// active_sandbox.isActive = false;
 	// FillArrayRandom1D();
 	// GeneratePerlin1D();
 	while(running){
-		loopStartTicks = SDL_GetTicks();
+		loop_start_ticks = SDL_GetTicks();
 		EventListener();
 		LoadScreen();
 		
-		if(activeSandbox.isActive){
+		if(active_sandbox.isActive){
 			GameLoop();
 		}else{
 			// MenuLoop();
@@ -172,8 +169,8 @@ int main(int argc, char *argv[]){
 		// ProceduralTesting();
 
 		
-		SDL_Delay(1000 / targetFramerate);
-		deltatime = (SDL_GetTicks() - loopStartTicks) / 10;
+		SDL_Delay(1000 / target_framerate);
+		deltatime = (SDL_GetTicks() - loop_start_ticks) / 10;
 	}
 	Quit();
 	return 0;

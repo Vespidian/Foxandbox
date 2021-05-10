@@ -11,10 +11,10 @@ typedef struct SandboxObject{
     int chunkBufferSize;
 }SandboxObject;
 
-extern int chunkLoadRadius;
+extern int chunk_load_radius;
 
-extern SandboxObject activeSandbox;
-extern SandboxObject undefinedSandbox;
+extern SandboxObject active_sandbox;
+extern SandboxObject undefined_sandbox;
 
 void InitSandboxes();
 void RenderSandbox();
@@ -23,9 +23,9 @@ void UnloadSandbox();
 void ReadSandbox(char *name);
 extern const char savePath[];
 
-extern Vector2 globalOffset;
-extern Vector2 globalCoordinates;
-extern Vector2 mouseTilePos;
-extern Vector2 mouseGlobalTilePos;
+extern Vector2 player_coordinate_offset;
+extern Vector2 player_coordinate;
+extern Vector2 mouse_tile_pos;
+extern Vector2 mouse_global_tile_pos;
 
 #endif

@@ -15,7 +15,7 @@ typedef struct BlockObject{
 
 
 extern BlockObject *blocks;
-extern BlockObject undefinedBlock;
+extern BlockObject undefined_block;
 
 
 void InitBlocks();

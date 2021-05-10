@@ -8,6 +8,7 @@
 		"problems.decorations.enabled": false,
 		"explorer.sortOrder": "type",
 		"files.associations": {
+			"*.fs": "glsl",
 			"*.tcc": "c",
 			"button.h": "c",
 			"ui_elements.h": "c",
@@ -32,7 +33,8 @@
 			"sdl_image.h": "c",
 			"sdl.h": "c",
 			"sdl_gpu.h": "c",
-			"stdlib.h": "c"
+			"stdlib.h": "c",
+			"debug.h": "c"
 		}
 	}
 }

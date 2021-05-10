@@ -3,15 +3,16 @@
 
 typedef struct TextureObject{
     char *name;
+    // unsigned int gl_tex;
     unsigned int id;
-    SDL_Texture *texture;
+	SDL_Texture *texture;
     int w;
     int h;
 }TextureObject;
 
 
-extern TextureObject *textureStack;
-extern TextureObject undefinedTexture;
+extern TextureObject *texture_stack;
+extern TextureObject undefined_texture;
 
 
 void InitTextures();
