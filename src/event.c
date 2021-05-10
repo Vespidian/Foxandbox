@@ -49,7 +49,7 @@ void PollEvents(){
 		mouseHeld = true;
 	}
 	while(SDL_PollEvent(&e)){
-		if(textInput){
+		if(text_input){
 			PollText(&e);
 		}
 		for(int i = 0; i < numEvents; i++){

@@ -146,7 +146,7 @@ int main(int argc, char *argv[]){
 	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
 	NewBlock(NewItem("sand", FindTilesheet("tmp"), 3), NULL, FindTilesheet("tmp"), 3, false);
 
-	ReadSandbox("testing444");
+	// ReadSandbox("testing444");
 	// RandomFill((Vector2){0, 0}, 50);
 	// for(int i = 0; i < 7; i++){
 		// IterateCellularAutomata((Vector2){-1, -1});
@@ -162,6 +162,7 @@ int main(int argc, char *argv[]){
 		loopStartTicks = SDL_GetTicks();
 		EventListener();
 		LoadScreen();
+		
 		if(activeSandbox.isActive){
 			GameLoop();
 		}else{
