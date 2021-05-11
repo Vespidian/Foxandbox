@@ -34,7 +34,9 @@
 			"sdl.h": "c",
 			"sdl_gpu.h": "c",
 			"stdlib.h": "c",
-			"debug.h": "c"
+			"debug.h": "c",
+			"gl_utils.h": "c",
+			"gl_context.h": "c"
 		}
 	}
 }

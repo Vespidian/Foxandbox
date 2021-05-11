@@ -1,39 +1,90 @@
 #ifndef RENDERER_H_
 #define RENDERER_H_
 
-#include "../textures.h"
-#include "tilesheet.h"
+#include "../gl_utils.h"
 
-enum renderLayers {RNDR_BACKGROUND = 0, RNDR_LEVEL = 5, RNDR_ENTITY = 20, RNDR_UI = 30, RNDR_TEXT = 40};
+// VAO function constants
+enum VAOAttributes{ATTR_FLOAT = 1, ATTR_VEC2, ATTR_VEC3, ATTR_VEC4, ATTR_MAT2 = 8, ATTR_MAT3 = 9, ATTR_MAT4 = 16};
 
-typedef struct RenderObject{
-	SDL_Renderer *renderer;
-	unsigned int texture;
-	SDL_Rect src;
-	SDL_Rect dst;
-	int zPos;
-	int rotation;
-	int alpha;
-	SDL_Color colorMod;
-}RenderObject;
+/**
+ *  Stores Vertex Attribute Object data of a VAO created with 'NewVAO()'
+ */
+typedef struct AttribArray{
+	unsigned int array_object;
+	unsigned int stride;
+	unsigned int num_attrib_slots;
+}AttribArray;
 
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
+/**
+ *  Stores all the data needed to render an instance
+ */
+typedef struct InstanceBuffer{
+	char num_textures_used;
+	unsigned int texture[16];
+	unsigned int shader;
+	AttribArray vao;
+	unsigned int count;
+	float *buffer;
+}InstanceBuffer;
 
-extern int SCREEN_WIDTH;
-extern int SCREEN_HEIGHT;
+/**
+ *  Active shader
+ */
+extern unsigned int current_shader;
 
-extern unsigned int renderQueueSize;
+/**
+ *  Active VAO
+ */
+extern unsigned int current_vao;
 
-bool InitRenderer();
+/**
+ *  Ordered array of all bound textures
+ */
+extern unsigned int bound_textures[16];
 
-void PushRender_Tilesheet(SDL_Renderer *renderer, TilesheetObject *tilesheet, int index, SDL_Rect dst, int zPos);
-void PushRender_TilesheetEx(SDL_Renderer *renderer, TilesheetObject *tilesheet, int index, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color);
+/**
+ *  Bound texture unit
+ */
+extern unsigned int current_texture_unit;
 
-void PushRenderEx(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, SDL_Rect dst, int zPos, int rotation, uint8_t alpha, SDL_Color color);
-void PushRender(SDL_Renderer *renderer, TextureObject *texture, SDL_Rect src, SDL_Rect dst, int zPos);
+/**
+ *  Undefined texture to use in case of error
+ */
+extern TextureObject undefined_texture;
 
-void RenderQueue();
+/**
+ *  Quad texture coordinates
+ */
+extern mat4 default_texture_coordinates;
+
+
+/**
+ *  @brief Initialize the render system
+ */
+void RendererInit();
+
+/**
+ *  @brief Dynamically create a VAO
+ *  @param num_attribs number of ATTR_... enums specified
+ *  @param ... attribute enums
+ *  @return AttribArray with VAO data
+ */
+AttribArray NewVAO(int num_attribs, ...);
+
+/**
+ *  @brief Send instance data to the instance_buffer
+ *  @param vao the vao you want to render with
+ *  @param data[64] vertex data to put in instance vbo
+ *  @param shader reference to desired shader
+ *  @param num_textures_used number of textures to copy to instance texture buffer
+ *  @param textures[16] array of textures to use
+ */
+void AppendInstance(AttribArray vao, float data[64], unsigned int shader, char num_textures_used, TextureObject textures[16]);
+
+/**
+ *  @brief Passes all instance data to the GPU (window buffer still needs to be swapped)
+ */
+void PushRender();
 
 
 #endif

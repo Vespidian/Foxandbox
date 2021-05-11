@@ -6,8 +6,11 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_opengl.h>
+#include <cglm/cglm.h>
 
 #include "debug.h"
 
@@ -22,6 +25,10 @@ typedef struct fVector2{
 	float x;
 	float y;
 }fVector2;
+
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
+extern SDL_Window *window;
 
 extern bool running;
 extern float deltatime;

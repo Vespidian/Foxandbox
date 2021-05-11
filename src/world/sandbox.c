@@ -37,8 +37,8 @@ const char savePath[] = "saves/";
 void InitSandboxes(){
     NewBlock(NewItem("air", FindTilesheet("default_tilesheet"), 0), FindItem("air"), FindTilesheet("default_tilesheet"), 0, false);
     
-    NewEvent(EV_QUICK, SDL_MOUSEBUTTONDOWN, LevelMouseInteraction);
-    NewEvent(EV_QUICK, SDL_KEYDOWN, LevelMovement);
+    BindEvent(EV_QUICK, SDL_MOUSEBUTTONDOWN, LevelMouseInteraction);
+    BindEvent(EV_QUICK, SDL_KEYDOWN, LevelMovement);
 
     undefined_sandbox.isActive = false;
     active_sandbox = undefined_sandbox;

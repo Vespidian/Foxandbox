@@ -10,7 +10,7 @@ int text_buffer_size = 0;
 void Backspace(EventData event);
 
 void InitTextEvent(){
-    NewEvent(EV_ACCURATE, SDL_KEYDOWN, Backspace);
+    BindEvent(EV_ACCURATE, SDL_KEYDOWN, Backspace);
 }
 
 void PollText(SDL_Event *event){

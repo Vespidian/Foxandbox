@@ -104,7 +104,7 @@ void GeneratePerlin2D(){
 }
 
 int mode = 1;
-void ProceduralTesting(){
+/*void ProceduralTesting(){
 	//Rendering
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderClear(renderer);
@@ -132,7 +132,7 @@ void ProceduralTesting(){
     }
 
 	SDL_RenderPresent(renderer);
-}
+}*/
 
 
 

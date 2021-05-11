@@ -19,7 +19,7 @@ typedef struct InputEvent{
 	Uint8 scanCode;
 }InputEvent;
 
-void NewEvent(int pollType, Uint32 eventType, EV_Function function);
+void BindEvent(int pollType, Uint32 eventType, EV_Function function);
 void BindQuickKeyEvent(EV_Function function, Uint8 scanCode);
 void BindKeyEvent(EV_Function function, char key, Uint32 keyPressType);
 

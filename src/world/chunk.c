@@ -74,7 +74,7 @@ void WriteChunk(ChunkObject *chunk, Vector2 position){
         fprintf(chunkFile, "->%d\n", z);
         for(int y = 0; y < chunk_size; y++){
             for(int x = 0; x < chunk_size; x++){
-                fprintf(chunkFile, "%s,", IDFindItem(IDFindBlock(chunk->tile[z][y][x].block)->item)->name);
+                fprintf(chunkFile, "%s,", FindItem_id(IDFindBlock(chunk->tile[z][y][x].block)->item)->name);
                 if(chunk->tile[z][y][x].rotation > 0){
                     fprintf(chunkFile, "~%d", chunk->tile[z][y][x].rotation);
                 }

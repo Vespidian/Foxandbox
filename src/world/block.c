@@ -25,7 +25,7 @@ void NewBlock(ItemObject *item, ItemObject *breakItem, TilesheetObject *tileshee
 
 BlockObject *FindBlock(char *name){
     for(int i = 0; i < num_blocks; i++){
-        if(strcmp(IDFindItem(blocks[i].item)->name, name) == 0){
+        if(strcmp(FindItem_id(blocks[i].item)->name, name) == 0){
             return &blocks[i];
         }
     }

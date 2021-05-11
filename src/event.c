@@ -28,15 +28,15 @@ void InitEvents(){
 	#ifdef DEBUG_BUILD
 		BindKeyEvent(Quit, 0x1B, SDL_KEYDOWN);//escape
 	#endif
-	NewEvent(EV_ACCURATE, SDL_MOUSEBUTTONDOWN, MouseClicked);
-	NewEvent(EV_ACCURATE, SDL_WINDOWEVENT, WindowResize);
-	NewEvent(EV_ACCURATE, SDL_QUIT, Quit);
+	BindEvent(EV_ACCURATE, SDL_MOUSEBUTTONDOWN, MouseClicked);
+	BindEvent(EV_ACCURATE, SDL_WINDOWEVENT, WindowResize);
+	BindEvent(EV_ACCURATE, SDL_QUIT, Quit);
 
 	InitTextEvent();
 	DebugLog(D_ACT, "Initialized event subsystem");
 }
 
-void NewEvent(int pollType, Uint32 eventType, EV_Function function){
+void BindEvent(int pollType, Uint32 eventType, EV_Function function){
 	events = realloc(events, sizeof(InputEvent) * (num_events + 1));
 	events[num_events] = (InputEvent){pollType, eventType, function, false, 0x00};
 	num_events++;
@@ -88,7 +88,7 @@ void EventListener(){
 }
 
 void BindQuickKeyEvent(EV_Function function, Uint8 scanCode){
-	NewEvent(EV_QUICK, SDL_KEYDOWN, function);
+	BindEvent(EV_QUICK, SDL_KEYDOWN, function);
 	events[num_events - 1] = (InputEvent){EV_QUICK, SDL_KEYDOWN, function, true, 0x00, scanCode};
 }
 
@@ -97,7 +97,7 @@ void BindKeyEvent(EV_Function function, char keyCode, Uint32 keyPressType){
 	if(keyPressType != SDL_KEYDOWN || keyPressType != SDL_KEYUP){
 		keyPressType = SDL_KEYDOWN;
 	}
-	NewEvent(EV_ACCURATE, keyPressType, function);
+	BindEvent(EV_ACCURATE, keyPressType, function);
 	events[num_events - 1] = (InputEvent){EV_ACCURATE, keyPressType, function, true, keyCode};
 }
 

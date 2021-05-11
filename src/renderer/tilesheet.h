@@ -1,28 +1,42 @@
 #ifndef TILESHEET_H_
 #define TILESHEET_H_
 
-#include "../global.h"
-#include "../textures.h"
+#include "../gl_utils.h"
 
-typedef struct TilesheetObject{
-	char *name;
-	unsigned int id;
-	unsigned int texture;
-	// unsigned int tile_w;
-	// unsigned int tile_h;
-	Vector2 tileSize;
+/**
+ *  Array of tilesheets loaded via 'NewTilesheet()'
+ */
+extern TilesheetObject *tilesheet_stack;
 
-}TilesheetObject;
-
-
-extern TilesheetObject *tilesheets;
+/**
+ *  Tilesheet to be used in error cases
+ */
 extern TilesheetObject undefined_tilesheet;
 
-
+/**
+ *  Initialize the tilesheet subsystem
+ */
 void InitTilesheets();
-TilesheetObject *NewTilesheet(char *name, TextureObject *texture, Vector2 tileSize);
-TilesheetObject *NewRawTilesheet(char *name, char *path, Vector2 tileSize);
-TilesheetObject *FindTilesheet(char *name);
-TilesheetObject *IDFindTilesheet(unsigned int id);
+
+/**
+ *  Generate a tilesheet from a preloaded texture
+ *  @param texture previously loaded texture to be used as tilesheet texture
+ *  @param tile_. width and height of a single tile
+ *  @return A 'TilesheetObject' containing the tilesheet
+ */
+TilesheetObject *NewTilesheet(TextureObject texture, int tile_w, int tile_h);
+
+/**
+ *  Generate a tilesheet from from a texture file
+ *  @param texture texture to be loaded and used as tilesheet texture
+ *  @param tile_. width and height of a tile
+ *  @return A 'TilesheetObject' containing the tilesheet
+ */
+TilesheetObject *NewRawTilesheet(char *path, int tile_w, int tile_h);
+
+/**
+ *  @return The tilesheet with id 'id' from tilesheet stack
+ */
+TilesheetObject *FindTilesheet(unsigned int id);
 
 #endif

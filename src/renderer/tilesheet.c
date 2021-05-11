@@ -1,47 +1,48 @@
 #include "../global.h"
 #include "../debug.h"
-#include "tilesheet.h"
 #include "renderer.h"
+#include "../gl_utils.h"
 
-TilesheetObject *tilesheets;
-unsigned int num_tilesheets = 0;
-static unsigned int nextID = 0;
+#include "tilesheet.h"
 
 TilesheetObject undefined_tilesheet;
 
+TilesheetObject *tilesheet_stack;
+
+// Number of tilesheets currently loaded into the 'tilesheet_stack'
+unsigned int num_tilesheets = 0;
+
+// ID of next tilesheet to be loaded
+static unsigned int nextID = 0;
+
 void InitTilesheets(){
-	undefined_tilesheet = (TilesheetObject){"undefined", -1, undefined_texture.id, (Vector2){16, 16}};
+	undefined_tilesheet = (TilesheetObject){-1, undefined_texture, 16, 16};
     DebugLog(D_ACT, "Initialized tilesheet subsystem");
 }
 
-TilesheetObject *NewTilesheet(char *name, TextureObject *texture, Vector2 tileSize){
-    tilesheets = realloc(tilesheets, sizeof(TilesheetObject) * (num_tilesheets + 1));
-    tilesheets[num_tilesheets].name = malloc(sizeof(char) * (strlen(name) + 1));
-    tilesheets[num_tilesheets] = (TilesheetObject){name, nextID, texture->id, tileSize};
-    DebugLog(D_ACT, "Created tilesheet id '%d' with name '%s'", nextID, name);
+TilesheetObject NewTilesheet(TextureObject texture, int tile_w, int tile_h){
+	// Expand 'tilesheet_stack' for new tilesheet
+    tilesheet_stack = realloc(tilesheet_stack, sizeof(TilesheetObject) * (num_tilesheets + 1));
+
+	// Copy data to new tilesheet
+    tilesheet_stack[num_tilesheets] = (TilesheetObject){nextID, texture, tile_w, tile_h};
+    DebugLog(D_ACT, "Created tilesheet id '%d'", nextID);
+
+	// Increment stack counters
     num_tilesheets++;
     nextID++;
-    return &tilesheets[num_tilesheets - 1];
+    return tilesheet_stack[num_tilesheets - 1];
 }
 
-TilesheetObject *NewRawTilesheet(char *name, char *path, Vector2 tileSize){
-    return NewTilesheet(name, LoadTexture(renderer, path, name), tileSize);
+TilesheetObject NewRawTilesheet(char *path, int tile_w, int tile_h){
+    return NewTilesheet(name, LoadTexture(path), tileSize);
 }
 
-TilesheetObject *FindTilesheet(char *name){
+TilesheetObject FindTilesheet(unsigned int id){
     for(int i = 0; i < num_tilesheets; i++){
-        if(strcmp(tilesheets[i].name, name) == 0){
-            return &tilesheets[i];
+        if(tilesheet_stack[i].id == id){
+            return tilesheet_stack[i];
         }
     }
-    return &undefined_tilesheet;
-}
-
-TilesheetObject *IDFindTilesheet(unsigned int id){
-    for(int i = 0; i < num_tilesheets; i++){
-        if(tilesheets[i].id == id){
-            return &tilesheets[i];
-        }
-    }
-    return &undefined_tilesheet;
+    return undefined_tilesheet;
 }
