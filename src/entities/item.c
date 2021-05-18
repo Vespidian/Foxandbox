@@ -16,7 +16,12 @@ void InitItems(){
     DebugLog(D_ACT, "Initialized item subsystem");
 }
 
-ItemObject *NewItem(char *name, TilesheetObject tilesheet, int tileIndex){
+ItemObject *NewItem(const char *name, TilesheetObject *tilesheet, int tile_index){
+	// Check if item with same name already exists
+	if(FindItem(name)->id != undefined_item.id){
+		return FindItem(name);
+	}
+
 	// Expand 'item_stack' to insert new item
     item_stack = realloc(item_stack, sizeof(ItemObject) * (num_items + 1));
 
@@ -24,16 +29,15 @@ ItemObject *NewItem(char *name, TilesheetObject tilesheet, int tileIndex){
     item_stack[num_items].name = malloc(sizeof(char) * strlen(name));
 
 	// Copy data into newly created item
-    item_stack[num_items] = (ItemObject){name, nextID, tilesheet, tileIndex, false};
+    item_stack[num_items] = (ItemObject){name, nextID, *tilesheet, tile_index, false};
     DebugLog(D_ACT, "Created item id '%d' with name '%s'", nextID, name);
 
-	// Increment stack counters
-    num_items++;
+	// Increment stack counters and return newly created item
     nextID++;
-    return &item_stack[num_items - 1];
+    return &item_stack[num_items++];
 }
 
-ItemObject *FindItem(char *name){
+ItemObject *FindItem(const char *name){
     for(int i = 0; i < num_items; i++){
         if(strcmp(item_stack[i].name, name) == 0){
             return &item_stack[i];

@@ -1,16 +1,16 @@
 #include "../global.h"
-#include "../renderer/tilesheet.h"
-#include "../renderer/renderer.h"
+#include "../gl_utils.h"
+#include "../renderer/quad.h"
 
 //UI Elements
 #include "resizable_rect.h"
 
 #include "ui.h"
 
-void InitUI(){
-	NewRawTilesheet("ui", "../images/ui/ui.png", (Vector2){16, 16});
+TilesheetObject ui_tilesheet;
 
-	InitResizableRect();
+void InitUI(){
+	ui_tilesheet = LoadTilesheet("../images/ui/ui.png", 16, 16);
 
 	DebugLog(D_ACT, "Initialized UI subsystem");
 }
@@ -49,5 +49,5 @@ void DrawVListBackground(int num_items, Vector2 size, Vector2 origin, int spacin
 	rect.h = num_items * size.y + (num_items + 1) * padding;
 	rect.x = SCREEN_WIDTH / 2 - rect.w / 2;
 	rect.y = SCREEN_HEIGHT / 2 - rect.h / 2;
-	PushRender_Tilesheet(renderer, FindTilesheet("ui"), 0, rect, RNDR_UI);
+	RenderTilesheet(ui_tilesheet, 0, rect, RNDR_UI, (Vector4){1, 1, 1, 1});
 }

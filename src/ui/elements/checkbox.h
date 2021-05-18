@@ -4,6 +4,6 @@
 /**
  *  Toggles 'value' whenever checkbox is triggered
  */
-void Checkbox(SDL_Renderer *renderer, bool *value, char *label, Vector2 position);
+void Checkbox(bool *value, char *label, Vector2 position);
 
 #endif

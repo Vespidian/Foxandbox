@@ -23,9 +23,9 @@ int GetLineLength(FILE *file);
 int strshft_l(char *stringShift, int startIndex, int shiftBy);
 
 /**
- *  Compare 2 Vector2 variables, returns true if they are equal, false otherwise
+ *  Compare 2 iVector2 variables, returns true if they are equal, false otherwise
 **/
-bool CompareVector2(Vector2 v1, Vector2 v2);
+bool CompareVector2(iVector2 v1, iVector2 v2);
 
 int Rand(int min, int max);
 

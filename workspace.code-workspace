@@ -36,7 +36,13 @@
 			"stdlib.h": "c",
 			"debug.h": "c",
 			"gl_utils.h": "c",
-			"gl_context.h": "c"
+			"gl_context.h": "c",
+			"quad.h": "c",
+			"utility.h": "c",
+			"ui.h": "c",
+			"textbox.h": "c",
+			"time.h": "c",
+			"load_screen.h": "c"
 		}
 	}
 }

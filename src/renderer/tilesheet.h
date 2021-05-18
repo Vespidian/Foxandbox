@@ -22,7 +22,7 @@ void InitTilesheets();
  *  Generate a tilesheet from a preloaded texture
  *  @param texture previously loaded texture to be used as tilesheet texture
  *  @param tile_. width and height of a single tile
- *  @return A 'TilesheetObject' containing the tilesheet
+ *  @return A pointer to the 'TilesheetObject' containing the tilesheet
  */
 TilesheetObject *NewTilesheet(TextureObject texture, int tile_w, int tile_h);
 
@@ -30,12 +30,12 @@ TilesheetObject *NewTilesheet(TextureObject texture, int tile_w, int tile_h);
  *  Generate a tilesheet from from a texture file
  *  @param texture texture to be loaded and used as tilesheet texture
  *  @param tile_. width and height of a tile
- *  @return A 'TilesheetObject' containing the tilesheet
+ *  @return A pointer to the 'TilesheetObject' containing the tilesheet
  */
-TilesheetObject *NewRawTilesheet(char *path, int tile_w, int tile_h);
+TilesheetObject *NewTilesheetFromFile(char *path, int tile_w, int tile_h);
 
 /**
- *  @return The tilesheet with id 'id' from tilesheet stack
+ *  @return A pointer to the tilesheet with id 'id' from tilesheet stack
  */
 TilesheetObject *FindTilesheet(unsigned int id);
 

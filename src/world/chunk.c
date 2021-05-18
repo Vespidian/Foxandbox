@@ -1,9 +1,11 @@
 #include "../global.h"
-#include "block.h"
-#include "../renderer/renderer.h"
 #include "../utility.h"
+#include "block.h"
+#include "../renderer/quad.h"
 #include "sandbox.h"
 #include "sandbox_generation.h"
+
+#include "../ui/ui.h"
 #include "../ui/resizable_rect.h"
 
 #include "chunk.h"
@@ -14,23 +16,23 @@ const int num_chunk_layers = 4;
 int tile_render_size = 64;
 int chunk_buffer_timeout = 5000;
 
-ChunkObject *NewChunk(Vector2 position){
-    active_sandbox.chunkBuffer = realloc(active_sandbox.chunkBuffer, sizeof(ChunkObject) * (active_sandbox.chunkBufferSize + 1));
-    ChunkObject *chunk = &active_sandbox.chunkBuffer[active_sandbox.chunkBufferSize];
+ChunkObject *NewChunk(iVector2 position){
+    active_sandbox.chunk_buffer = realloc(active_sandbox.chunk_buffer, sizeof(ChunkObject) * (active_sandbox.chunk_buffer_size + 1));
+    ChunkObject *chunk = &active_sandbox.chunk_buffer[active_sandbox.chunk_buffer_size];
     
-    TileObject templateTile = {FindBlock("air")->id, 0, 0, 255, (SDL_Color){255, 255, 255}};
+    TileObject template_tile = {&air_block, 0, 0, 255, (Vector4){1, 1, 1, 1}};
     for(int y = 0; y < chunk_size; y++){
         memset(chunk->collision[y], -1, sizeof(int) * (chunk_size));
         for(int x = 0; x < chunk_size; x++){
             for(int z = 0; z < num_chunk_layers; z++){
-                chunk->tile[z][y][x] = (TileObject)templateTile;
+                chunk->tile[z][y][x] = (TileObject)template_tile;
             }
         }
     }
     chunk->position = position;
     chunk->lastAccess = SDL_GetTicks();
     chunk->isGenerated = false;
-    active_sandbox.chunkBufferSize++;
+    active_sandbox.chunk_buffer_size++;
 
 
     // RandomFill(position, 50);
@@ -40,33 +42,33 @@ ChunkObject *NewChunk(Vector2 position){
     return chunk;
 }
 
-void UnloadChunk(Vector2 coordinate){
+void UnloadChunk(iVector2 position){
     int offset = -1;
-    for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
-        if(CompareVector2(active_sandbox.chunkBuffer[i].position, coordinate)){
+    for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
+        if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
             offset = i;
         }
     }
     if(offset > -1){
-        for(int j = offset; j < active_sandbox.chunkBufferSize - 1; j++){
-            active_sandbox.chunkBuffer[j] = active_sandbox.chunkBuffer[j + 1];
+        for(int j = offset; j < active_sandbox.chunk_buffer_size - 1; j++){
+            active_sandbox.chunk_buffer[j] = active_sandbox.chunk_buffer[j + 1];
         }
     }
-    active_sandbox.chunkBufferSize--;
-    active_sandbox.chunkBuffer = realloc(active_sandbox.chunkBuffer, sizeof(ChunkObject) * active_sandbox.chunkBufferSize);
+    active_sandbox.chunk_buffer_size--;
+    active_sandbox.chunk_buffer = realloc(active_sandbox.chunk_buffer, sizeof(ChunkObject) * active_sandbox.chunk_buffer_size);
 }
 
 void UnloadOldChunks(){
-    for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
-        if(SDL_GetTicks() - active_sandbox.chunkBuffer[i].lastAccess >= chunk_buffer_timeout){
-            UnloadChunk(active_sandbox.chunkBuffer[i].position);
+    for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
+        if(SDL_GetTicks() - active_sandbox.chunk_buffer[i].lastAccess >= chunk_buffer_timeout){
+            UnloadChunk(active_sandbox.chunk_buffer[i].position);
         }
     }
 }
 
-void WriteChunk(ChunkObject *chunk, Vector2 position){
+void WriteChunk(ChunkObject *chunk, iVector2 position){
     char name[260];
-    snprintf(name, 260, "../%s%s/chunks/%d,%d", savePath, active_sandbox.name, position.x, position.y);
+    snprintf(name, 260, "%s%s/chunks/%d,%d", save_path, active_sandbox.name, position.x, position.y);
     FILE *chunkFile = fopen(name, "w");
 
     fprintf(chunkFile, "::layers\n");
@@ -74,7 +76,7 @@ void WriteChunk(ChunkObject *chunk, Vector2 position){
         fprintf(chunkFile, "->%d\n", z);
         for(int y = 0; y < chunk_size; y++){
             for(int x = 0; x < chunk_size; x++){
-                fprintf(chunkFile, "%s,", FindItem_id(IDFindBlock(chunk->tile[z][y][x].block)->item)->name);
+                fprintf(chunkFile, "%s,", chunk->tile[z][y][x].block->item.name);
                 if(chunk->tile[z][y][x].rotation > 0){
                     fprintf(chunkFile, "~%d", chunk->tile[z][y][x].rotation);
                 }
@@ -85,26 +87,26 @@ void WriteChunk(ChunkObject *chunk, Vector2 position){
     fprintf(chunkFile, "::entities\n");
     fprintf(chunkFile, "::drops\n");
     fclose(chunkFile);
-    DebugLog(D_VERBOSE_ACT, "Wrote to chunk '%d,%d' in sandbox '%s'", position.x, position.y, name);
+    DebugLog(D_VERBOSE_ACT, "Wrote to chunk '%d,%d' in sandbox '%s'", position, name);
 }
 
-ChunkObject *ReadChunk(Vector2 position){
+ChunkObject *ReadChunk(iVector2 position){
     char name[260];
-    snprintf(name, 260, "../%s%s/chunks/%d,%d", savePath, active_sandbox.name, position.x, position.y);
-    FILE *chunkFile = fopen(name, "r");
+    snprintf(name, 260, "%s%s/chunks/%d,%d", save_path, active_sandbox.name, position.x, position.y);
+    FILE *chunk_file = fopen(name, "r");
     ChunkObject *chunk = NewChunk(position);
 
-    if(chunkFile != NULL){
+    if(chunk_file != NULL){
         char header[128];
         char *lineBuffer;
-        int lineLength = GetLineLength(chunkFile);
+        int lineLength = GetLineLength(chunk_file);
         int line = 0;
 
         int layerY = 0;
         int chunkLayer = -1;
 
         lineBuffer = malloc(sizeof(char) * lineLength);
-        while(fgets(lineBuffer, lineLength, chunkFile)){
+        while(fgets(lineBuffer, lineLength, chunk_file)){
             if(strcmp(header, "layers") == 0){// Reading chunk layers
                 if(lineBuffer[0] == '-' && lineBuffer[1] == '>'){
                     chunkLayer++;// Convert character to int
@@ -120,7 +122,7 @@ ChunkObject *ReadChunk(Vector2 position){
                             *(strchr(tile, '~')) = '\0';//Leave behind only the tile name
                         }
                         chunk->tile[chunkLayer][layerY][x].rotation = rotation;// Assign rotation value
-                        chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile)->id;// Assign block based on tile name
+                        chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile);// Assign block based on tile name
                         char *tmp = strtok(NULL, ",");// Read next tile
                         if(tmp != NULL){// Make sure tile is read correctly
                             strcpy(tile, tmp);
@@ -140,40 +142,40 @@ ChunkObject *ReadChunk(Vector2 position){
                 strcpy(header, lineBuffer);
                 header[strlen(header) - 1] = '\0';
             }
-            lineLength = GetLineLength(chunkFile);
+            lineLength = GetLineLength(chunk_file);
             lineBuffer = malloc(sizeof(char) * lineLength);
             line++;
         }
         free(lineBuffer);
-        fclose(chunkFile);
+        fclose(chunk_file);
     }else{
         WriteChunk(chunk, position);
     }
     chunk->lastAccess = SDL_GetTicks();
-    DebugLog(D_VERBOSE_ACT, "Read from chunk '%d,%d' in sandbox '%s'", position.x, position.y, name);
+    DebugLog(D_VERBOSE_ACT, "Read from chunk '%d,%d' in sandbox '%s'", position, name);
     return chunk;
 }
 
-ChunkObject *FindChunk(Vector2 coordinate){
+ChunkObject *FindChunk(iVector2 position){
     //Check chunk buffer
-    for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
-        if(CompareVector2(active_sandbox.chunkBuffer[i].position, coordinate)){
-            active_sandbox.chunkBuffer[i].lastAccess = SDL_GetTicks();
-            return &active_sandbox.chunkBuffer[i];
+    for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
+        if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
+            active_sandbox.chunk_buffer[i].lastAccess = SDL_GetTicks();
+            return &active_sandbox.chunk_buffer[i];
         }
     }
     //Check sandbox folder
-    return ReadChunk(coordinate);
+    return ReadChunk(position);
 }
 
-bool CheckChunkExists(Vector2 chunk){
-    for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
-        if(CompareVector2(active_sandbox.chunkBuffer[i].position, chunk)){
+bool CheckChunkExists(iVector2 position){
+    for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
+        if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
             return true;
         }
     }
     char chunk_name[32];
-    snprintf(chunk_name, 32, "%d %d", chunk.x, chunk.y);
+    snprintf(chunk_name, 32, "%d %d", position.x, position.y);
     FILE *chunk_file;
     if((chunk_file = fopen(chunk_name, "r")) != NULL){
         fclose(chunk_file);
@@ -183,34 +185,25 @@ bool CheckChunkExists(Vector2 chunk){
     return false;
 }
 
-void RenderChunk(ChunkObject *chunk, Vector2 position){
+void RenderChunk(ChunkObject *chunk, iVector2 position){
     SDL_Rect chunkRect = {position.x, position.y, chunk_size * tile_render_size, chunk_size * tile_render_size};
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
-        PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 3, chunkRect, RNDR_LEVEL - 1);
-        ResizableRect(chunkRect, 5);
+		RenderTilesheet(builtin_tilesheet, 3, chunkRect, RNDR_LEVEL - 1, (Vector4){1, 1, 1, 1});
+        ResizableRect(ui_tilesheet, chunkRect, 5, 6);
         SDL_Rect tileRect = {0, 0, tile_render_size, tile_render_size};
         for(int y = (-position.y / tile_render_size) * (position.y < 0); y < ((-position.y + SCREEN_HEIGHT) / tile_render_size + 1) && y < chunk_size; y++){
             for(int x = (-position.x / tile_render_size) * (position.x < 0); x < ((-position.x + SCREEN_WIDTH) / tile_render_size + 1) && x < chunk_size; x++){
                 tileRect.x = (x * tile_render_size) + position.x;
                 tileRect.y = (y * tile_render_size) + position.y;
                 for(int z = 0; z < num_chunk_layers; z++){
-                    BlockObject *terrainBlock = IDFindBlock(chunk->tile[z][y][x].block);
-                    if(chunk->tile[z][y][x].block != FindBlock("air")->id){
-                        PushRender_TilesheetEx(
-                            renderer, 
-                            IDFindTilesheet(terrainBlock->tilesheet), 
-                            terrainBlock->tileIndex, 
-                            tileRect, 
-                            chunk->tile[z][y][x].zPos, 
-                            chunk->tile[z][y][x].rotation * 90, 
-                            chunk->tile[z][y][x].alpha, 
-                            chunk->tile[z][y][x].color
-                        );
+                    BlockObject *terrainBlock = chunk->tile[z][y][x].block;
+                    if(chunk->tile[z][y][x].block->id != air_block.id){
+						RenderTilesheet(terrainBlock->tilesheet, terrainBlock->tile_index, tileRect, chunk->tile[z][y][x].zPos, chunk->tile[z][y][x].color);
                         chunk->tile[z][y][x].zPos = RNDR_LEVEL + z + 1;
                         chunk->tile[z][y][x].rotation = 0;
                         chunk->tile[z][y][x].alpha = 255;
-                        chunk->tile[z][y][x].color = (SDL_Color){255, 255, 255};
+                        chunk->tile[z][y][x].color = (Vector4){1, 1, 1, 1};
                     }
                 }
             }

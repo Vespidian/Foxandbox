@@ -1,16 +1,22 @@
 #include "../global.h"
-#include "renderer.h"
 #include "../utility.h"
-#include "render_text.h"
+#include "../gl_utils.h"
+#include "quad.h"
 
-FontObject *fonts;
-unsigned int num_fonts = 0;
-static unsigned int nextID = 0;
+#include "render_text.h"
 
 FontObject default_font;
 
-Vector2 char_size = {6, 12};
-Vector2 padding = {5, 2};
+FontObject *font_stack;
+
+// Number of fonts in the 'font_stack'
+unsigned int num_fonts = 0;
+
+// ID to be used by next font created
+static unsigned int nextID = 0;
+
+// Vector2 char_size = {6, 12};
+// Vector2 padding = {5, 2};
 
 void InitFonts(){
     default_font = *NewRawFont("default_font", "../images/fonts/default_font.png", (Vector2){6, 12}, (Vector2){5, 2});
@@ -18,23 +24,29 @@ void InitFonts(){
 }
 
 FontObject *NewFont(char *name, TilesheetObject *tilesheet, Vector2 char_size, Vector2 padding){
-    fonts = realloc(fonts, sizeof(FontObject) * (num_fonts + 1));
-    fonts[num_fonts].name = malloc(sizeof(char) * strlen(name));
-    fonts[num_fonts] = (FontObject){name, nextID, tilesheet->id, char_size, padding};
+	// Resize 'font_stack' to fit new font
+    font_stack = realloc(font_stack, sizeof(FontObject) * (num_fonts + 1));
+
+	// Allocate memory for font name
+    font_stack[num_fonts].name = malloc(sizeof(char) * strlen(name));
+
+	// Copy data to font
+    font_stack[num_fonts] = (FontObject){name, nextID, *tilesheet, char_size, padding};
     DebugLog(D_ACT, "Created font id '%d' name '%s'", nextID, name);
-    num_fonts++;
+
+	// Increment stack counters
     nextID++;
-    return &fonts[num_fonts - 1];
+    return &font_stack[num_fonts++];
 }
 
 FontObject *NewRawFont(char *name, char *path, Vector2 char_size, Vector2 padding){
-    return NewFont(name, NewRawTilesheet(name, path, (Vector2){char_size.x + padding.x * 2, char_size.y + padding.y * 2}), char_size, padding);
+    return NewFont(name, NewTilesheetFromFile(path, char_size.x + padding.x * 2, char_size.y + padding.y * 2), char_size, padding);
 }
 
 FontObject *FindFont(char *name){
     for(int i = 0; i < num_fonts; i++){
-        if(strcmp(fonts[i].name, name) == 0){
-            return &fonts[i];
+        if(strcmp(font_stack[i].name, name) == 0){
+            return &font_stack[i];
         }
     }
     return &default_font;
@@ -42,53 +54,63 @@ FontObject *FindFont(char *name){
 
 FontObject *IDFindFont(unsigned int id){
     for(int i = 0; i < num_fonts; i++){
-        if(fonts[i].id == id){
-            return &fonts[i];
+        if(font_stack[i].id == id){
+            return &font_stack[i];
         }
     }
     return &default_font;
 }
 
-void RenderText(SDL_Renderer *renderer, FontObject *font, float fontSize, int xPos, int yPos, char *text, ...){
-    va_list vaFormat;
+void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, char *text, ...){
+    va_list va_format;
 
-    va_start(vaFormat, text);
+    va_start(va_format, text);
     char formattedText[256];
-    vsprintf(formattedText, text, vaFormat);
-    va_end(vaFormat);
+    vsprintf(formattedText, text, va_format);
+    va_end(va_format);
 
-    RenderTextEx(renderer, font, fontSize, xPos, yPos, (SDL_Color){255, 255, 255}, -1, formattedText);
+    RenderTextEx(font, font_size, x_pos, y_pos, (Vector4){1, 1, 1, 1}, -1, formattedText);
 }
 
-void RenderTextEx(SDL_Renderer *renderer, FontObject *font, float fontSize, int xPos, int yPos, SDL_Color color, int numCharacters, char *text, ...){
-    va_list vaFormat;
+void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vector4 color, int num_characters, char *text, ...){
+    va_list va_format;
 
-    va_start(vaFormat, text);
+	// Convert va_arg to single string
+    va_start(va_format, text);
     char formattedText[256];
-    vsprintf(formattedText, text, vaFormat);
-    va_end(vaFormat);
+    vsprintf(formattedText, text, va_format);
+    va_end(va_format);
 
-    if(numCharacters != -1){
-        formattedText[numCharacters] = '\0';
+	// Check if va_arg (-1) or normal formatted text was inputted
+    if(num_characters != -1){
+        formattedText[num_characters] = '\0';
     }
 
-    SDL_Rect dst = {xPos, yPos, IDFindTilesheet(font->tilesheet)->tileSize.x * fontSize, IDFindTilesheet(font->tilesheet)->tileSize.y * fontSize};
-    int charValue = 0;
-    for(int i = 0; i < strlen(formattedText); i++){
-        charValue = (int)formattedText[i] - (int)' ';
+	// Set up dst character rect
+    SDL_Rect dst = {x_pos, y_pos, font->tilesheet.tile_w * font_size, font->tilesheet.tile_h * font_size};
+    int char_value = 0;
 
-        if(charValue >= 0){
-            // PushRender_Tilesheet(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT);
-            PushRender_TilesheetEx(renderer, IDFindTilesheet(font->tilesheet), charValue, dst, RNDR_TEXT, 0, 255, color);
-            dst.x += padding.x * 1.7f * fontSize;
-        }else{
-            switch(charValue){
+	// Loop through each character of string and render them
+    for(int i = 0; i < strlen(formattedText); i++){
+		// Adjust character value so that space is 0 (everything before space is unprintable / not a visual character)
+        char_value = (int)formattedText[i] - (int)' ';
+
+		// Check if character is a printable character
+        if(char_value >= 0){
+            RenderTilesheet(font->tilesheet, char_value, dst, RNDR_TEXT, color);
+            dst.x += font->padding.x * 1.7f * font_size;
+        }else{// Some unprintable characters do stuff
+            switch(char_value){
                 case -22: // NEWLINE (\n)
-                    dst.y += (char_size.y + padding.y) * fontSize;
-                    dst.x = xPos;
+
+					// Reset the x position and increment the y position
+                    dst.y += (font->char_size.y + font->padding.y) * font_size;
+                    dst.x = x_pos;
                     break;
                 case -23: // TAB
-                    dst.x += 8 * fontSize;
+
+					// Increment the x position
+                    dst.x += 8 * font_size;
                     break;
             }
         }

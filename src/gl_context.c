@@ -57,12 +57,12 @@ int InitGL(){
 }
 
 void RenderGL(){
-	SDL_Color tint = {1, 1, 1, 1};
+	Vector4 tint = {1, 1, 1, 1};
 	SDL_Rect dst = {0, 0, 128, 128};
 	// SDL_Rect src = {0, 0, 16, 16};
 
 	
-	tint = (SDL_Color){0, 1, 1, 1};
+	tint = (Vector4){0, 1, 1, 1};
 	dst = (SDL_Rect){128, 128, 64, 64};
 	RenderQuad(crate_tex, NULL, &dst, 1, tint, (float)(SDL_GetTicks()) / 6.3 + 35);
 
@@ -95,10 +95,9 @@ void RenderGL(){
 	// }
 
 	// dst = (SDL_Rect){256, 256, 64, 64};
-	// TilesheetRender(tilesheet_texture, 4, dst, 1, tint);
+	// RenderTilesheet(tilesheet_texture, 4, dst, 1, tint);
 
 
-	PushRender();
 }
 
 static void WindowResize(EventData event){

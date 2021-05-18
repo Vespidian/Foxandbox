@@ -6,7 +6,7 @@
 #include "generation/perlin.h"
 
 
-/*void CoordinateConvert(Vector2 coordinateIn, Vector2 *chunkOut, Vector2 *offsetOut){
+/*void CoordinateConvert(iVector2 coordinateIn, iVector2 *chunkOut, iVector2 *offsetOut){
 	offsetOut->x = coordinateIn.x % chunk_size;
     chunkOut->x = coordinateIn.x / chunk_size;
 	offsetOut->y = coordinateIn.y % chunk_size;
@@ -24,7 +24,7 @@
     }
 }*/
 
-bool CoordinateConvert(Vector2 coordinateIn, Vector2 *chunkOut, Vector2 *offsetOut){
+bool CoordinateConvert(iVector2 coordinateIn, iVector2 *chunkOut, iVector2 *offsetOut){
 	/* Prototyping
 	int chunk;
     int offset;
@@ -55,31 +55,31 @@ bool CoordinateConvert(Vector2 coordinateIn, Vector2 *chunkOut, Vector2 *offsetO
 		offsetOut->y = (chunk_size * -chunkOut->y + coordinateIn.y) % chunk_size;// Negative offset
 	}
 	if(!CheckChunkExists(*chunkOut)){
-		*chunkOut = (Vector2){0, 0};
+		*chunkOut = (iVector2){0, 0};
 		return false;
 	}
 	return true;
 }
 
-Vector2 Coordinate2Chunk(Vector2 coordinate){
-    Vector2 chunk;
+iVector2 Coordinate2Chunk(iVector2 coordinate){
+    iVector2 chunk;
     CoordinateConvert(coordinate, &chunk, NULL);
 	return chunk;
 }
 
-Vector2 Coordinate2Offset(Vector2 coordinate){
-	Vector2 offset;
+iVector2 Coordinate2Offset(iVector2 coordinate){
+	iVector2 offset;
     CoordinateConvert(coordinate, NULL, &offset);
 	return offset;
 }
 
-Vector2 ToCoordinate(Vector2 chunk, Vector2 offset){
-	// Vector2 coordinate = {(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
+iVector2 ToCoordinate(iVector2 chunk, iVector2 offset){
+	// iVector2 coordinate = {(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
 
-	// return (Vector2){(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
+	// return (iVector2){(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
 	// printf("offset intput: %d chunk input: %d coordinate output: %d\n", offset.y, chunk.y, coordinate.y);
 	// return coordinate;
-	return (Vector2){(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
+	return (iVector2){(chunk.x * chunk_size + offset.x), (chunk.y * chunk_size + offset.y)};
 }
 
 
@@ -91,30 +91,30 @@ Vector2 ToCoordinate(Vector2 chunk, Vector2 offset){
 		}
 	}
 }*/
-void FillChunk(Vector2 chunk){
+void FillChunk(iVector2 chunk){
     for(int y = 0; y < chunk_size; y++){
         for(int x = 0; x < chunk_size; x++){
             // printf("here\n");
-            FindChunk(chunk)->tile[0][y][x].block = FindBlock("grass")->id;
+            FindChunk(chunk)->tile[0][y][x].block = FindBlock("grass");
         }
     }
 }
 
-void RandomFill(Vector2 chunk, int percentage){
+void RandomFill(iVector2 chunk, int percentage){
 	for(int y = 0; y < chunk_size; y++){
 		for(int x = 0; x < chunk_size; x++){
 			int chance = Rand(0, 100);
 			if(chance < percentage){
-				FindChunk(chunk)->tile[0][y][x].block = FindBlock("water")->id;
+				FindChunk(chunk)->tile[0][y][x].block = FindBlock("water");
 			}else{
-				FindChunk(chunk)->tile[0][y][x].block = FindBlock("grass")->id;
+				FindChunk(chunk)->tile[0][y][x].block = FindBlock("grass");
 			}
 		}
 	}
 }
 
 
-// int GetSurroundCount(Vector2 tile, BlockComponent *type){
+// int GetSurroundCount(iVector2 tile, BlockComponent *type){
 // 	int surroundCount = 0;
 // 	for(int y = tile.y - 1; y <= tile.y + 1; y++){
 // 		for(int x = tile.x - 1; x <= tile.x + 1; x++){
@@ -137,16 +137,16 @@ void RandomFill(Vector2 chunk, int percentage){
 // }
 
 
-int GetNeighbours(Vector2 coordinate, BlockObject *block){
+int GetNeighbours(iVector2 coordinate, BlockObject *block){
 	int count = 0;
-	Vector2 chunk;
-	Vector2 offset;
+	iVector2 chunk;
+	iVector2 offset;
 
 	for(int y = coordinate.y - 1; y <= coordinate.y + 1; y++){
 		for(int x = coordinate.x - 1; x <= coordinate.x + 1; x++){
-			if(CoordinateConvert((Vector2){x, y}, &chunk, &offset)){
+			if(CoordinateConvert((iVector2){x, y}, &chunk, &offset)){
 				if(y != coordinate.y || x != coordinate.x){
-					if(FindChunk(chunk)->tile[0][offset.y][offset.x].block == block->id){
+					if(FindChunk(chunk)->tile[0][offset.y][offset.x].block->id == block->id){
 						count++;
 					}
 				}
@@ -156,32 +156,32 @@ int GetNeighbours(Vector2 coordinate, BlockObject *block){
 	return count;
 }
 
-// void IterateCellularAutomata(Vector2 chunk){
+// void IterateCellularAutomata(iVector2 chunk){
 void IterateCellularAutomata(ChunkObject *chunk){
 	// ChunkObject *chunk_data = FindChunk(chunk);
 	if(!chunk->isGenerated){
-		Vector2 position;
+		iVector2 position;
 		for(int y = 0; y < chunk_size; y++){
 			for(int x = 0; x < chunk_size; x++){
-				position = ToCoordinate(chunk->position, (Vector2){x, y});
+				position = ToCoordinate(chunk->position, (iVector2){x, y});
 				int surround = GetNeighbours(position, FindBlock("grass"));
 				if(surround > 4){
 					// chunk_data->tile[0][y][x].block = FindBlock("water")->id;
 					// FindChunk(chunk->position)->tile[0][y][x].block = FindBlock("water")->id;
-					chunk->tile[0][y][x].block = FindBlock("water")->id;
+					chunk->tile[0][y][x].block = FindBlock("water");
 				// }else if(surround < 4){
 				}else{
 					// chunk_data->tile[0][y][x].block = FindBlock("grass")->id;
 					// FindChunk(chunk->position)->tile[0][y][x].block = FindBlock("grass")->id;
-					chunk->tile[0][y][x].block = FindBlock("grass")->id;
+					chunk->tile[0][y][x].block = FindBlock("grass");
 				}
 			}
 		}
 	}
 
-	// Vector2 coordinate = {-195, 0};
-	// chunk = (Vector2){1, 0};
-	// Vector2 offset = {29, 0};
+	// iVector2 coordinate = {-195, 0};
+	// chunk = (iVector2){1, 0};
+	// iVector2 offset = {29, 0};
 	// CoordinateConvert(coordinate, &chunk, &offset);
 	// // coordinate = ToCoordinate(chunk, offset);
 	// printf("\nchunk:%d\noffset:%d\n", chunk.x, offset.x);
@@ -190,24 +190,24 @@ void IterateCellularAutomata(ChunkObject *chunk){
 
 
 
-	// printf("%d\n", ToCoordinate((Vector2){-1, 0}, (Vector2){0, 0}).x);
-	// printf("%d\n", ToCoordinate((Vector2){0, 0}, (Vector2){31, 0}).x);
-	// printf("%d\n", ToCoordinate((Vector2){1, 0}, (Vector2){31, 0}).x);
+	// printf("%d\n", ToCoordinate((iVector2){-1, 0}, (iVector2){0, 0}).x);
+	// printf("%d\n", ToCoordinate((iVector2){0, 0}, (iVector2){31, 0}).x);
+	// printf("%d\n", ToCoordinate((iVector2){1, 0}, (iVector2){31, 0}).x);
 }
 
 void CalculatePerlinBase(ChunkObject *chunk){
-	Vector2 position = {0, 0};
+	iVector2 position = {0, 0};
 	for(int y = 0; y < chunk_size; y++){
 		for(int x = 0; x < chunk_size; x++){
-			position = ToCoordinate(chunk->position, (Vector2){x, y});
+			position = ToCoordinate(chunk->position, (iVector2){x, y});
 			int value = Perlin_Get2d(position.x, position.y, 0.05, 2) * 1024;
 			// printf("%d\n", value);
 			if(value < 600){
-				chunk->tile[0][y][x].block = FindBlock("grass")->id;
+				chunk->tile[0][y][x].block = FindBlock("grass");
 			// }else if(value > 500 && value < 545){
 				// chunk->tile[0][y][x].block = FindBlock("sand")->id;
 			}else{
-				chunk->tile[0][y][x].block = FindBlock("water")->id;
+				chunk->tile[0][y][x].block = FindBlock("water");
 			}
 		}
 	}
@@ -216,20 +216,20 @@ void CalculatePerlinBase(ChunkObject *chunk){
 void StepCellularAutomata(ChunkObject *chunk){
 	// if(!chunk->isGenerated){
 		uint8_t surround = 0;
-		Vector2 position = {0, 0};
-		Vector2 chunk_pos = {0, 0};
-		Vector2 offset_pos = {0, 0};
+		iVector2 position = {0, 0};
+		iVector2 chunk_pos = {0, 0};
+		iVector2 offset_pos = {0, 0};
 		// BlockObject *grass_block = FindBlock("grass");
 		// BlockObject *water_block = FindBlock("water");
 
 		for(int y = 0; y < chunk_size; y++){
 			for(int x = 0; x < chunk_size; x++){
-				position = ToCoordinate(chunk->position, (Vector2){x, y});
+				position = ToCoordinate(chunk->position, (iVector2){x, y});
 				// printf("%d, %d\n", position.x, position.y);
 				surround = GetNeighbours(position, FindBlock("water"));
 				if(surround <= 2){
-					if(chunk->tile[0][y][x].block == FindBlock("water")->id){
-						CoordinateConvert((Vector2){position.x, position.y + 1}, &chunk_pos, &offset_pos);
+					if(chunk->tile[0][y][x].block->id == FindBlock("water")->id){
+						CoordinateConvert((iVector2){position.x, position.y + 1}, &chunk_pos, &offset_pos);
 						chunk->tile[0][y][x].block = FindChunk(chunk_pos)->tile[0][offset_pos.y][offset_pos.x].block;
 						// chunk->tile[0][y][x].block = chunk->tile[0][y][x].block;
 					}
@@ -248,20 +248,20 @@ void StepCellularAutomata(ChunkObject *chunk){
 }
 
 void CheckBufferGeneration(){
-	for(int i = 0; i < active_sandbox.chunkBufferSize; i++){
-		if(!active_sandbox.chunkBuffer[i].isGenerated){// To be moved to chunk unloading loop
-	    	RandomFill(active_sandbox.chunkBuffer[i].position, 50);
+	for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
+		if(!active_sandbox.chunk_buffer[i].isGenerated){// To be moved to chunk unloading loop
+	    	RandomFill(active_sandbox.chunk_buffer[i].position, 50);
 			// for(int j = 0; j < 6; j++){
-				// IterateCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				CalculatePerlinBase(&active_sandbox.chunkBuffer[i]);
-				StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				// StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				// StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				// StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				// StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
-				// StepCellularAutomata(&active_sandbox.chunkBuffer[i]);
+				// IterateCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				CalculatePerlinBase(&active_sandbox.chunk_buffer[i]);
+				StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				// StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				// StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				// StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				// StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
+				// StepCellularAutomata(&active_sandbox.chunk_buffer[i]);
 			// }
-			active_sandbox.chunkBuffer[i].isGenerated = true;
+			active_sandbox.chunk_buffer[i].isGenerated = true;
 		}
 	}
 }

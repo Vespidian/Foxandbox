@@ -20,12 +20,12 @@ void InitTextures();
 
 /**
  *  @brief Load a texture from file and place it into the texture stack
- *  @return A 'TextureObject' containing the texture
+ *  @return A pointer to the 'TextureObject' containing the texture
  */
-TextureObject LoadTextureToStack(const char *path);
+TextureObject *LoadTextureToStack(const char *path);
 
 /**
- *  @return The texture with id 'id' from the texture stack
+ *  @return A pointer to the texture with id 'id' from the texture stack
  */
-TextureObject FindTexture(unsigned int texture);
+TextureObject *FindTexture(unsigned int texture);
 #endif

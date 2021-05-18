@@ -10,7 +10,7 @@
 FILE *logFile;
 int logComplexity = DL_VERBOSE;
 
-void SetupDebug(){
+void InitDebug(){
 	logFile = fopen("../log.txt", "a");
 	fprintf(logFile, "\n---------------\nSEPARATOR\n---------------\n\n");
 }

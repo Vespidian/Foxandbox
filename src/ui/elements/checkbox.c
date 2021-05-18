@@ -1,11 +1,13 @@
 #include "../../global.h"
-#include "../../renderer/renderer.h"
+// #include "../../renderer/renderer.h"
+#include "../../renderer/quad.h"
 #include "../../renderer/render_text.h"
 #include "../../event.h"
+#include "../ui.h"
 
 #include "checkbox.h"
 
-void Checkbox(SDL_Renderer *renderer, bool *value, char *label, Vector2 position){
+void Checkbox(bool *value, char *label, Vector2 position){
 	SDL_Point mouse;
 	SDL_GetMouseState(&mouse.x, &mouse.y);
 
@@ -17,6 +19,8 @@ void Checkbox(SDL_Renderer *renderer, bool *value, char *label, Vector2 position
 			*value = !*value;
 		}
 	}
-	PushRender_Tilesheet(renderer, FindTilesheet("ui"), !*value + 1, checkbox, RNDR_UI);
-	RenderText(renderer, FindFont("default_font"), 1, position.x + 14, position.y + 8, label);
+	// PushRender_Tilesheet(renderer, FindTilesheet("ui"), !*value + 1, checkbox, RNDR_UI);
+	RenderTilesheet(ui_tilesheet, !*value + 1, checkbox, RNDR_UI, (Vector4){1, 1, 1, 1});
+
+	RenderText(FindFont("default_font"), 1, position.x + 14, position.y + 8, label);
 }

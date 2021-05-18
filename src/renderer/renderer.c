@@ -6,13 +6,6 @@
 
 #include "renderer.h"
 
-SDL_Window *window;
-SDL_Renderer *renderer;
-
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 800;
-
-
 unsigned int quad_vbo;
 unsigned int quad_ebo;
 

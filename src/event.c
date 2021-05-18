@@ -82,6 +82,7 @@ void PollEvents(){
 void EventListener(){
 	mouse_clicked = false;
 	mouse_held = false;
+
 	if(enable_input){
 		PollEvents();
 	}

@@ -28,7 +28,7 @@ void SetQuadProjection(){
     UniformSetMat4(quad_shader, "projection", projection_matrix);
 }
 
-void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, SDL_Color color, float rot){
+void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, Vector4 color, float rot){
 
 	// NULL to fill entire viewport
 	if(dst == NULL){
@@ -73,7 +73,7 @@ void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, S
 // _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, r, g, b, a, x, y, w, h
 
 
-void TilesheetRender(TilesheetObject tilesheet, unsigned int index, SDL_Rect dest, int zpos, SDL_Color color){
+void RenderTilesheet(TilesheetObject tilesheet, unsigned int index, SDL_Rect dest, int zpos, Vector4 color){
 	mat4 pos;
 	glm_mat4_identity(pos);
 	glm_translate(pos, (vec3){dest.x, dest.y, zpos});

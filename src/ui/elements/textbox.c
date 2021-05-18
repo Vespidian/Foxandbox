@@ -3,6 +3,7 @@
 #include "../../renderer/render_text.h"
 #include "../../event.h"
 #include "../../text_event.h"
+#include "../ui.h"
 #include "../resizable_rect.h"
 
 #include "textbox.h"
@@ -44,11 +45,11 @@ void Textbox_f(Textbox_t *box){
                 scrolledText = box->text + offset;
             }
         }
-        RenderTextEx(renderer, FindFont("default_font"), 1, box->pos.x + 2, box->pos.y + box->pos.h / 2 - 8, (SDL_Color){255, 255, 255}, maxShownChars, "%s", scrolledText);
+        RenderTextEx(FindFont("default_font"), 1, box->pos.x + 2, box->pos.y + box->pos.h / 2 - 8, (Vector4){1, 1, 1, 1}, maxShownChars, "%s", scrolledText);
     }
     if(box->selected){
-        ResizableRect(box->pos, 9);
+        ResizableRect(ui_tilesheet, box->pos, 9, 6);
     }else{
-        ResizableRect(box->pos, 8);
+        ResizableRect(ui_tilesheet, box->pos, 8, 6);
     }
 }

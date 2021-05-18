@@ -1,6 +1,8 @@
 #ifndef UI_H_
 #define UI_H_
 
+extern TilesheetObject ui_tilesheet;
+
 void InitUI();
 
 /**

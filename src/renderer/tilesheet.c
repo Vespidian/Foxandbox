@@ -20,7 +20,7 @@ void InitTilesheets(){
     DebugLog(D_ACT, "Initialized tilesheet subsystem");
 }
 
-TilesheetObject NewTilesheet(TextureObject texture, int tile_w, int tile_h){
+TilesheetObject *NewTilesheet(TextureObject texture, int tile_w, int tile_h){
 	// Expand 'tilesheet_stack' for new tilesheet
     tilesheet_stack = realloc(tilesheet_stack, sizeof(TilesheetObject) * (num_tilesheets + 1));
 
@@ -31,18 +31,18 @@ TilesheetObject NewTilesheet(TextureObject texture, int tile_w, int tile_h){
 	// Increment stack counters
     num_tilesheets++;
     nextID++;
-    return tilesheet_stack[num_tilesheets - 1];
+    return &tilesheet_stack[num_tilesheets - 1];
 }
 
-TilesheetObject NewRawTilesheet(char *path, int tile_w, int tile_h){
-    return NewTilesheet(name, LoadTexture(path), tileSize);
+TilesheetObject *NewTilesheetFromFile(char *path, int tile_w, int tile_h){
+    return NewTilesheet(LoadTexture(path), tile_w, tile_h);
 }
 
-TilesheetObject FindTilesheet(unsigned int id){
+TilesheetObject *FindTilesheet(unsigned int id){
     for(int i = 0; i < num_tilesheets; i++){
         if(tilesheet_stack[i].id == id){
-            return tilesheet_stack[i];
+            return &tilesheet_stack[i];
         }
     }
-    return undefined_tilesheet;
+    return &undefined_tilesheet;
 }

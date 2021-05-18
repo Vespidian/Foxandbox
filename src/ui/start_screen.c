@@ -20,8 +20,8 @@ void ListSandboxes();
 Textbox_t newWorldInput;
 
 void RenderStartScreen(){
-    SDL_SetRenderDrawColor(renderer, 139, 214, 239, 255);
-	SDL_RenderClear(renderer);
+    // SDL_SetRenderDrawColor(renderer, 139, 214, 239, 255);
+	// SDL_RenderClear(renderer);
 
 
     Vector2 buttonSize = {200, 32};
@@ -29,41 +29,41 @@ void RenderStartScreen(){
     switch(menuIndex){
         case 1:// Play
             for(int i = 0; i < numSandboxDirs; i++){
-                if(Button_format(renderer, VerticalRectList(numSandboxDirs + 3, i, buttonSize, origin, 6), sandboxDirs[i])){
+                if(Button_format(VerticalRectList(numSandboxDirs + 3, i, buttonSize, origin, 6), sandboxDirs[i])){
                     ReadSandbox(sandboxDirs[i]);
                 }
             }
             newWorldInput.pos = VerticalRectList(numSandboxDirs + 3, numSandboxDirs, buttonSize, origin, 6);
             Textbox_f(&newWorldInput);
-            if(Button(renderer, VerticalRectList(numSandboxDirs + 3, numSandboxDirs + 1, buttonSize, origin, 6), "Create World")){
+            if(Button(VerticalRectList(numSandboxDirs + 3, numSandboxDirs + 1, buttonSize, origin, 6), "Create World")){
                 if(newWorldInput.text != NULL){
                     if(strlen(newWorldInput.text) > 2){
                         ReadSandbox(newWorldInput.text);
                     }
                 }
             }
-            if(Button(renderer, VerticalRectList(numSandboxDirs + 3, numSandboxDirs + 2, buttonSize, origin, 6), "Back")){menuIndex = 0;}
+            if(Button(VerticalRectList(numSandboxDirs + 3, numSandboxDirs + 2, buttonSize, origin, 6), "Back")){menuIndex = 0;}
             break;
 
 
         case 2:// Options
 
-            if(Button(renderer, VerticalRectList(1, 0, buttonSize, origin, 6), "Back")){menuIndex = 0;}
+            if(Button(VerticalRectList(1, 0, buttonSize, origin, 6), "Back")){menuIndex = 0;}
             break;
 
             
         default:
-            if(Button(renderer, VerticalRectList(3, 0, buttonSize, origin, 6), "Play")){
+            if(Button(VerticalRectList(3, 0, buttonSize, origin, 6), "Play")){
                 menuIndex = 1;
                 ListSandboxes();
             }
-            if(Button(renderer, VerticalRectList(3, 1, buttonSize, origin, 6), "Options")){menuIndex = 2;}
-            if(Button(renderer, VerticalRectList(3, 2, buttonSize, origin, 6), "Quit")){Quit();}
+            if(Button(VerticalRectList(3, 1, buttonSize, origin, 6), "Options")){menuIndex = 2;}
+            if(Button(VerticalRectList(3, 2, buttonSize, origin, 6), "Quit")){Quit();}
             break;
     }
 
-    RenderQueue();
-	SDL_RenderPresent(renderer);
+    // RenderQueue();
+	// SDL_RenderPresent(renderer);
 }
 
 void ListSandboxes(){

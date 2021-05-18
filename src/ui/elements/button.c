@@ -3,10 +3,11 @@
 #include "../../renderer/render_text.h"
 #include "../../event.h"
 #include "../resizable_rect.h"
+#include "../ui.h"
 
 #include "button.h"
 
-bool Button(SDL_Renderer *renderer, SDL_Rect rect, char *text){
+bool Button(SDL_Rect rect, char *text){
 	bool isClicked = false;
 
 	SDL_Point mouse;
@@ -28,15 +29,15 @@ bool Button(SDL_Renderer *renderer, SDL_Rect rect, char *text){
 		}
 	}
 
-	ResizableRect(rect, 10);
+	ResizableRect(ui_tilesheet, rect, 10, 6);
 
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
-	RenderText(renderer, FindFont("default_font"), 1, textPos.x, textPos.y, text);
+	RenderText(FindFont("default_font"), 1, textPos.x, textPos.y, text);
 
 	return isClicked;
 }
 
-bool Button_format(SDL_Renderer *renderer, SDL_Rect rect, const char *text, ...){
+bool Button_format(SDL_Rect rect, const char *text, ...){
 	va_list vaFormat;
 	
 	//Use var args to create formatted text
@@ -45,11 +46,11 @@ bool Button_format(SDL_Renderer *renderer, SDL_Rect rect, const char *text, ...)
 	vsprintf(formattedText, text, vaFormat);
 	va_end(vaFormat);
 
-	return Button(renderer, rect, formattedText);
+	return Button(rect, formattedText);
 }
 
-void Button_function(SDL_Renderer *renderer, SDL_Rect rect, char *text, ButtonFunction function){
-	if(Button(renderer, rect, text)){
+void Button_function(SDL_Rect rect, char *text, ButtonFunction function){
+	if(Button(rect, text)){
 		function();
 	}
 }
