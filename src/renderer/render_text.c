@@ -97,7 +97,7 @@ void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vecto
 
 		// Check if character is a printable character
         if(char_value >= 0){
-            RenderTilesheet(font->tilesheet, char_value, dst, RNDR_TEXT, color);
+            RenderTilesheet(font->tilesheet, char_value, &dst, RNDR_TEXT, color);
             dst.x += font->padding.x * 1.7f * font_size;
         }else{// Some unprintable characters do stuff
             switch(char_value){

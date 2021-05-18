@@ -26,8 +26,8 @@ void LoadScreen(){
 	if(loading){
 		enable_input = false;
 		RenderQuad(loadscreen_texture, NULL, &(SDL_Rect){SCREEN_WIDTH / 2 - 128, SCREEN_HEIGHT / 2 - 128, 256, 256}, RNDR_TEXT + 2, (Vector4){1, 1, 1, 1}, 0);
-		RenderTilesheet(builtin_tilesheet, 0, (SDL_Rect){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, RNDR_TEXT + 1, (Vector4){0.12, 0.63, 0.56, 1});
+		RenderTilesheet(builtin_tilesheet, 0, &(SDL_Rect){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, RNDR_TEXT + 1, (Vector4){0.12, 0.63, 0.56, 1});
 		loadAmount += IntegerLerp(loadAmount, LOADBARSIZE, 65536 - duration);
-		RenderTilesheet(builtin_tilesheet, 0, (SDL_Rect){SCREEN_WIDTH / 2 - LOADBARSIZE / 2, SCREEN_HEIGHT / 2 + 150, loadAmount, 20}, RNDR_TEXT + 1, (Vector4){0.62, 0.11, 0.18, 1});
+		RenderTilesheet(builtin_tilesheet, 0, &(SDL_Rect){SCREEN_WIDTH / 2 - LOADBARSIZE / 2, SCREEN_HEIGHT / 2 + 150, loadAmount, 20}, RNDR_TEXT + 1, (Vector4){0.62, 0.11, 0.18, 1});
 	}
 }

@@ -227,7 +227,7 @@ BlockObject *PlaceBlock(BlockObject *block, iVector2 position, int layer, int ro
     BlockObject *tmp_block = FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block;
     FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block = block;
     FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].rotation = rotation;
-    return IDFindBlock(tmp_block->id);
+    return FindBlock_id(tmp_block->id);
 }
 
 void RenderCursor(){
@@ -246,7 +246,7 @@ void RenderCursor(){
     };
 
     // PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
-	RenderTilesheet(builtin_tilesheet, 2, cursor, RNDR_UI, (Vector4){1, 1, 1, 1});
+	RenderTilesheet(builtin_tilesheet, 2, &cursor, RNDR_UI, (Vector4){1, 1, 1, 1});
 
     mouse_global_tile_pos = (iVector2){
         mouse_tile_pos.x + player_coordinate.x - chunkCenterOffset.x / tile_render_size - chunk_size, 

@@ -73,11 +73,16 @@ void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, V
 // _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, r, g, b, a, x, y, w, h
 
 
-void RenderTilesheet(TilesheetObject tilesheet, unsigned int index, SDL_Rect dest, int zpos, Vector4 color){
+void RenderTilesheet(TilesheetObject tilesheet, unsigned int index, SDL_Rect *dst, int zpos, Vector4 color){
+	// NULL to fill entire viewport
+	if(dst == NULL){
+		dst = &(SDL_Rect){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+	}
+
 	mat4 pos;
 	glm_mat4_identity(pos);
-	glm_translate(pos, (vec3){dest.x, dest.y, zpos});
-	glm_scale(pos, (vec3){dest.w, dest.h, 1});
+	glm_translate(pos, (vec3){dst->x, dst->y, zpos});
+	glm_scale(pos, (vec3){dst->w, dst->h, 1});
 
 	vec4 color_vec = {color.r, color.g, color.b, color.a};
 	vec4 texture_src = {

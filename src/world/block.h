@@ -37,19 +37,6 @@ extern BlockObject *block_stack;
 void InitBlocks();
 
 /**
- *  @brief Create a new block with specified parameters and return it
- *  @param name the name of the item the block is based upon (only used when 'item' is null)
- *  @param item the item for the block to be based upon (null for new item)
- *  @param break_item the item to be dropped when block is broken (null to use 'BlockObject.item')
- *  @param tilesheet block texture tilesheet
- *  @param tile_index index of the block's texture
- *  @param allow_rotation whether or not the block can be oriented in multiple directions
- *  @param allow_autotile whether or not the block can be merged with surrounding autotile blocks (for ground / terrain blocks)
- *  @return A pointer to the newly created block
- */
-BlockObject *NewBlock(const char *name, ItemObject *item, ItemObject *break_item, TilesheetObject *tilesheet, int tileIndex, bool allow_rotation, bool allow_autotile);
-
-/**
  *  @brief Create a new block with specified parameters and append it to the block stack
  *  @param name the name of the item the block is based upon (only used when 'item' is null)
  *  @param item the item for the block to be based upon (null for new item)
@@ -60,7 +47,7 @@ BlockObject *NewBlock(const char *name, ItemObject *item, ItemObject *break_item
  *  @param allow_autotile whether or not the block can be merged with surrounding autotile blocks (for ground / terrain blocks)
  *  @return A pointer to the newly created block in the block stack
  */
-BlockObject *NewBlock_stack(const char *name, ItemObject *item, ItemObject *break_item, TilesheetObject *tilesheet, int tileIndex, bool allow_rotation, bool allow_autotile);
+BlockObject *NewBlock(const char *name, ItemObject *item, ItemObject *break_item, TilesheetObject *tilesheet, int tileIndex, bool allow_rotation, bool allow_autotile);
 
 /**
  *  @return Block with name 'name' from block stack
@@ -70,6 +57,6 @@ BlockObject *FindBlock(const char *name);
 /**
  *  @return Block with id 'id' from block stack
  */
-BlockObject *IDFindBlock(unsigned int id);
+BlockObject *FindBlock_id(unsigned int id);
 
 #endif
