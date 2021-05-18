@@ -137,7 +137,12 @@ int main(int argc, char *argv[]){
 	BindKeyEvent(ToggleWireframe, 'u', SDL_KEYDOWN);
 	// NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
 	NewBlock("grass", NULL, NULL, &tmp_block_tilesheet, 1, false, false);
+	printf("name: %s\n", FindBlock("grass")->item.name);
 	NewBlock("water", NULL, NULL, &tmp_block_tilesheet, 2, false, false);
+
+	// printf("%s\n", block_stack[1].item.name);
+	printf("block id: %d\n", FindBlock("grass")->id);
+	printf("item id: %d\n", FindBlock("grass")->item.id);
 	// NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
 	// NewBlock(NewItem("sand", FindTilesheet("tmp"), 3), NULL, FindTilesheet("tmp"), 3, false);
 

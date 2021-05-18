@@ -14,6 +14,6 @@ void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, V
 /**
  *  Render a tile from a tilesheet to the viewport
  */
-void RenderTilesheet(TilesheetObject tilesheet, unsigned int index, SDL_Rect dest, int zpos, Vector4 color);
+void RenderTilesheet(TilesheetObject tilesheet, unsigned int index, SDL_Rect *dst, int zpos, Vector4 color);
 
 #endif

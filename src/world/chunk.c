@@ -189,7 +189,7 @@ void RenderChunk(ChunkObject *chunk, iVector2 position){
     SDL_Rect chunkRect = {position.x, position.y, chunk_size * tile_render_size, chunk_size * tile_render_size};
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
-		RenderTilesheet(builtin_tilesheet, 3, chunkRect, RNDR_LEVEL - 1, (Vector4){1, 1, 1, 1});
+		RenderTilesheet(builtin_tilesheet, 3, &chunkRect, RNDR_LEVEL - 1, (Vector4){1, 1, 1, 1});
         ResizableRect(ui_tilesheet, chunkRect, 5, 6);
         SDL_Rect tileRect = {0, 0, tile_render_size, tile_render_size};
         for(int y = (-position.y / tile_render_size) * (position.y < 0); y < ((-position.y + SCREEN_HEIGHT) / tile_render_size + 1) && y < chunk_size; y++){
@@ -199,7 +199,7 @@ void RenderChunk(ChunkObject *chunk, iVector2 position){
                 for(int z = 0; z < num_chunk_layers; z++){
                     BlockObject *terrainBlock = chunk->tile[z][y][x].block;
                     if(chunk->tile[z][y][x].block->id != air_block.id){
-						RenderTilesheet(terrainBlock->tilesheet, terrainBlock->tile_index, tileRect, chunk->tile[z][y][x].zPos, chunk->tile[z][y][x].color);
+						RenderTilesheet(terrainBlock->tilesheet, terrainBlock->tile_index, &tileRect, chunk->tile[z][y][x].zPos, chunk->tile[z][y][x].color);
                         chunk->tile[z][y][x].zPos = RNDR_LEVEL + z + 1;
                         chunk->tile[z][y][x].rotation = 0;
                         chunk->tile[z][y][x].alpha = 255;

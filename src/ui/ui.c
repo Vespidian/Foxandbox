@@ -49,5 +49,5 @@ void DrawVListBackground(int num_items, Vector2 size, Vector2 origin, int spacin
 	rect.h = num_items * size.y + (num_items + 1) * padding;
 	rect.x = SCREEN_WIDTH / 2 - rect.w / 2;
 	rect.y = SCREEN_HEIGHT / 2 - rect.h / 2;
-	RenderTilesheet(ui_tilesheet, 0, rect, RNDR_UI, (Vector4){1, 1, 1, 1});
+	RenderTilesheet(ui_tilesheet, 0, &rect, RNDR_UI, (Vector4){1, 1, 1, 1});
 }

@@ -26,7 +26,7 @@ ItemObject *NewItem(const char *name, TilesheetObject *tilesheet, int tile_index
     item_stack = realloc(item_stack, sizeof(ItemObject) * (num_items + 1));
 
 	// Allocate space for item name
-    item_stack[num_items].name = malloc(sizeof(char) * strlen(name));
+    item_stack[num_items].name = malloc(sizeof(char) * (strlen(name) + 1));
 
 	// Copy data into newly created item
     item_stack[num_items] = (ItemObject){name, nextID, *tilesheet, tile_index, false};

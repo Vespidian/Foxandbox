@@ -60,7 +60,7 @@ void RenderTerrainAutotile(SDL_Renderer *renderer, Vector2 position, SDL_Rect ds
     // // CoordinateConvert(position, &tmp_chunk, &tmp_offset);
 
     // // Retrieve tilesize of base block tilesheet
-    // int tmp_tile_size = IDFindTilesheet(IDFindBlock(base_id.block)->tilesheet)->tileSize.x;
+    // int tmp_tile_size = IDFindTilesheet(FindBlock_id(base_id.block)->tilesheet)->tileSize.x;
     // // Create texture we will be incrementally building on
     // SDL_Texture *output_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tmp_tile_size, tmp_tile_size);//
     // //Create a TextureObject for adding to renderqueue    
@@ -72,8 +72,8 @@ void RenderTerrainAutotile(SDL_Renderer *renderer, Vector2 position, SDL_Rect ds
     // SDL_RenderClear(renderer);
 
     // //tmp
-    // // SDL_RenderCopy(renderer, IDFindTilesheet(IDFindBlock(sub_id.block)->tilesheet)->texture, NULL, NULL);
-    // SDL_RenderCopy(renderer, IDFindTexture(IDFindTilesheet(IDFindBlock(sub_id.block)->tilesheet)->texture)->texture, NULL, NULL);
+    // // SDL_RenderCopy(renderer, IDFindTilesheet(FindBlock_id(sub_id.block)->tilesheet)->texture, NULL, NULL);
+    // SDL_RenderCopy(renderer, IDFindTexture(IDFindTilesheet(FindBlock_id(sub_id.block)->tilesheet)->texture)->texture, NULL, NULL);
     // SDL_SetRenderTarget(renderer, NULL);
 
     /**
