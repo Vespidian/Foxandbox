@@ -8,6 +8,7 @@
 		"problems.decorations.enabled": false,
 		"explorer.sortOrder": "type",
 		"files.associations": {
+			"*.fs": "glsl",
 			"*.tcc": "c",
 			"button.h": "c",
 			"ui_elements.h": "c",
@@ -32,7 +33,16 @@
 			"sdl_image.h": "c",
 			"sdl.h": "c",
 			"sdl_gpu.h": "c",
-			"stdlib.h": "c"
+			"stdlib.h": "c",
+			"debug.h": "c",
+			"gl_utils.h": "c",
+			"gl_context.h": "c",
+			"quad.h": "c",
+			"utility.h": "c",
+			"ui.h": "c",
+			"textbox.h": "c",
+			"time.h": "c",
+			"load_screen.h": "c"
 		}
 	}
 }

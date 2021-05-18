@@ -1,14 +1,22 @@
 #include "global.h"
 #include "event.h"
+#include "gl_context.h"
 #include "textures.h"
 #include "entities/item.h"
+
 #include "world/block.h"
 #include "world/sandbox.h"
-#include "render/tilesheet.h"
-#include "render/renderer.h"
-#include "render/render_text.h"
+
+#include "renderer/tilesheet.h"
+#include "renderer/renderer.h"
+#include "renderer/render_text.h"
+#include "renderer/render_text.h"
+#include "renderer/quad.h"
+
 #include "ui/ui.h"
 #include "ui/start_screen.h"
+#include "ui/load_screen.h"
+#include "ui/elements/button.h"
 
 
 #include "animation/animation.h"
@@ -19,54 +27,63 @@
 
 
 #include "procedural_testing.h"
-#include <SDL_gpu.h>
 
-int loopStartTicks = 0;
+int loop_start_ticks = 0;
 float deltatime = 0;
-int targetFramerate = 60;
+int target_framerate = 60;
+
+int SCREEN_WIDTH =  800;
+int SCREEN_HEIGHT =  800;
+SDL_Window *window = NULL;
 
 bool running = true;
 
-bool isDebug = true;
-
-void Quit();
-
+TilesheetObject builtin_tilesheet;
+TilesheetObject tmp_block_tilesheet;
 void LoadBuiltinResources(){
-	NewRawTilesheet("default_tilesheet", "../images/default_tilesheet.png", (Vector2){16, 16});
-	NewRawTilesheet("builtin", "../images/builtin.png", (Vector2){16, 16});
-	LoadTexture(renderer, "../images/loadScreen.png", "loadscreen");
+	// NewTilesheetFromFile("default_tilesheet", "../images/default_tilesheet.png", (Vector2){16, 16});
+	// NewTilesheetFromFile("builtin", "../images/builtin.png", (Vector2){16, 16});
+	// LoadTexture("../images/loadScreen.png");
 
-	LoadTexture(renderer, "../images/testingTemp/tmpTilesheet.png", "tmp");
-	NewTilesheet("tmp", FindTexture("tmp"), (Vector2){16, 16});
+	// LoadTexture("../images/testingTemp/tmpTilesheet.png");
+	tmp_block_tilesheet = LoadTilesheet("../images/testingTemp/tmpTilesheet.png", 16, 16);
+
+	builtin_tilesheet = LoadTilesheet("../images/builtin.png", 16, 16);
 }
 
-void Setup(){
-	InitTextures();
-	InitRenderer();
-	InitTilesheets();
-	InitItems();
-	InitBlocks();
-	InitFonts();
-	InitEvents();
-	InitSandboxes();
-	InitUI();
-
-	LoadBuiltinResources();
-}
-
-void SetupSDL(){
+void InitSDL(){
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
 		DebugLog(D_ERR, "Could not initialize SDL. SDL_Error: %s", SDL_GetError());
 	}
 	window = SDL_CreateWindow("FoXandbox", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if(window == NULL){
 		DebugLog(D_ERR, "SDL window could not be created. SDL_Error: %s", SDL_GetError());
-	}else{
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-		if(renderer == NULL){
-			DebugLog(D_ERR, "SDL renderer could not be created: %s", SDL_GetError());
-		}
 	}
+}
+
+void InitRenderers(){
+	InitQuadRender();
+}
+
+void Setup(){
+	InitDebug();
+	InitEvents();
+	InitSDL();
+	InitGL();
+
+	InitRenderers();
+
+	InitTextures();
+	InitTilesheets();
+	InitItems();
+	InitBlocks();
+	InitFonts();
+	InitSandboxes();
+	InitUI();
+	LoadScreenInit();
+
+
+	LoadBuiltinResources();
 }
 
 void Quit(){
@@ -78,101 +95,79 @@ void Quit(){
 	QuitDebug();
 }
 
-// bool tmp = true;
-// Vector2 startupTime = {0, 0};
-SDL_Rect src = {0, 0, 128, 128};
-SDL_Rect dst = {0, 128, 0, 64};
-SDL_Rect tileDst = {0, 64, 64, 64};
 void GameLoop(){
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	// SDL_RenderClear(renderer);
 
-	// dst.x += IntegerLerp(dst.x, 736, 10000);
-	// dst.w += IntegerLerp(dst.w, 64, 10000);
-	// PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, dst, 1000);
-	// RenderChunk(FindChunk((Vector2){0, 0}), (Vector2){0, 0});
 	
-	RenderSandbox();
 
-	RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 200, 0, "Render calls: %d", renderQueueSize + 15);
-	PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 5, (SDL_Rect){SCREEN_WIDTH - 15, 0, 15, deltatime * 2 + 10}, RNDR_UI);
+	// RenderQuad(builtin_tilesheet.texture, NULL, NULL, 0, (Vector4){1, 1, 1, 1}, 0);
+	// RenderTilesheet(builtin_tilesheet, 1, (SDL_Rect){100, 100, 100, 100}, 0, (Vector4){1, 1, 1, 1});
+	// Button((SDL_Rect){100, 100, 100, 30}, "heyo this is a button");
 
-	RenderQueue();
-	SDL_RenderPresent(renderer);
-	// if(tmp){
-	// 	startupTime.y = SDL_GetTicks();
-	// 	printf("%d milliseconds to first render\n", startupTime.y - startupTime.x);
-	// 	DebugLog(D_VERBOSE_ACT, "Time to end of first render: %ums", startupTime.y - startupTime.x);
-	// 	tmp = false;
-	// }
+	if(active_sandbox.isActive){
+		RenderSandbox();
+		// RenderGL();
+	}else{
+		RenderStartScreen();
+	}
+	// RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 200, 0, "Render calls: %d", renderQueueSize + 15);
+	// PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 5, (SDL_Rect){SCREEN_WIDTH - 15, 0, 15, deltatime * 2 + 10}, RNDR_UI);
+
+	// RenderQueue();
+	// SDL_RenderPresent(renderer);
+	PushRender();
+	SDL_GL_SwapWindow(window);
 }
 
-void LoadSUND(){
-	ReadSandbox("terst");
-}
-
-
-
-void Func(){
-	// IterateCellularAutomata((Vector2){-1, -1});
-	// 	for(int i = 0; i < 7; i++){
-			// IterateCellularAutomata(activeSandbox.chunkBuffer->position);
-	// for(int i = 0; i < activeSandbox.chunkBufferSize; i++){
-		// IterateCellularAutomata(activeSandbox.chunkBuffer[i].position);
-	// }
-	
-	// 	}
-	// 	printf("ran\n");
-	// for(int y = -2; y < 4; y++){
-		// for(int x = -2; x < 4; x++){
-			// IterateCellularAutomata((Vector2){x, y});
-		// }
-	// }
-	// FillArrayRandom1D();
-	// GeneratePerlin1D();
-	// IterateCellularAutomata((Vector2){-1, -1});
-	// IterateCellularAutomata((Vector2){-2, -1});
-	// IterateCellularAutomata((Vector2){1, 1});
-	// IterateCellularAutomata((Vector2){0, 0});
+bool wireframe = false;
+static void ToggleWireframe(){
+	wireframe = !wireframe;
+	if(wireframe){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}else{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 }
 
 int main(int argc, char *argv[]){
-	SetupDebug();
-	SetupSDL();
-	// startupTime.x = SDL_GetTicks();
 	Setup();
+	// startupTime.x = SDL_GetTicks();
+	BindKeyEvent(ToggleWireframe, 'u', SDL_KEYDOWN);
+	// NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
+	NewBlock("grass", NULL, NULL, &tmp_block_tilesheet, 1, false, false);
+	NewBlock("water", NULL, NULL, &tmp_block_tilesheet, 2, false, false);
+	// NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
+	// NewBlock(NewItem("sand", FindTilesheet("tmp"), 3), NULL, FindTilesheet("tmp"), 3, false);
 
-	NewBlock(NewItem("grass", FindTilesheet("tmp"), 1), NULL, FindTilesheet("tmp"), 1, false);
-	NewBlock(NewItem("water", FindTilesheet("tmp"), 2), NULL, FindTilesheet("tmp"), 2, false);
-	NewBlock(NewItem("sand", FindTilesheet("tmp"), 3), NULL, FindTilesheet("tmp"), 3, false);
-
-	ReadSandbox("testing444");
+	// ReadSandbox("testing444");
 	// RandomFill((Vector2){0, 0}, 50);
 	// for(int i = 0; i < 7; i++){
 		// IterateCellularAutomata((Vector2){-1, -1});
 		// IterateCellularAutomata((Vector2){-1, -1});
 		// IterateCellularAutomata((Vector2){-2, -1});
 	// }
-	// SetupProcedural();
-	BindKeyEvent(Func, 'h', SDL_KEYDOWN);
-	// activeSandbox.isActive = false;
+	SetupProcedural();
+	active_sandbox.isActive = false;
 	// FillArrayRandom1D();
 	// GeneratePerlin1D();
 	while(running){
-		loopStartTicks = SDL_GetTicks();
+		loop_start_ticks = SDL_GetTicks();
 		EventListener();
-		LoadScreen();
-		if(activeSandbox.isActive){
+		// LoadScreen();
+		
+		// if(active_sandbox.isActive){
 			GameLoop();
-		}else{
+		// }else{
 			// MenuLoop();
-			RenderStartScreen();
-		}
+			// RenderStartScreen();
+		// }
 		// ProceduralTesting();
 
 		
-		SDL_Delay(1000 / targetFramerate);
-		deltatime = (SDL_GetTicks() - loopStartTicks) / 10;
+		SDL_Delay(1000 / target_framerate);
+		deltatime = (SDL_GetTicks() - loop_start_ticks) / 10;
 	}
 	Quit();
 	return 0;

@@ -4,9 +4,9 @@
 #include "entities/item.h"
 #include "world/block.h"
 #include "world/sandbox.h"
-#include "render/tilesheet.h"
-#include "render/renderer.h"
-#include "render/render_text.h"
+#include "renderer/tilesheet.h"
+#include "renderer/renderer.h"
+#include "renderer/render_text.h"
 #include "ui/ui.h"
 #include "ui/start_screen.h"
 
@@ -104,7 +104,7 @@ void GeneratePerlin2D(){
 }
 
 int mode = 1;
-void ProceduralTesting(){
+/*void ProceduralTesting(){
 	//Rendering
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderClear(renderer);
@@ -132,7 +132,7 @@ void ProceduralTesting(){
     }
 
 	SDL_RenderPresent(renderer);
-}
+}*/
 
 
 

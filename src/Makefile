@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -Werror -Wall -lmingw32 -llua54 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_gpu -g
+CFLAGS = -Werror -Wall -lmingw32 -llua54 -lSDL2main -lSDL2 -lSDL2_image -lglew32 -lopengl32 -g
+DISABLE_FLAGS = -Wno-missing-braces
 
 INCLUDE = -isystem C:/c_libs/include/ -LC:/c_libs/lib/
 
@@ -10,15 +11,16 @@ OBJ = $(C_SOURCES:.c=.o)
 
 
 ../bin/foXandbox.exe: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(INCLUDE)
+	$(CC) -o $@ $^ $(CFLAGS) $(DISABLE_FLAGS) $(INCLUDE)
 	
 %.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) $(DISABLE_FLAGS) $(INCLUDE) -c $< -o $@
 	
 	
 clean:
 	rm -rf *.o
 	rm -rf */*.o
+	rm -rf */*/*.o
 	rm log.txt
 	rm ../*.exe
 

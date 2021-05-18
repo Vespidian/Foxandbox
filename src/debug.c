@@ -10,7 +10,7 @@
 FILE *logFile;
 int logComplexity = DL_VERBOSE;
 
-void SetupDebug(){
+void InitDebug(){
 	logFile = fopen("../log.txt", "a");
 	fprintf(logFile, "\n---------------\nSEPARATOR\n---------------\n\n");
 }
@@ -20,8 +20,9 @@ void DebugLog(int type, const char *format, ...){
 	
 	//Use var args to create formatted text
 	va_start(vaFormat, format);
-	char *formattedText = malloc((strlen(format) + 64) * sizeof(char));
-	vsprintf(formattedText, format, vaFormat);
+	int length = vsnprintf(NULL, 0, format, vaFormat);
+	char *formattedText = malloc((strlen(format) + length + 8) * sizeof(char));
+	vsnprintf(formattedText, sizeof(char) * (length + 1), format, vaFormat);
 	va_end(vaFormat);
 	
 	//Insert timestamp to log
