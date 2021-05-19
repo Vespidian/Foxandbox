@@ -46,7 +46,9 @@ void Textbox_f(Textbox_t *box){
             }
         }
         RenderTextEx(FindFont("default_font"), 1, box->pos.x + 2, box->pos.y + box->pos.h / 2 - 8, (Vector4){1, 1, 1, 1}, maxShownChars, "%s", scrolledText);
-    }
+    }else{
+		box->text = calloc(1, sizeof(char));
+	}
     if(box->selected){
         ResizableRect(ui_tilesheet, box->pos, 9, 6);
     }else{
