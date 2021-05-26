@@ -6,6 +6,7 @@
 #include "ui.h"
 #include "elements/button.h"
 #include "elements/textbox.h"
+#include "elements/slider.h"
 
 #include "start_screen.h"
 
@@ -19,8 +20,15 @@ void ListSandboxes();
 
 Textbox_t newWorldInput;
 
+float value = 0.75;
 void RenderStartScreen(){
 	RenderTilesheet(builtin_tilesheet, 0, NULL, 0, (Vector4){0.54, 0.84, 0.93, 1});
+
+	// float value = 4.0;
+	// RenderSlider(&value, 0, 10, (iVector4){200, 200, 200, 30});
+	RenderSlider(&value, 0.0, 360, (iVector4){200, 200, 200, 30});
+	// RenderTilesheet(builtin_tilesheet, 1, &(SDL_Rect){300, 200, 64, 64}, RNDR_UI, (Vector4){1, 1, 1, 1});
+	RenderQuad(builtin_tilesheet.texture, &(SDL_Rect){16, 0, 16, 16}, &(SDL_Rect){450, 200, 64, 64}, RNDR_UI, (Vector4){1, 1, 1, 1}, glm_rad(value));
 
     Vector2 button_size = {200, 32};
     Vector2 origin = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
@@ -59,9 +67,6 @@ void RenderStartScreen(){
             if(Button(VerticalRectList(3, 2, button_size, origin, 6), "Quit")){Quit();}
             break;
     }
-
-    // RenderQueue();
-	// SDL_RenderPresent(renderer);
 }
 
 void ListSandboxes(){

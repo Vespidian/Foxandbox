@@ -17,6 +17,7 @@
 #include "ui/start_screen.h"
 #include "ui/load_screen.h"
 #include "ui/elements/button.h"
+#include "ui/resizable_rect.h"
 
 
 #include "animation/animation.h"
@@ -30,7 +31,7 @@
 
 int loop_start_ticks = 0;
 float deltatime = 0;
-int target_framerate = 60;
+int target_framerate = 120;
 
 int SCREEN_WIDTH =  800;
 int SCREEN_HEIGHT =  800;
@@ -41,11 +42,6 @@ bool running = true;
 TilesheetObject builtin_tilesheet;
 TilesheetObject tmp_block_tilesheet;
 void LoadBuiltinResources(){
-	// NewTilesheetFromFile("default_tilesheet", "../images/default_tilesheet.png", (Vector2){16, 16});
-	// NewTilesheetFromFile("builtin", "../images/builtin.png", (Vector2){16, 16});
-	// LoadTexture("../images/loadScreen.png");
-
-	// LoadTexture("../images/testingTemp/tmpTilesheet.png");
 	tmp_block_tilesheet = LoadTilesheet("../images/testingTemp/tmpTilesheet.png", 16, 16);
 
 	builtin_tilesheet = LoadTilesheet("../images/builtin.png", 16, 16);
@@ -97,15 +93,13 @@ void Quit(){
 
 void GameLoop(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	// SDL_RenderClear(renderer);
-
-	
 
 	// RenderQuad(builtin_tilesheet.texture, NULL, NULL, 0, (Vector4){1, 1, 1, 1}, 0);
 	// RenderTilesheet(builtin_tilesheet, 1, (SDL_Rect){100, 100, 100, 100}, 0, (Vector4){1, 1, 1, 1});
 	// Button((SDL_Rect){100, 100, 100, 30}, "heyo this is a button");
-
+	// RenderText(&default_font, 1.8, 200, 200, 0, "this is some text!");
+	// ResizableRect(ui_tilesheet, (SDL_Rect){100, 100, 16, 32}, 10, 6);
+	// ResizableRect(ui_tilesheet, (SDL_Rect){0, 100, SCREEN_WIDTH / 2, 400}, 11, 12, RNDR_UI - 10, (Vector4){1, 1, 1, 0.5});
 	if(active_sandbox.isActive){
 		RenderSandbox();
 		// RenderGL();
@@ -113,10 +107,9 @@ void GameLoop(){
 		RenderStartScreen();
 	}
 	// RenderText(renderer, FindFont("default_font"), 1, SCREEN_WIDTH - 200, 0, "Render calls: %d", renderQueueSize + 15);
-	// PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 5, (SDL_Rect){SCREEN_WIDTH - 15, 0, 15, deltatime * 2 + 10}, RNDR_UI);
 
-	// RenderQueue();
-	// SDL_RenderPresent(renderer);
+	RenderText(&default_font, 1, SCREEN_WIDTH - 10, 10, TEXT_ALIGN_RIGHT, "Number of render appends: %d", num_append_instance_calls);
+
 	PushRender();
 	SDL_GL_SwapWindow(window);
 }

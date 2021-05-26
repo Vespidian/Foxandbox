@@ -3,6 +3,8 @@
 
 #include "tilesheet.h"
 
+enum TEXT_ALIGN{TEXT_ALIGN_LEFT = 0, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER};
+
 /**
  *  Font struct containing the data of a font
  */
@@ -67,7 +69,7 @@ FontObject *IDFindFont(unsigned int id);
  *  @param text formatted text to be rendered
  *  @param ... information to be placed in format specifiers
  */
-void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, char *text, ...);
+void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, int alignment, char *text, ...);
 
 /**
  *  @brief Render text to the screen
@@ -79,6 +81,6 @@ void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, char *t
  *  @param text formatted text to be rendered
  *  @param ... information to be placed in format specifiers
  */
-void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vector4 color, int num_characters, char *text, ...);
+void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vector4 color, int alignment, int num_characters, char *text, ...);
 
 #endif

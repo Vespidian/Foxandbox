@@ -16,14 +16,14 @@ void InitDebug(){
 }
 
 void DebugLog(int type, const char *format, ...){
-	va_list vaFormat;
+	va_list va_format;
 	
 	//Use var args to create formatted text
-	va_start(vaFormat, format);
-	int length = vsnprintf(NULL, 0, format, vaFormat);
-	char *formattedText = malloc((strlen(format) + length + 8) * sizeof(char));
-	vsnprintf(formattedText, sizeof(char) * (length + 1), format, vaFormat);
-	va_end(vaFormat);
+	va_start(va_format, format);
+	int length = vsnprintf(NULL, 0, format, va_format);
+	char *formattedText = malloc((length + 1) * sizeof(char));
+	vsnprintf(formattedText, sizeof(char) * (length + 1), format, va_format);
+	va_end(va_format);
 	
 	//Insert timestamp to log
 	if(type <= logComplexity){

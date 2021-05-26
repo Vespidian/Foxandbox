@@ -32,6 +32,7 @@ mat4 default_texture_coordinates = {
 
 InstanceBuffer *instance_buffer;
 unsigned int num_instances = 0;
+int num_append_instance_calls = 0;
 
 // Active opengl references
 unsigned int current_shader;
@@ -193,6 +194,8 @@ void AppendInstance(AttribArray vao, float data[64], unsigned int shader, char n
 
 	// Increment instance count
 	instance_buffer[instance].count++;
+
+	num_append_instance_calls++;
 }
 
 void EmptyRenderBuffer(){
@@ -202,6 +205,7 @@ void EmptyRenderBuffer(){
 	}
 	instance_buffer = malloc(sizeof(InstanceBuffer) * 2);
 	num_instances = 0;
+	num_append_instance_calls = 0;
 }
 
 void PushRender(){

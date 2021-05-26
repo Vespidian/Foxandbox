@@ -50,6 +50,15 @@ typedef struct {
 	};
 }Vector4;
 
+typedef struct {
+	union{
+		struct {int r, g, b, a;};
+		struct {int x, y, z, w;};
+		struct {int s, t, p, q;};
+		int v[4];
+	};
+}iVector4;
+
 
 extern int SCREEN_WIDTH;
 extern int SCREEN_HEIGHT;

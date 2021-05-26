@@ -22,5 +22,5 @@ void Checkbox(bool *value, char *label, Vector2 position){
 	// PushRender_Tilesheet(renderer, FindTilesheet("ui"), !*value + 1, checkbox, RNDR_UI);
 	RenderTilesheet(ui_tilesheet, !*value + 1, &checkbox, RNDR_UI, (Vector4){1, 1, 1, 1});
 
-	RenderText(FindFont("default_font"), 1, position.x + 14, position.y + 8, label);
+	RenderText(FindFont("default_font"), 1, position.x + 14, position.y + 8, 0, label);
 }

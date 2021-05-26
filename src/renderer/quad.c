@@ -43,7 +43,7 @@ void RenderQuad(TextureObject texture, SDL_Rect *src, SDL_Rect *dst, int zpos, V
 	mat4 model_matrix;
 	glm_mat4_identity(model_matrix);
 	glm_translate(model_matrix, (vec3){dst->x, dst->y, zpos});
-	glm_rotate_at(model_matrix, (vec3){dst->w / 2.0, dst->h / 2.0, 0}, glm_rad(rot), (vec3){0, 0, 1});
+	glm_rotate_at(model_matrix, (vec3){dst->w / 2.0, dst->h / 2.0, 0}, rot, (vec3){0, 0, 1});
 	glm_scale(model_matrix, (vec3){dst->w, dst->h, 1});
 
 	// Convert color and texture to vec4 for easy memcpy

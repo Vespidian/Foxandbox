@@ -254,14 +254,14 @@ void RenderCursor(){
     };
     
     iVector2 info_group = {0, 0};
-    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y, "mouse_tile_pos: %d, %d", mouse_tile_pos.x, mouse_tile_pos.y);
-    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 20, "mouse_global_tile_pos: %d, %d", mouse_global_tile_pos.x, mouse_global_tile_pos.y);
-    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 40, "player_coordinate_offset: %d, %d", player_coordinate_offset.x, player_coordinate_offset.y);
-    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 60, "player_coordinate: %d, %d", player_coordinate.x, player_coordinate.y);
+    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y, 0, "mouse_tile_pos: %d, %d", mouse_tile_pos.x, mouse_tile_pos.y);
+    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 20, 0, "mouse_global_tile_pos: %d, %d", mouse_global_tile_pos.x, mouse_global_tile_pos.y);
+    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 40, 0, "player_coordinate_offset: %d, %d", player_coordinate_offset.x, player_coordinate_offset.y);
+    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 60, 0, "player_coordinate: %d, %d", player_coordinate.x, player_coordinate.y);
     iVector2 chunk_out = {0, 0};
     iVector2 chunk_offset = {0, 0};
     CoordinateConvert(mouse_global_tile_pos, &chunk_out, &chunk_offset);
-    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 80, "chunk: %d, %d", chunk_out.x, chunk_out.y);
+    RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 80, 0, "chunk: %d, %d", chunk_out.x, chunk_out.y);
 }
 
 void LevelMouseInteraction(EventData event){

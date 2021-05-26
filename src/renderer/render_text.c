@@ -15,9 +15,6 @@ unsigned int num_fonts = 0;
 // ID to be used by next font created
 static unsigned int nextID = 0;
 
-// Vector2 char_size = {6, 12};
-// Vector2 padding = {5, 2};
-
 void InitFonts(){
     default_font = *NewRawFont("default_font", "../images/fonts/default_font.png", (Vector2){6, 12}, (Vector2){5, 2});
     DebugLog(D_ACT, "Initialized font subsystem");
@@ -61,7 +58,7 @@ FontObject *IDFindFont(unsigned int id){
     return &default_font;
 }
 
-void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, char *text, ...){
+void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, int alignment, char *text, ...){
     va_list va_format;
 
     va_start(va_format, text);
@@ -69,10 +66,10 @@ void RenderText(FontObject *font, float font_size, int x_pos, int y_pos, char *t
     vsprintf(formattedText, text, va_format);
     va_end(va_format);
 
-    RenderTextEx(font, font_size, x_pos, y_pos, (Vector4){1, 1, 1, 1}, -1, formattedText);
+    RenderTextEx(font, font_size, x_pos, y_pos, (Vector4){1, 1, 1, 1}, alignment, -1, formattedText);
 }
 
-void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vector4 color, int num_characters, char *text, ...){
+void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vector4 color, int alignment, int num_characters, char *text, ...){
     va_list va_format;
 
 	// Convert va_arg to single string
@@ -91,14 +88,29 @@ void RenderTextEx(FontObject *font, float font_size, int x_pos, int y_pos, Vecto
     int char_value = 0;
 
 	// Loop through each character of string and render them
-    for(int i = 0; i < strlen(formattedText); i++){
+	int string_length = strlen(formattedText); 
+    for(int i = 0; i < string_length; i++){
 		// Adjust character value so that space is 0 (everything before space is unprintable / not a visual character)
         char_value = (int)formattedText[i] - (int)' ';
 
 		// Check if character is a printable character
         if(char_value >= 0){
+			switch(alignment){
+				case TEXT_ALIGN_CENTER:
+					if(i < string_length / 2){
+						dst.x = x_pos - (string_length / 2.0 - i) * ((float)font->padding.x * 1.7f * font_size) - ((float)font->padding.x * 1.7f * font_size) / 2;
+					}else{
+            			dst.x = x_pos + (i - string_length / 2.0) * ((float)font->padding.x * 1.7f * font_size) - ((float)font->padding.x * 1.7f * font_size) / 2;
+					}
+					break;
+				case TEXT_ALIGN_RIGHT:
+            		dst.x = x_pos - (string_length - i) * ((float)font->padding.x * 1.7f * font_size);
+					break;
+				default:
+            		dst.x = x_pos + i * ((float)font->padding.x * 1.7f * font_size);
+					break;
+			}
             RenderTilesheet(font->tilesheet, char_value, &dst, RNDR_TEXT, color);
-            dst.x += font->padding.x * 1.7f * font_size;
         }else{// Some unprintable characters do stuff
             switch(char_value){
                 case -22: // NEWLINE (\n)

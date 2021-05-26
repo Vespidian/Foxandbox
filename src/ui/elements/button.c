@@ -29,10 +29,10 @@ bool Button(SDL_Rect rect, char *text){
 		}
 	}
 
-	ResizableRect(ui_tilesheet, rect, 10, 6);
+	ResizableRect(ui_tilesheet, rect, 10, 6, RNDR_UI, (Vector4){1, 1, 1, 1});
 
 	Vector2 textPos = {(rect.x + rect.w / 2) - (strlen(text) * 10) / 2, (rect.y + rect.h / 2) - 8};
-	RenderText(FindFont("default_font"), 1, textPos.x, textPos.y, text);
+	RenderText(FindFont("default_font"), 1, textPos.x, textPos.y, 0, text);
 
 	return isClicked;
 }

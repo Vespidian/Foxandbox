@@ -190,7 +190,7 @@ void RenderChunk(ChunkObject *chunk, iVector2 position){
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
 		RenderTilesheet(builtin_tilesheet, 3, &chunkRect, RNDR_LEVEL - 1, (Vector4){1, 1, 1, 1});
-        ResizableRect(ui_tilesheet, chunkRect, 5, 6);
+        ResizableRect(ui_tilesheet, chunkRect, 5, 6, 0, (Vector4){1, 1, 1, 1});
         SDL_Rect tileRect = {0, 0, tile_render_size, tile_render_size};
         for(int y = (-position.y / tile_render_size) * (position.y < 0); y < ((-position.y + SCREEN_HEIGHT) / tile_render_size + 1) && y < chunk_size; y++){
             for(int x = (-position.x / tile_render_size) * (position.x < 0); x < ((-position.x + SCREEN_WIDTH) / tile_render_size + 1) && x < chunk_size; x++){

@@ -57,6 +57,10 @@ extern TextureObject undefined_texture;
  */
 extern mat4 default_texture_coordinates;
 
+/**
+ *  Number of calls to 'AppendInstance()' in current frame
+ */
+extern int num_append_instance_calls;
 
 /**
  *  @brief Initialize the render system
