@@ -2,13 +2,13 @@
 #define sandbox_generation_H_
 
 // void FillLevelLayer(LevelObject *level, TileObject **layer, BlockObject *block);
-void FillChunk(iVector2 chunk);
-void RandomFill(iVector2 chunk, int percentage);
-// void IterateCellularAutomata(iVector2 chunk);
+void FillChunk(Vector2_i chunk);
+void RandomFill(Vector2_i chunk, int percentage);
+// void IterateCellularAutomata(Vector2_i chunk);
 void IterateCellularAutomata(ChunkObject *chunk);
 
 void CheckBufferGeneration();
-int GetNeighbours(iVector2 coordinate, BlockObject *block);
-bool CoordinateConvert(iVector2 coordinateIn, iVector2 *chunkOut, iVector2 *offsetOut);
+int GetNeighbours(Vector2_i coordinate, BlockObject *block);
+bool CoordinateConvert(Vector2_i coordinateIn, Vector2_i *chunkOut, Vector2_i *offsetOut);
 
 #endif

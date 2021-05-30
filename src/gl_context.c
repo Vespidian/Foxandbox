@@ -2,6 +2,7 @@
 #include "gl_utils.h"
 
 #include "event.h"
+#include "debug.h"
 #include "renderer/renderer.h"
 #include "renderer/quad.h"
 

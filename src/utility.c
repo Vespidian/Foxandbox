@@ -47,7 +47,7 @@ int strshft_l(char *stringShift, int startIndex, int shiftBy){
 	return 0;
 }
 
-bool CompareVector2(iVector2 v1, iVector2 v2){
+bool CompareVector2(Vector2_i v1, Vector2_i v2){
 	if(v1.x == v2.x && v1.y == v2.y){
 		return true;
 	}

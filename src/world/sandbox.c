@@ -1,8 +1,8 @@
 #include <unistd.h>
 
 #include "../global.h"
+#include "../debug.h"
 #include "../utility.h"
-// #include "../renderer/renderer.h"
 #include "../renderer/quad.h"
 #include "../renderer/render_text.h"
 #include "../event.h"
@@ -22,16 +22,16 @@ void LevelMouseInteraction();
 void LevelMovement();
 
 //Mouse position
-iVector2 mouse_tile_pos;
-iVector2 mouse_global_tile_pos;
+Vector2_i mouse_tile_pos;
+Vector2_i mouse_global_tile_pos;
 
 //Character position
-iVector2 player_coordinate_offset = {0, 0};
-iVector2 global_position = {0, 0};
-// iVector2 player_coordinate = {-52, -57};
-iVector2 player_coordinate = {0, 0};
-// iVector2 player_coordinate = {-20, -25};
-// iVector2 player_coordinate = {13, 8};
+Vector2_i player_coordinate_offset = {0, 0};
+Vector2_i global_position = {0, 0};
+// Vector2_i player_coordinate = {-52, -57};
+Vector2_i player_coordinate = {0, 0};
+// Vector2_i player_coordinate = {-20, -25};
+// Vector2_i player_coordinate = {13, 8};
 
 const char save_path[] = "../saves/";
 
@@ -187,11 +187,11 @@ void UnloadSandbox(){
 }
 
 void RenderSandbox(){
-    iVector2 chunk = {0, 0};
-    iVector2 chunk_offset = {0, 0};
+    Vector2_i chunk = {0, 0};
+    Vector2_i chunk_offset = {0, 0};
     for(int y = 0; y <= chunk_load_radius * 2 - 1; y++){
         for(int x = 0; x <= chunk_load_radius * 2 - 1; x++){
-            chunk = (iVector2){((player_coordinate.x) / chunk_size) + x - 1, ((player_coordinate.y) / chunk_size) + y - 1};
+            chunk = (Vector2_i){((player_coordinate.x) / chunk_size) + x - 1, ((player_coordinate.y) / chunk_size) + y - 1};
             chunk_offset.x = (x * chunk_size * tile_render_size) + (-player_coordinate.x % chunk_size) * tile_render_size - player_coordinate_offset.x;
             chunk_offset.y = (y * chunk_size * tile_render_size) + (-player_coordinate.y % chunk_size) * tile_render_size - player_coordinate_offset.y;
             
@@ -211,10 +211,10 @@ void RenderSandbox(){
 
 
 
-BlockObject *PlaceBlock(BlockObject *block, iVector2 position, int layer, int rotation){//Returns whether or not the block was placed
+BlockObject *PlaceBlock(BlockObject *block, Vector2_i position, int layer, int rotation){//Returns whether or not the block was placed
 
-    iVector2 chunk_offset = {position.x % chunk_size, position.y % chunk_size};
-    iVector2 chunk_coord = {position.x / chunk_size, position.y / chunk_size};
+    Vector2_i chunk_offset = {position.x % chunk_size, position.y % chunk_size};
+    Vector2_i chunk_coord = {position.x / chunk_size, position.y / chunk_size};
     //Negative position
     if(position.x < 0){
         chunk_offset.x = (position.x + 1) % chunk_size + chunk_size - 1;
@@ -224,14 +224,14 @@ BlockObject *PlaceBlock(BlockObject *block, iVector2 position, int layer, int ro
         chunk_offset.y = (position.y + 1) % chunk_size + chunk_size - 1;
         chunk_coord.y = (position.y + 1) / chunk_size - 1;
     }
-    BlockObject *tmp_block = FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block;
-    FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block = block;
+    BlockObject *tmp_block = FindBlock_id(FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block);
+    FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].block = block->id;
     FindChunk(chunk_coord)->tile[layer][chunk_offset.y][chunk_offset.x].rotation = rotation;
     return FindBlock_id(tmp_block->id);
 }
 
 void RenderCursor(){
-    iVector2 chunkCenterOffset = {
+    Vector2_i chunkCenterOffset = {
         (SCREEN_WIDTH / 2) - (chunk_size * tile_render_size * chunk_load_radius) - tile_render_size / 2,
         (SCREEN_HEIGHT / 2) - (chunk_size * tile_render_size * chunk_load_radius) - tile_render_size / 2
     };
@@ -248,18 +248,18 @@ void RenderCursor(){
     // PushRender_Tilesheet(renderer, FindTilesheet("builtin"), 2, cursor, RNDR_UI);
 	RenderTilesheet(builtin_tilesheet, 2, &cursor, RNDR_UI, (Vector4){1, 1, 1, 1});
 
-    mouse_global_tile_pos = (iVector2){
+    mouse_global_tile_pos = (Vector2_i){
         mouse_tile_pos.x + player_coordinate.x - chunkCenterOffset.x / tile_render_size - chunk_size, 
         mouse_tile_pos.y + player_coordinate.y - chunkCenterOffset.y / tile_render_size - chunk_size
     };
     
-    iVector2 info_group = {0, 0};
+    Vector2_i info_group = {0, 0};
     RenderText(FindFont("default_font"), 1, info_group.x, info_group.y, 0, "mouse_tile_pos: %d, %d", mouse_tile_pos.x, mouse_tile_pos.y);
     RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 20, 0, "mouse_global_tile_pos: %d, %d", mouse_global_tile_pos.x, mouse_global_tile_pos.y);
     RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 40, 0, "player_coordinate_offset: %d, %d", player_coordinate_offset.x, player_coordinate_offset.y);
     RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 60, 0, "player_coordinate: %d, %d", player_coordinate.x, player_coordinate.y);
-    iVector2 chunk_out = {0, 0};
-    iVector2 chunk_offset = {0, 0};
+    Vector2_i chunk_out = {0, 0};
+    Vector2_i chunk_offset = {0, 0};
     CoordinateConvert(mouse_global_tile_pos, &chunk_out, &chunk_offset);
     RenderText(FindFont("default_font"), 1, info_group.x, info_group.y + 80, 0, "chunk: %d, %d", chunk_out.x, chunk_out.y);
 }

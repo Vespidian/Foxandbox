@@ -1,4 +1,5 @@
 #include "global.h"
+#include "debug.h"
 #include "gl_context.h"
 #include "renderer/renderer.h"
 

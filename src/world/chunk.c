@@ -1,9 +1,9 @@
 #include "../global.h"
+#include "../debug.h"
 #include "../utility.h"
-#include "block.h"
 #include "../renderer/quad.h"
+#include "block.h"
 #include "sandbox.h"
-#include "sandbox_generation.h"
 
 #include "../ui/ui.h"
 #include "../ui/resizable_rect.h"
@@ -16,11 +16,11 @@ const int num_chunk_layers = 4;
 int tile_render_size = 64;
 int chunk_buffer_timeout = 5000;
 
-ChunkObject *NewChunk(iVector2 position){
+ChunkObject *NewChunk(Vector2_i position){
     active_sandbox.chunk_buffer = realloc(active_sandbox.chunk_buffer, sizeof(ChunkObject) * (active_sandbox.chunk_buffer_size + 1));
     ChunkObject *chunk = &active_sandbox.chunk_buffer[active_sandbox.chunk_buffer_size];
     
-    TileObject template_tile = {&air_block, 0, 0, 255, (Vector4){1, 1, 1, 1}};
+    TileObject template_tile = {air_block.id, 0, 0, 255, (Vector4){1, 1, 1, 1}};
     for(int y = 0; y < chunk_size; y++){
         memset(chunk->collision[y], -1, sizeof(int) * (chunk_size));
         for(int x = 0; x < chunk_size; x++){
@@ -34,15 +34,10 @@ ChunkObject *NewChunk(iVector2 position){
     chunk->isGenerated = false;
     active_sandbox.chunk_buffer_size++;
 
-
-    // RandomFill(position, 50);
-	// IterateCellularAutomata(chunk);
-	// IterateCellularAutomata(chunk->position);
-    // FillChunk(position);
     return chunk;
 }
 
-void UnloadChunk(iVector2 position){
+void UnloadChunk(Vector2_i position){
     int offset = -1;
     for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
         if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
@@ -66,7 +61,7 @@ void UnloadOldChunks(){
     }
 }
 
-void WriteChunk(ChunkObject *chunk, iVector2 position){
+void WriteChunk(ChunkObject *chunk, Vector2_i position){
     char name[260];
     snprintf(name, 260, "%s%s/chunks/%d,%d", save_path, active_sandbox.name, position.x, position.y);
     FILE *chunkFile = fopen(name, "w");
@@ -76,7 +71,7 @@ void WriteChunk(ChunkObject *chunk, iVector2 position){
         fprintf(chunkFile, "->%d\n", z);
         for(int y = 0; y < chunk_size; y++){
             for(int x = 0; x < chunk_size; x++){
-                fprintf(chunkFile, "%s,", chunk->tile[z][y][x].block->item.name);
+                fprintf(chunkFile, "%s,", FindBlock_id(chunk->tile[z][y][x].block)->item.name);
                 if(chunk->tile[z][y][x].rotation > 0){
                     fprintf(chunkFile, "~%d", chunk->tile[z][y][x].rotation);
                 }
@@ -90,7 +85,7 @@ void WriteChunk(ChunkObject *chunk, iVector2 position){
     DebugLog(D_VERBOSE_ACT, "Wrote to chunk '%d,%d' in sandbox '%s'", position, name);
 }
 
-ChunkObject *ReadChunk(iVector2 position){
+ChunkObject *ReadChunk(Vector2_i position){
     char name[260];
     snprintf(name, 260, "%s%s/chunks/%d,%d", save_path, active_sandbox.name, position.x, position.y);
     FILE *chunk_file = fopen(name, "r");
@@ -122,7 +117,7 @@ ChunkObject *ReadChunk(iVector2 position){
                             *(strchr(tile, '~')) = '\0';//Leave behind only the tile name
                         }
                         chunk->tile[chunkLayer][layerY][x].rotation = rotation;// Assign rotation value
-                        chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile);// Assign block based on tile name
+                        chunk->tile[chunkLayer][layerY][x].block = FindBlock(tile)->id;// Assign block based on tile name
                         char *tmp = strtok(NULL, ",");// Read next tile
                         if(tmp != NULL){// Make sure tile is read correctly
                             strcpy(tile, tmp);
@@ -156,7 +151,7 @@ ChunkObject *ReadChunk(iVector2 position){
     return chunk;
 }
 
-ChunkObject *FindChunk(iVector2 position){
+ChunkObject *FindChunk(Vector2_i position){
     //Check chunk buffer
     for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
         if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
@@ -168,7 +163,7 @@ ChunkObject *FindChunk(iVector2 position){
     return ReadChunk(position);
 }
 
-bool CheckChunkExists(iVector2 position){
+bool CheckChunkExists(Vector2_i position){
     for(int i = 0; i < active_sandbox.chunk_buffer_size; i++){
         if(CompareVector2(active_sandbox.chunk_buffer[i].position, position)){
             return true;
@@ -185,7 +180,7 @@ bool CheckChunkExists(iVector2 position){
     return false;
 }
 
-void RenderChunk(ChunkObject *chunk, iVector2 position){
+void RenderChunk(ChunkObject *chunk, Vector2_i position){
     SDL_Rect chunkRect = {position.x, position.y, chunk_size * tile_render_size, chunk_size * tile_render_size};
 
     if(SDL_HasIntersection(GetWindowRect(window), &chunkRect)){
@@ -197,8 +192,8 @@ void RenderChunk(ChunkObject *chunk, iVector2 position){
                 tileRect.x = (x * tile_render_size) + position.x;
                 tileRect.y = (y * tile_render_size) + position.y;
                 for(int z = 0; z < num_chunk_layers; z++){
-                    BlockObject *terrainBlock = chunk->tile[z][y][x].block;
-                    if(chunk->tile[z][y][x].block->id != air_block.id){
+                    BlockObject *terrainBlock = FindBlock_id(chunk->tile[z][y][x].block);
+                    if(chunk->tile[z][y][x].block != air_block.id){
 						RenderTilesheet(terrainBlock->tilesheet, terrainBlock->tile_index, &tileRect, chunk->tile[z][y][x].zPos, chunk->tile[z][y][x].color);
                         chunk->tile[z][y][x].zPos = RNDR_LEVEL + z + 1;
                         chunk->tile[z][y][x].rotation = 0;

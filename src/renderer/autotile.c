@@ -1,7 +1,9 @@
 #include "../global.h"
-#include "renderer.h"
+#include "quad.h"
+#include "../gl_utils.h"
 #include "../world/chunk.h"
 #include "../world/sandbox_generation.h"
+#include "materials/mask.h"
 
 const int autotile_correlations[46] = {
     2, 8, 10, 11, 16, 18, 22, 24, 26, 27, 30, 31, 64, 66, 72, 74, 75, 
@@ -17,6 +19,7 @@ Vector2 surround_correlation[8] = {
 
 void InitAutotile(){
     // NewTilesheetFromFile("autotile_mask", "../images/autotile_mask.png", (Vector2){16, 16});
+	InitMaskedRender();
 }
 
 /**
@@ -37,6 +40,52 @@ void ChooseSubBase(Vector2 position){
             sub_id = FindChunk(chunk)->tile[0][surround_correlation[i].y][surround_correlation[i].x].block;
         }
     }*/
+}
+
+BlockObject DetermineSubBlock(Vector2_i coordinate){
+	Vector2_i chunk;
+	Vector2_i offset;
+	unsigned int types[8] = {0};
+	uint8_t counts[8] = {0};
+	int num_blocks_found = 0;
+
+	for(int y = coordinate.y - 1; y <= coordinate.y + 1; y++){
+		for(int x = coordinate.x - 1; x <= coordinate.x + 1; x++){
+			CoordinateConvert(coordinate, &chunk, &offset);
+
+			bool block_found = false;
+			unsigned int block_id = FindChunk(chunk)->tile[0][offset.y][offset.x].block;
+			for(int i = 0; i < 8 || i > num_blocks_found; i++){
+				if(block_id == types[i]){
+					counts[i]++;
+					block_found = true;
+					break;
+				}
+			}
+			if(!block_found){
+				num_blocks_found++;
+				types[num_blocks_found] = block_id;
+				counts[num_blocks_found] = 1;
+			}
+		}
+	}
+	unsigned int sub_block = types[0];
+	for(int i = 0; i < 7 || i > num_blocks_found; i++){
+		if(counts[i] < counts[i + 1]){
+			sub_block = types[i + 1];
+		}
+	}
+	return *FindBlock_id(sub_block);
+}
+
+void RenderAutotile(SDL_Rect screen_position, Vector2_i coordinate){
+	Vector2_i chunk;
+	Vector2_i offset;
+	CoordinateConvert(coordinate, &chunk, &offset);
+	TileObject tile = FindChunk(chunk)->tile[0][offset.y][offset.x];
+	BlockObject top_block = *FindBlock_id(tile.block);
+	BlockObject sub_block = DetermineSubBlock(coordinate);
+	MaskedRender(top_block.tilesheet, top_block.tile_index, sub_block.tilesheet, sub_block.tile_index, tile.autotile_value, screen_position, RNDR_LEVEL, (SDL_Color){1, 1, 1, 1});
 }
 
 void RenderTerrainAutotile(SDL_Renderer *renderer, Vector2 position, SDL_Rect dst, int zPos){
@@ -84,70 +133,79 @@ void RenderTerrainAutotile(SDL_Renderer *renderer, Vector2 position, SDL_Rect ds
 
 }
 
-uint8_t CalculateAutotile(Vector2 position){
-    // Vector2 tmp_chunk;
-    // Vector2 tmp_offset;
+uint8_t CalculateAutotile(Vector2_i position){
+    Vector2_i tmp_chunk;
+    Vector2_i tmp_offset;
 
-    // CoordinateConvert(position, &tmp_chunk, &tmp_offset);
-    // int base_tile_id = FindChunk(tmp_chunk)->tile[0][tmp_offset.y][tmp_offset.x].block;
+    CoordinateConvert(position, &tmp_chunk, &tmp_offset);
+    int base_tile_id = FindChunk(tmp_chunk)->tile[0][tmp_offset.y][tmp_offset.x].block;
 
-    // int autotile_value = 0;
-    // int autotile_value_uncompressed = 0;
-    // bool tiles[8];
-    // /* Corresponding 'tiles' array indices
-	//  0  |  1  | 2
-	// ____|_____|____
-	//  3  | /// | 4
-	// ____|_____|____
-	//  5  |  6  | 7
-	// */
+    int autotile_value = 0;
+    int autotile_value_uncompressed = 0;
+    bool tiles[8];
+    /* Corresponding 'tiles' array indices
+	 0  |  1  | 2
+	____|_____|____
+	 3  | /// | 4
+	____|_____|____
+	 5  |  6  | 7
+	*/
 
-    // for(int y = position.y - 1; y <= position.y + 1; y++){
-    //     for(int x = position.x - 1; x <= position.x + 1; x++){
-    //         if(y != position.y || x != position.x){
-    //             CoordinateConvert((Vector2){x, y}, &tmp_chunk, &tmp_offset);
-    //             tiles[y * 3 + x] = FindChunk(tmp_chunk)->tile[0][tmp_offset.y][tmp_offset.x].block != base_tile_id;
-    //         }
-    //     }
-    // }
-    // autotile_value_uncompressed = autotile_value;
+    for(int y = position.y - 1; y <= position.y + 1; y++){
+        for(int x = position.x - 1; x <= position.x + 1; x++){
+            if(y != position.y || x != position.x){
+                CoordinateConvert((Vector2_i){x, y}, &tmp_chunk, &tmp_offset);
+                tiles[y * 3 + x] = FindChunk(tmp_chunk)->tile[0][tmp_offset.y][tmp_offset.x].block != base_tile_id;
+            }
+        }
+    }
+    autotile_value_uncompressed = autotile_value;
 
-    // // Reduce possible options down to 47
-    // if(tiles[0]){
-    //     if(!tiles[1] || !tiles[3]){
-    //         tiles[0] = false;
-    //     }
-    // }
-    // if(tiles[2]){
-    //     if(!tiles[1] || !tiles[4]){
-    //         tiles[2] = false;
-    //     }
-    // }
-    // if(tiles[5]){
-    //     if(!tiles[6] || !tiles[3]){
-    //         tiles[5] = false;
-    //     }
-    // }
-    // if(tiles[7]){
-    //     if(!tiles[6] || !tiles[4]){
-    //         tiles[7] = false;
-    //     }
-    // }
+    // Reduce possible options down to 47
+    if(tiles[0]){
+        if(!tiles[1] || !tiles[3]){
+            tiles[0] = false;
+        }
+    }
+    if(tiles[2]){
+        if(!tiles[1] || !tiles[4]){
+            tiles[2] = false;
+        }
+    }
+    if(tiles[5]){
+        if(!tiles[6] || !tiles[3]){
+            tiles[5] = false;
+        }
+    }
+    if(tiles[7]){
+        if(!tiles[6] || !tiles[4]){
+            tiles[7] = false;
+        }
+    }
 
-    // // Accumulate the tiles into the final autotile_value
-    // for(int i = 0; i < 8; i++){
-    //     autotile_value += tiles[i] << i;
-    // }
+    // Accumulate the tiles into the final autotile_value
+    for(int i = 0; i < 8; i++){
+        autotile_value += tiles[i] << i;
+    }
 
-    // // Filter the 47 possible options using the correlation array
-    // if(autotile_value != 0 && autotile_value != 255){
-    //     for(int i = 0; i < 47; i++){
-    //         if(autotile_value == autotile_correlations[i - 1]){
-    //             autotile_value = i;
-    //             break;
-    //         }
-    //     }
-    // }
-    // return autotile_value + (autotile_value_uncompressed << 8);
-	return 0;
+    // Filter the 47 possible options using the correlation array
+    if(autotile_value != 0 && autotile_value != 255){
+        for(int i = 0; i < 47; i++){
+            if(autotile_value == autotile_correlations[i - 1]){
+                autotile_value = i;
+                break;
+            }
+        }
+    }
+
+	for(int y = position.y - 1; y <= position.y + 1; y++){
+		for(int x = position.x - 1; x <= position.x + 1; x++){
+			CoordinateConvert((Vector2_i){x, y}, &tmp_chunk, &tmp_offset);
+			TileObject *chunk_tile = &FindChunk(tmp_chunk)->tile[0][tmp_offset.y][tmp_offset.x];
+			chunk_tile->autotile_value = autotile_value;
+			chunk_tile->autotile_value_uncompressed = autotile_value_uncompressed;
+		}
+	}
+
+    return autotile_value + (autotile_value_uncompressed << 8);
 }

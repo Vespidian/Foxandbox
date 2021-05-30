@@ -4,7 +4,8 @@
 #include "block.h"
 
 typedef struct TileObject{
-    BlockObject *block;
+    // BlockObject *block;
+    unsigned int block;
     int zPos;
     int rotation;
     int alpha;
@@ -14,7 +15,7 @@ typedef struct TileObject{
 }TileObject;
 
 typedef struct ChunkObject{// Chunk size is hard coded
-    iVector2 position;
+    Vector2_i position;
     unsigned int lastAccess;
     TileObject tile[4][32][32];// A chunk is a 32x32 section of map with 8 layers and a collision map
     int collision[32][32];
@@ -27,15 +28,15 @@ extern const int num_chunk_layers;
 extern int tile_render_size;
 extern int chunk_buffer_timeout;
 
-ChunkObject *FindChunk(iVector2 position);
-bool CheckChunkExists(iVector2 position);
-void WriteChunk(ChunkObject *chunk, iVector2 position);
-void UnloadChunk(iVector2 position);
+ChunkObject *FindChunk(Vector2_i position);
+bool CheckChunkExists(Vector2_i position);
+void WriteChunk(ChunkObject *chunk, Vector2_i position);
+void UnloadChunk(Vector2_i position);
 void UnloadOldChunks();
-void RenderChunk(ChunkObject *chunk, iVector2 position);
+void RenderChunk(ChunkObject *chunk, Vector2_i position);
 
 //tmp
-BlockObject *PlaceBlock(BlockObject *block, iVector2 position, int layer, int rotation);
-BlockObject *RemoveBlock(TileObject **layer, iVector2 pos);
+BlockObject *PlaceBlock(BlockObject *block, Vector2_i position, int layer, int rotation);
+BlockObject *RemoveBlock(TileObject **layer, Vector2_i pos);
 
 #endif

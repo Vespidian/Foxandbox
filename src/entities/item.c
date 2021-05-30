@@ -1,4 +1,5 @@
 #include "../global.h"
+#include "../debug.h"
 #include "item.h"
 
 ItemObject undefined_item;

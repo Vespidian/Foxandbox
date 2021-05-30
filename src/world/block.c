@@ -1,4 +1,5 @@
 #include "../global.h"
+#include "../debug.h"
 #include "block.h"
 
 BlockObject air_block;

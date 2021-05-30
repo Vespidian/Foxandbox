@@ -10,7 +10,7 @@ float map(float x, float in_min, float in_max, float out_min, float out_max){
 
 int padding = 6;
 
-void RenderSlider(float *current, float max, float min, iVector4 transform){
+void RenderSlider(float *current, float max, float min, Vector4_i transform){
 	SDL_Rect handle = {map(*current, min, max, transform.x, transform.x + transform.z) - 6, transform.y + transform.w / 8, 12, transform.w - transform.w / 4};
 	SDL_Rect rect;
 	if(handle.x - (transform.x - padding) > 6){

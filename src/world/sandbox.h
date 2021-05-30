@@ -23,9 +23,9 @@ void UnloadSandbox();
 void ReadSandbox(char *name);
 extern const char save_path[];
 
-extern iVector2 player_coordinate_offset;
-extern iVector2 player_coordinate;
-extern iVector2 mouse_tile_pos;
-extern iVector2 mouse_global_tile_pos;
+extern Vector2_i player_coordinate_offset;
+extern Vector2_i player_coordinate;
+extern Vector2_i mouse_tile_pos;
+extern Vector2_i mouse_global_tile_pos;
 
 #endif

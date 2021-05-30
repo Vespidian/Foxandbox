@@ -10,19 +10,18 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_opengl.h>
-#include <cglm/cglm.h>
 
-#include "debug.h"
+#include "include/cglm/cglm.h"
 #include "gl_utils.h"
 
 #define DEBUG_BUILD
 
 enum RENDER_LAYERS {RNDR_BACKGROUND = 0, RNDR_LEVEL = 5, RNDR_ENTITY = 20, RNDR_UI = 30, RNDR_TEXT = 40};
 
-typedef struct iVector2{
+typedef struct Vector2_i{
 	int x;
 	int y;
-}iVector2;
+}Vector2_i;
 
 
 typedef struct {
@@ -57,7 +56,7 @@ typedef struct {
 		struct {int s, t, p, q;};
 		int v[4];
 	};
-}iVector4;
+}Vector4_i;
 
 
 extern int SCREEN_WIDTH;

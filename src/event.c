@@ -1,4 +1,5 @@
 #include "global.h"
+#include "debug.h"
 #include "renderer/renderer.h"
 #include "text_event.h"
 

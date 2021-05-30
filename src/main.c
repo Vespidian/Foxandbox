@@ -2,6 +2,7 @@
 #include "event.h"
 #include "gl_context.h"
 #include "textures.h"
+#include "debug.h"
 #include "entities/item.h"
 
 #include "world/block.h"
@@ -12,6 +13,7 @@
 #include "renderer/render_text.h"
 #include "renderer/render_text.h"
 #include "renderer/quad.h"
+#include "renderer/autotile.h"// move to world folder
 
 #include "ui/ui.h"
 #include "ui/start_screen.h"
@@ -77,6 +79,7 @@ void Setup(){
 	InitSandboxes();
 	InitUI();
 	LoadScreenInit();
+	// InitAutotile();
 
 
 	LoadBuiltinResources();
